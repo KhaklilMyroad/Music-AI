@@ -1,0 +1,14 @@
+# ACE-Step 1.5 - cloned locally by setup script, not committed here
+ACE-Step-1.5/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Model weights and generated audio
+checkpoints/
+outputs/
+*.wav
+*.mp3
+*.flac
