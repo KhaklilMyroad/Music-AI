@@ -116,3 +116,12 @@ def test_studio_requires_ready_source(client):
     track = client.post("/api/songs", json={"prompt": "ambient"}).json()
     resp = client.post(f"/api/studio/{track['id']}/stems", json={})
     assert resp.status_code == 409
+
+
+def test_audio_path_found_in_nested_result_shapes():
+    from app.services.jobs import _find_audio_path
+
+    assert _find_audio_path({"audios": [{"path": "/out/a.flac"}]}) == "/out/a.flac"
+    assert _find_audio_path(["/outputs/take_1.wav", "/outputs/take_2.wav"]) == "/outputs/take_1.wav"
+    assert _find_audio_path({"data": {"result": {"file_url": "http://x/y.mp3?sig=1"}}}) == "http://x/y.mp3?sig=1"
+    assert _find_audio_path({"prompt": "rock song", "seed": 1}) is None

@@ -14,19 +14,39 @@ from .acestep import get_acestep
 log = logging.getLogger("crescendo.jobs")
 
 
-def _apply_result(track: Track, result: dict[str, Any]) -> None:
+_AUDIO_EXTS = (".mp3", ".wav", ".flac", ".opus", ".aac", ".ogg", ".m4a")
+
+
+def _find_audio_path(node: Any) -> str | None:
+    """Depth-first search for the first string that looks like an audio file.
+
+    Engine versions disagree on where the file lands in the result JSON
+    (top-level key, nested dict, list of takes), so match by extension anywhere.
+    """
+    if isinstance(node, str):
+        if node.lower().split("?", 1)[0].endswith(_AUDIO_EXTS):
+            return node
+        return None
+    if isinstance(node, dict):
+        values = node.values()
+    elif isinstance(node, list):
+        values = node
+    else:
+        return None
+    for value in values:
+        found = _find_audio_path(value)
+        if found:
+            return found
+    return None
+
+
+def _apply_result(track: Track, result: Any) -> None:
     """Copy engine result fields onto the track. Result shape per docs/en/API.md."""
+    track.audio_path = _find_audio_path(result) or track.audio_path
+    if not track.audio_path:
+        log.warning("no audio file found in engine result: %r", result)
     if not isinstance(result, dict):
         return
-    # The engine returns file path/url plus detected metadata; keys vary slightly
-    # between versions, so probe the common spellings.
-    for key in ("audio_path", "file", "file_path", "audio_url", "url", "path"):
-        value = result.get(key)
-        if isinstance(value, list) and value:
-            value = value[0]
-        if isinstance(value, str) and value:
-            track.audio_path = value
-            break
     meta = result.get("metadata") if isinstance(result.get("metadata"), dict) else result
     track.bpm = meta.get("bpm", track.bpm)
     track.duration = meta.get("duration", meta.get("audio_duration", track.duration))
@@ -70,7 +90,10 @@ async def poll_once() -> int:
                     track.error = "engine completed but returned no audio path"
             elif status == 2:
                 track.status = TrackStatus.failed
-                track.error = str((state.get("result") or {}).get("raw", "generation failed"))
+                failure = state.get("result")
+                if isinstance(failure, dict):
+                    failure = failure.get("raw") or failure.get("error") or failure
+                track.error = str(failure or "generation failed")
             else:
                 track.status = TrackStatus.generating
             track.updated_at = datetime.now(timezone.utc)
