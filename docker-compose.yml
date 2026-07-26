@@ -1,0 +1,42 @@
+services:
+  # LLM gateway — routes AI Producer calls through free/cheap providers first
+  omniroute:
+    image: diegosouzapw/omniroute
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      # The GPU engine usually runs on the host or a separate GPU box
+      ACESTEP_API_URL: ${ACESTEP_API_URL:-http://host.docker.internal:8001}
+      ACESTEP_MODEL: ${ACESTEP_MODEL:-acestep-v15-turbo}
+      OMNIROUTE_BASE_URL: http://omniroute:4000/v1
+      OMNIROUTE_API_KEY: ${OMNIROUTE_API_KEY:-sk-omniroute-local}
+      OMNIROUTE_MODEL: ${OMNIROUTE_MODEL:-claude-sonnet-5}
+      DATABASE_URL: sqlite:////data/crescendo.db
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8080
+    volumes:
+      - crescendo-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - omniroute
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  crescendo-data:
