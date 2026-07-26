@@ -23,6 +23,7 @@ class AceStepClient:
         settings = get_settings()
         self.base_url = (base_url or settings.acestep_api_url).rstrip("/")
         self.default_model = settings.acestep_model
+        self.default_audio_format = settings.acestep_audio_format
         self._client = httpx.AsyncClient(base_url=self.base_url, timeout=timeout)
 
     async def aclose(self) -> None:
@@ -58,7 +59,7 @@ class AceStepClient:
         vocal_language: Optional[str] = None,
         batch_size: int = 1,
         seed: Optional[int] = None,
-        audio_format: str = "mp3",
+        audio_format: Optional[str] = None,
         thinking: bool = True,
         model: Optional[str] = None,
         src_audio_path: Optional[str] = None,
@@ -73,7 +74,7 @@ class AceStepClient:
             "lyrics": lyrics,
             "thinking": thinking,
             "model": model or self.default_model,
-            "audio_format": audio_format,
+            "audio_format": audio_format or self.default_audio_format,
             "batch_size": max(1, min(batch_size, 8)),
         }
         optional = {

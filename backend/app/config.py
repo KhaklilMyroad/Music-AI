@@ -8,6 +8,9 @@ class Settings(BaseSettings):
 
     acestep_api_url: str = "http://localhost:8001"
     acestep_model: str = "acestep-v15-turbo"
+    # flac is the engine's native default; mp3 requires ffmpeg on the engine host
+    # (saving fails silently with an empty file path when it's missing).
+    acestep_audio_format: str = "flac"
 
     omniroute_base_url: str = "http://localhost:4000/v1"
     omniroute_api_key: str = "sk-omniroute-local"
