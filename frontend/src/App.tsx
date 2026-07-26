@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, SongPlan, Track } from './api'
+import { GENRE_PRESETS, PRESET_FAMILIES } from './presets'
 
 const LANGS = ['english', 'hebrew', 'spanish', 'french', 'japanese', 'arabic', 'german', 'portuguese']
 
@@ -48,6 +49,20 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
   const [duration, setDuration] = useState(120)
   const [takes, setTakes] = useState(1)
   const [busy, setBusy] = useState('')
+  const [presetId, setPresetId] = useState('')
+  const [bpm, setBpm] = useState<number | null>(null)
+  const [instrumental, setInstrumental] = useState(false)
+
+  const applyPreset = (id: string) => {
+    setPresetId(id)
+    const preset = GENRE_PRESETS.find(p => p.id === id)
+    if (preset) {
+      setPrompt(preset.prompt)
+      setBpm(preset.bpm)
+      setInstrumental(true)
+      setLyrics('')
+    }
+  }
 
   const applyPlan = (p: SongPlan) => {
     setTitle(p.title ?? '')
@@ -86,13 +101,34 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
         </button>
       </div>
 
+      <label>Electronic genre preset (fills prompt + BPM, sets instrumental)</label>
+      <select value={presetId} onChange={e => applyPreset(e.target.value)}>
+        <option value="">— pick a genre —</option>
+        {PRESET_FAMILIES.map(family => (
+          <optgroup key={family} label={family}>
+            {GENRE_PRESETS.filter(p => p.family === family).map(p => (
+              <option key={p.id} value={p.id}>{p.label} · {p.bpm} bpm</option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+
       <label>Title</label>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Song title" />
       <label>Style prompt</label>
       <textarea value={prompt} onChange={e => setPrompt(e.target.value)} rows={2}
         placeholder="genre, mood, instruments, production…" />
-      <label>Lyrics ([verse]/[chorus] tags, empty = instrumental)</label>
-      <textarea value={lyrics} onChange={e => setLyrics(e.target.value)} rows={6} dir="auto" />
+      <label>
+        <input type="checkbox" checked={instrumental} style={{ width: 'auto', marginRight: 6 }}
+          onChange={e => { setInstrumental(e.target.checked); if (e.target.checked) setLyrics('') }} />
+        Instrumental (no vocals)
+      </label>
+      {!instrumental && (
+        <>
+          <label>Lyrics ([verse]/[chorus] tags, empty = instrumental)</label>
+          <textarea value={lyrics} onChange={e => setLyrics(e.target.value)} rows={6} dir="auto" />
+        </>
+      )}
 
       <div className="row">
         <label>Language
@@ -114,8 +150,8 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
       <button className="primary" disabled={!prompt || !!busy}
         onClick={() => run('gen', async () => {
           await api.createSong({
-            title: title || undefined, prompt, lyrics, duration,
-            vocal_language: language, batch_size: takes,
+            title: title || undefined, prompt, lyrics: instrumental ? '' : lyrics, duration,
+            vocal_language: language, batch_size: takes, bpm: bpm ?? undefined,
           })
           onCreated()
         })}>
