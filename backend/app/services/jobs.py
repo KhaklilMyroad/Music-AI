@@ -3,6 +3,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 from sqlmodel import Session, select
 
@@ -17,6 +18,16 @@ log = logging.getLogger("crescendo.jobs")
 _AUDIO_EXTS = (".mp3", ".wav", ".flac", ".opus", ".aac", ".ogg", ".m4a")
 
 
+def _normalize_audio_path(value: str) -> str:
+    """Reduce an engine download URL (/v1/audio?path=<urlencoded>) to the raw
+    file path, so our streaming proxy can re-wrap it exactly once."""
+    if "?" in value:
+        inner = parse_qs(urlsplit(value).query).get("path", [None])[0]
+        if inner:
+            return inner
+    return value
+
+
 def _find_audio_path(node: Any) -> str | None:
     """Depth-first search for the first string that looks like an audio file.
 
@@ -24,8 +35,11 @@ def _find_audio_path(node: Any) -> str | None:
     (top-level key, nested dict, list of takes), so match by extension anywhere.
     """
     if isinstance(node, str):
-        if node.lower().split("?", 1)[0].endswith(_AUDIO_EXTS):
-            return node
+        low = node.lower()
+        # match plain paths, URLs with trailing query (x.mp3?sig=1), and URLs
+        # whose query carries the path (/v1/audio?path=...%5Cx.flac)
+        if low.split("?", 1)[0].endswith(_AUDIO_EXTS) or low.endswith(_AUDIO_EXTS):
+            return _normalize_audio_path(node)
         return None
     if isinstance(node, dict):
         values = node.values()

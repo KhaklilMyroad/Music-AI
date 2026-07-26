@@ -125,3 +125,10 @@ def test_audio_path_found_in_nested_result_shapes():
     assert _find_audio_path(["/outputs/take_1.wav", "/outputs/take_2.wav"]) == "/outputs/take_1.wav"
     assert _find_audio_path({"data": {"result": {"file_url": "http://x/y.mp3?sig=1"}}}) == "http://x/y.mp3?sig=1"
     assert _find_audio_path({"prompt": "rock song", "seed": 1}) is None
+
+
+def test_audio_path_extracted_from_engine_download_url():
+    from app.services.jobs import _find_audio_path
+
+    result = [{"file": "/v1/audio?path=C%3A%5CUsers%5Cronen%5Ctmp%5Cabc.flac", "wave": ""}]
+    assert _find_audio_path(result) == "C:\\Users\\ronen\\tmp\\abc.flac"
