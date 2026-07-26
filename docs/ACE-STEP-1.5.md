@@ -94,3 +94,5 @@ PORT=7860
 ## הערה לגבי הסביבה המרוחקת הזו (Claude Code)
 
 הקונטיינר שבו בוצעה ההתקנה הוא **זמני** — הוא נמחק אחרי חוסר פעילות. בנוסף, **אין בו GPU**, כך שיצירת מוזיקה בו תהיה איטית מאוד (CPU בלבד). ההתקנה בוצעה כאן כדי לאמת שהתהליך עובד; כדי להשתמש ב-ACE-Step באמת, הריצו את `./setup-acestep.sh` על מחשב עם GPU.
+
+**חסימת רשת בסביבת Claude Code:** מדיניות הרשת של הסביבה חוסמת את `download.pytorch.org`, ולכן `uv sync` הרגיל נכשל בה. ה-workaround שבוצע: עריכת `pyproject.toml` של ACE-Step כך ש-PyTorch (torch/torchvision/torchaudio) יותקן מ-PyPI הרגיל במקום מהאינדקס של pytorch.org, וצמצום ה-resolution ללינוקס x86_64 בלבד (הסרת ה-`[[tool.uv.index]]` של pytorch-cu128/cu130 והגבלת `environments` ב-`[tool.uv]`). במחשב רגיל זה לא נדרש — `uv sync` הסטנדרטי עובד.
