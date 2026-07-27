@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, SongPlan, Track } from './api'
 import { ARRANGEMENTS, COMPOSE_PLANS, GENRE_PRESETS, PRESET_FAMILIES } from './presets'
 
 const LANGS = ['english', 'hebrew', 'spanish', 'french', 'japanese', 'arabic', 'german', 'portuguese']
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 interface Health {
   engine_reachable: boolean
@@ -16,16 +17,23 @@ function coverHue(id: string): number {
   return h
 }
 
-function fmtDuration(s?: number | null): string {
-  if (!s) return ''
+function coverStyle(id: string) {
+  return {
+    background: `linear-gradient(135deg, hsl(${coverHue(id)} 70% 45%), hsl(${(coverHue(id) + 60) % 360} 70% 30%))`,
+  }
+}
+
+function fmt(s?: number | null): string {
+  if (s == null || Number.isNaN(s)) return '0:00'
   const m = Math.floor(s / 60)
-  const sec = Math.round(s % 60)
+  const sec = Math.floor(s % 60)
   return `${m}:${sec.toString().padStart(2, '0')}`
 }
 
 export default function App() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [selected, setSelected] = useState<Track | null>(null)
+  const [playing, setPlaying] = useState<Track | null>(null)
   const [error, setError] = useState('')
   const [health, setHealth] = useState<Health | null>(null)
 
@@ -39,29 +47,25 @@ export default function App() {
     }
   }, [])
 
+  const pollHealth = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/health`)
+      setHealth(await res.json())
+    } catch {
+      setHealth(null)
+    }
+  }, [])
+
   useEffect(() => {
-    refresh()
+    refresh(); pollHealth()
     const iv = setInterval(refresh, 4000)
-    const hv = setInterval(async () => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/health`)
-        setHealth(await res.json())
-      } catch {
-        setHealth(null)
-      }
-    }, 8000)
-    ;(async () => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL ?? 'http://localhost:8000'}/api/health`)
-        setHealth(await res.json())
-      } catch { setHealth(null) }
-    })()
+    const hv = setInterval(pollHealth, 10000)
     return () => { clearInterval(iv); clearInterval(hv) }
-  }, [refresh])
+  }, [refresh, pollHealth])
 
   return (
-    <div className="shell">
-      <header>
+    <div className="app">
+      <aside className="sidebar">
         <div className="brand">
           <span className="logo">♪</span>
           <div>
@@ -69,33 +73,92 @@ export default function App() {
             <span className="tag">AI Music Studio</span>
           </div>
         </div>
-        <div className="status-pills">
-          <span className={`pill ${health?.engine_reachable ? 'on' : 'off'}`}>
-            ● Engine {health?.engine_reachable ? 'online' : 'offline'}
-          </span>
-          <span className={`pill ${health?.mastering_ready ? 'on' : 'off'}`}>
-            ● Mastering {health?.mastering_ready ? 'ready' : 'off'}
-          </span>
-          <span className={`pill ${health?.producer_reachable ? 'on' : 'off'}`}>
-            ● AI Producer {health?.producer_reachable ? 'ready' : 'off'}
-          </span>
+        <nav>
+          <a className="nav-item active" href="#create">🎛 Create</a>
+          <a className="nav-item" href="#library">🎵 Library</a>
+        </nav>
+        <div className="sidebar-status">
+          <span className={`pill ${health?.engine_reachable ? 'on' : 'off'}`}>● Engine</span>
+          <span className={`pill ${health?.mastering_ready ? 'on' : 'off'}`}>● Mastering</span>
+          <span className={`pill ${health?.producer_reachable ? 'on' : 'off'}`}>● Producer</span>
         </div>
-      </header>
-      {error && (
-        <div className="toast" onClick={() => setError('')}>
-          <strong>Something went wrong</strong>
-          <span>{error}</span>
-          <em>click to dismiss</em>
-        </div>
-      )}
-      <main>
-        <CreatePanel onCreated={refresh} onError={setError} />
-        <Library tracks={tracks} selected={selected} onSelect={setSelected} onChanged={refresh} onError={setError} />
-      </main>
-      <footer>Crescendo · unlimited AI music on your own GPU · you own every note</footer>
+        <div className="sidebar-foot">Your GPU · your music<br />no credits, ever</div>
+      </aside>
+
+      <div className="content">
+        {error && (
+          <div className="toast" onClick={() => setError('')}>
+            <strong>Something went wrong</strong>
+            <span>{error}</span>
+            <em>click to dismiss</em>
+          </div>
+        )}
+        <main>
+          <CreatePanel onCreated={refresh} onError={setError} />
+          <Library
+            tracks={tracks} selected={selected} playing={playing}
+            onSelect={setSelected} onPlay={setPlaying}
+            onChanged={refresh} onError={setError}
+          />
+        </main>
+      </div>
+
+      <PlayerBar track={playing} onEnded={() => setPlaying(null)} />
     </div>
   )
 }
+
+/* ---------------- global bottom player ---------------- */
+
+function PlayerBar({ track, onEnded }: { track: Track | null; onEnded: () => void }) {
+  const ref = useRef<HTMLAudioElement>(null)
+  const [paused, setPaused] = useState(false)
+  const [pos, setPos] = useState(0)
+  const [len, setLen] = useState(0)
+
+  useEffect(() => {
+    if (track && ref.current) {
+      ref.current.src = api.audioUrl(track.id)
+      ref.current.play().catch(() => undefined)
+      setPaused(false)
+    }
+  }, [track?.id])
+
+  if (!track) return null
+  return (
+    <div className="player-bar">
+      <audio
+        ref={ref}
+        onTimeUpdate={e => setPos(e.currentTarget.currentTime)}
+        onDurationChange={e => setLen(e.currentTarget.duration)}
+        onPlay={() => setPaused(false)}
+        onPause={() => setPaused(true)}
+        onEnded={onEnded}
+      />
+      <div className="cover small" style={coverStyle(track.id)}>♪</div>
+      <div className="player-meta">
+        <strong>{track.title}</strong>
+        <small>{track.bpm ? `${track.bpm} bpm · ` : ''}{track.key_scale ?? ''}</small>
+      </div>
+      <button className="play-btn" onClick={() => {
+        const a = ref.current
+        if (!a) return
+        if (a.paused) a.play().catch(() => undefined); else a.pause()
+      }}>
+        {paused ? '▶' : '⏸'}
+      </button>
+      <span className="time">{fmt(pos)}</span>
+      <input
+        className="seek" type="range" min={0} max={len || 1} step={0.5} value={pos}
+        onChange={e => { if (ref.current) ref.current.currentTime = Number(e.target.value) }}
+      />
+      <span className="time">{fmt(len)}</span>
+      <a className="download" href={`${api.audioUrl(track.id)}?download=1`}>⬇</a>
+    </div>
+  )
+}
+
+/* ---------------- create ---------------- */
 
 function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (m: string) => void }) {
   const [idea, setIdea] = useState('')
@@ -151,7 +214,7 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
     : { model: 'acestep-v15-turbo' }
 
   return (
-    <section className="panel">
+    <section className="panel" id="create">
       <h2>Create</h2>
 
       <div className="field-group">
@@ -215,7 +278,7 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
               {LANGS.map(l => <option key={l} value={l}>{l}</option>)}
             </select>
           </label>
-          <label>Duration · {fmtDuration(duration)}
+          <label>Duration · {fmt(duration)}
             <input type="range" min={30} max={300} step={10} value={duration}
               onChange={e => setDuration(Number(e.target.value))} />
           </label>
@@ -270,29 +333,61 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
   )
 }
 
-function Library({ tracks, selected, onSelect, onChanged, onError }: {
+/* ---------------- library ---------------- */
+
+type SortKey = 'newest' | 'oldest' | 'title'
+
+function Library({ tracks, selected, playing, onSelect, onPlay, onChanged, onError }: {
   tracks: Track[]
   selected: Track | null
+  playing: Track | null
   onSelect: (t: Track | null) => void
+  onPlay: (t: Track) => void
   onChanged: () => void
   onError: (m: string) => void
 }) {
+  const [query, setQuery] = useState('')
+  const [sort, setSort] = useState<SortKey>('newest')
+
+  const shown = tracks
+    .filter(t => !query || t.title.toLowerCase().includes(query.toLowerCase()) || t.prompt.toLowerCase().includes(query.toLowerCase()))
+    .sort((a, b) => {
+      if (sort === 'title') return a.title.localeCompare(b.title)
+      const d = a.created_at.localeCompare(b.created_at)
+      return sort === 'newest' ? -d : d
+    })
+
   return (
-    <section className="panel">
+    <section className="panel" id="library">
       <h2>Library <span className="count">{tracks.length}</span></h2>
-      {tracks.length === 0 && (
+      <div className="library-tools">
+        <input placeholder="🔍 Search tracks…" value={query} onChange={e => setQuery(e.target.value)} />
+        <select value={sort} onChange={e => setSort(e.target.value as SortKey)}>
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="title">Title A→Z</option>
+        </select>
+      </div>
+      {shown.length === 0 && (
         <div className="empty">
           <span>🎵</span>
-          <p>No tracks yet.<br />Pick a genre, hit Compose, and your first track lands here.</p>
+          <p>{tracks.length === 0
+            ? <>No tracks yet.<br />Pick a genre, hit Compose, and your first track lands here.</>
+            : 'No tracks match your search.'}</p>
         </div>
       )}
       <ul className="tracks">
-        {tracks.map(t => (
+        {shown.map(t => (
           <li key={t.id} className={selected?.id === t.id ? 'active' : ''} onClick={() => onSelect(t)}>
-            <div className="cover" style={{
-              background: `linear-gradient(135deg, hsl(${coverHue(t.id)} 70% 45%), hsl(${(coverHue(t.id) + 60) % 360} 70% 30%))`,
-            }}>
-              {t.status === 'generating' || t.status === 'queued' ? <span className="spin light" /> : '♪'}
+            <div className="cover" style={coverStyle(t.id)}>
+              {t.status === 'generating' || t.status === 'queued'
+                ? <span className="spin light" />
+                : t.status === 'ready'
+                  ? <button className="cover-play" onClick={e => { e.stopPropagation(); onPlay(t) }}>
+                      {playing?.id === t.id ? '♫' : '▶'}
+                    </button>
+                  : '♪'}
+              {t.duration ? <span className="dur">{fmt(t.duration)}</span> : null}
             </div>
             <div className="meta">
               <strong>{t.title}</strong>
@@ -300,7 +395,6 @@ function Library({ tracks, selected, onSelect, onChanged, onError }: {
                 {t.stage ?? t.status}
                 {t.bpm ? ` · ${t.bpm} bpm` : ''}
                 {t.key_scale ? ` · ${t.key_scale}` : ''}
-                {t.duration ? ` · ${fmtDuration(t.duration)}` : ''}
               </small>
               {(t.status === 'generating' || t.status === 'queued') && <div className="bar"><div /></div>}
             </div>
@@ -308,12 +402,19 @@ function Library({ tracks, selected, onSelect, onChanged, onError }: {
           </li>
         ))}
       </ul>
-      {selected && <StudioPanel track={selected} onChanged={onChanged} onError={onError} />}
+      {selected && <StudioPanel track={selected} onPlay={onPlay} onChanged={onChanged} onError={onError} />}
     </section>
   )
 }
 
-function StudioPanel({ track, onChanged, onError }: { track: Track; onChanged: () => void; onError: (m: string) => void }) {
+/* ---------------- studio ---------------- */
+
+function StudioPanel({ track, onPlay, onChanged, onError }: {
+  track: Track
+  onPlay: (t: Track) => void
+  onChanged: () => void
+  onError: (m: string) => void
+}) {
   const [editPrompt, setEditPrompt] = useState('')
   const [start, setStart] = useState(0)
   const [end, setEnd] = useState(10)
@@ -336,11 +437,15 @@ function StudioPanel({ track, onChanged, onError }: { track: Track; onChanged: (
     <div className="studio">
       <div className="studio-head">
         <h3>{track.title}</h3>
-        {track.status === 'ready' && (
-          <a className="download" href={`${api.audioUrl(track.id)}?download=1`}>⬇ Download</a>
-        )}
+        <div className="row" style={{ margin: 0 }}>
+          {track.status === 'ready' && (
+            <>
+              <button onClick={() => onPlay(track)}>▶ Play</button>
+              <a className="download" href={`${api.audioUrl(track.id)}?download=1`}>⬇ Download</a>
+            </>
+          )}
+        </div>
       </div>
-      {track.status === 'ready' && <audio controls src={api.audioUrl(track.id)} />}
       {track.status === 'failed' && <p className="fail">{track.error}</p>}
       {(track.status === 'queued' || track.status === 'generating') && (
         <p className="muted working"><span className="spin" /> {track.stage ?? track.status}…</p>
