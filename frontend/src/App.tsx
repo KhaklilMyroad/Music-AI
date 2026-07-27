@@ -274,9 +274,8 @@ function CreateView({ onCreated, onError }: { onCreated: () => void; onError: (m
     }
   }
 
-  const qualityBody = quality === 'pro'
-    ? { model: 'acestep-v15-sft', inference_steps: 50 }
-    : { model: 'acestep-v15-turbo' }
+  // resolved server-side to the right model family (2B locally, XL on a big GPU)
+  const qualityBody = { quality }
 
   return (
     <div className="view narrow">

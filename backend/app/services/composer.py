@@ -189,7 +189,8 @@ async def _compose_single_pass(
              status=TrackStatus.ready, stage=None)
     except Exception as exc:  # noqa: BLE001
         log.exception("single-pass compose failed for %s", track_id)
-        _set(track_id, status=TrackStatus.failed, error=str(exc), stage=None)
+        _set(track_id, status=TrackStatus.failed,
+             error=str(exc) or type(exc).__name__, stage=None)
 
 
 async def _compose_stitched(
@@ -205,7 +206,7 @@ async def _compose_stitched(
     """Legacy mode: chain per-section continuations and reassemble locally."""
     # 'complete' is only supported by the base model (engine support matrix),
     # so the whole chain runs on it for consistency.
-    model = "acestep-v15-base"
+    model = await get_acestep().base_model()
     inference_steps = 50
     audio_so_far: str | None = None
     total = len(sections)
@@ -268,6 +269,7 @@ async def _compose_stitched(
         )
     except Exception as exc:  # noqa: BLE001
         log.exception("compose failed for %s", track_id)
-        _set(track_id, status=TrackStatus.failed, error=str(exc), stage=None)
+        _set(track_id, status=TrackStatus.failed,
+             error=str(exc) or type(exc).__name__, stage=None)
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)

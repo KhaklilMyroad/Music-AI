@@ -14,7 +14,12 @@ class GenerateRequest(BaseModel):
     vocal_language: Optional[str] = None
     batch_size: int = Field(1, ge=1, le=8, description="Parallel takes (engine max 8)")
     seed: Optional[int] = None
-    model: Optional[str] = Field(None, description="DiT model, e.g. acestep-v15-sft for quality")
+    model: Optional[str] = Field(None, description="Explicit DiT model override")
+    quality: Optional[str] = Field(
+        None, pattern="^(pro|draft)$",
+        description="pro/draft - resolved server-side to the right model for the "
+                    "engine's family (2B locally, XL on a big GPU)",
+    )
     inference_steps: Optional[int] = Field(None, ge=1, le=200)
     guidance_scale: Optional[float] = Field(None, ge=0, le=30)
     thinking: bool = Field(
@@ -61,6 +66,7 @@ class ComposeRequest(BaseModel):
     thinking: bool = True
     vocal_language: Optional[str] = None
     model: Optional[str] = None
+    quality: Optional[str] = Field(None, pattern="^(pro|draft)$")
     inference_steps: Optional[int] = Field(None, ge=1, le=200)
     guidance_scale: Optional[float] = Field(None, ge=0, le=30)
 

@@ -7,6 +7,7 @@ Endpoint reference: ACE-Step-1.5/docs/en/API.md
   GET  /v1/models, GET /v1/stats, GET /health
 """
 import json
+import time
 from typing import Any, AsyncIterator, Optional
 
 import httpx
@@ -38,6 +39,7 @@ class AceStepClient:
         self.base_url = (base_url or settings.acestep_api_url).rstrip("/")
         self.default_model = settings.acestep_model
         self.default_audio_format = settings.acestep_audio_format
+        self._loaded_model_cache: tuple[float, Optional[str]] = (0.0, None)
         self._client = httpx.AsyncClient(base_url=self.base_url, timeout=timeout)
 
     async def aclose(self) -> None:
@@ -49,6 +51,39 @@ class AceStepClient:
             return resp.status_code == 200
         except httpx.HTTPError:
             return False
+
+    async def loaded_model(self) -> Optional[str]:
+        """The DiT model configured on the engine (from /health), cached 60s."""
+        ts, cached = self._loaded_model_cache
+        if cached and time.monotonic() - ts < 60:
+            return cached
+        try:
+            resp = await self._client.get("/health")
+            data = resp.json()
+            payload = data.get("data", data) if isinstance(data, dict) else {}
+            model = payload.get("loaded_model")
+        except Exception:  # noqa: BLE001
+            model = None
+        if model:
+            self._loaded_model_cache = (time.monotonic(), model)
+        return model
+
+    async def _family(self) -> str:
+        """Model family prefix matching what the engine actually runs, so we
+        never ask an XL engine for a 2B model (or vice versa)."""
+        loaded = await self.loaded_model()
+        return "acestep-v15-xl" if loaded and "-xl-" in loaded else "acestep-v15"
+
+    async def quality_model(self, quality: str) -> tuple[str, Optional[int]]:
+        """Map a quality tier to (model, inference_steps) for this engine."""
+        family = await self._family()
+        if quality == "pro":
+            return f"{family}-sft", 50
+        return f"{family}-turbo", None
+
+    async def base_model(self) -> str:
+        """The base model of the engine's family (only one supporting extract/complete)."""
+        return f"{await self._family()}-base"
 
     async def models(self) -> Any:
         resp = await self._client.get("/v1/models")

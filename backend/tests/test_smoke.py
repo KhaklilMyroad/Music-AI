@@ -43,6 +43,15 @@ class FakeEngine:
     async def stream_audio(self, path):
         yield b"ID3fakemp3data"
 
+    async def loaded_model(self):
+        return "acestep-v15-turbo"
+
+    async def quality_model(self, quality):
+        return ("acestep-v15-sft", 50) if quality == "pro" else ("acestep-v15-turbo", None)
+
+    async def base_model(self):
+        return "acestep-v15-base"
+
 
 @pytest.fixture()
 def client(monkeypatch):
@@ -230,3 +239,11 @@ def test_compose_single_pass_makes_one_coherent_generation(client):
     assert "[Intro (~20s): stripped drums]" in task["lyrics"]
     assert "[Drop (~40s): full power]\nhook line" in task["lyrics"]
     assert got["lyrics"] == task["lyrics"]
+
+
+def test_quality_resolves_to_engine_family(client):
+    resp = client.post("/api/songs", json={"prompt": "melodic techno", "quality": "pro"})
+    assert resp.status_code == 201, resp.text
+    task = list(client.fake.tasks.values())[-1]
+    assert task["model"] == "acestep-v15-sft"
+    assert task["inference_steps"] == 50

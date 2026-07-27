@@ -23,8 +23,17 @@ _MEDIA_TYPES = {"mp3": "audio/mpeg", "wav": "audio/wav", "flac": "audio/flac",
                 "opus": "audio/ogg", "aac": "audio/aac"}
 
 
+async def _resolve_quality(model: str | None, quality: str | None, steps: int | None):
+    """Explicit model wins; otherwise map quality to the engine family's model."""
+    if model or not quality:
+        return model, steps
+    resolved_model, default_steps = await get_acestep().quality_model(quality)
+    return resolved_model, steps or default_steps
+
+
 @router.post("", status_code=201)
 async def create_song(req: GenerateRequest, session: Session = Depends(get_session)):
+    model, steps = await _resolve_quality(req.model, req.quality, req.inference_steps)
     track = Track(
         title=req.title or (req.prompt[:60] if req.prompt else "Untitled"),
         prompt=req.prompt,
@@ -49,8 +58,8 @@ async def create_song(req: GenerateRequest, session: Session = Depends(get_sessi
             vocal_language=req.vocal_language,
             batch_size=req.batch_size,
             seed=req.seed,
-            model=req.model,
-            inference_steps=req.inference_steps,
+            model=model,
+            inference_steps=steps,
             guidance_scale=req.guidance_scale,
             thinking=req.thinking,
         )
@@ -66,6 +75,7 @@ async def create_song(req: GenerateRequest, session: Session = Depends(get_sessi
 async def compose_song(req: ComposeRequest, session: Session = Depends(get_session)):
     """Multi-section arrangement: each section is generated as a continuation of
     the previous one with its own energy prompt, then the result is mastered."""
+    model, steps = await _resolve_quality(req.model, req.quality, req.inference_steps)
     track = Track(
         title=req.title or f"{req.base_prompt[:50]} (composed)",
         prompt=req.base_prompt,
@@ -87,8 +97,8 @@ async def compose_song(req: ComposeRequest, session: Session = Depends(get_sessi
         [s.model_dump() for s in req.sections],
         mode=req.mode,
         thinking=req.thinking,
-        model=req.model,
-        inference_steps=req.inference_steps,
+        model=model,
+        inference_steps=steps,
         guidance_scale=req.guidance_scale,
         vocal_language=req.vocal_language,
     ))

@@ -14,19 +14,24 @@ router = APIRouter(prefix="/api/studio", tags=["studio"])
 # Engine model-support matrix (README Model Zoo): extract/complete are ONLY
 # supported by the base model; repaint/cover need the 50-step CFG models —
 # running them on turbo (8 steps, no CFG) produces noise instead of music.
-_TASK_SETTINGS: dict[TaskType, dict] = {
-    TaskType.extract: {"model": "acestep-v15-base", "inference_steps": 50},
-    TaskType.complete: {"model": "acestep-v15-base", "inference_steps": 50},
-    TaskType.cover: {"model": "acestep-v15-sft", "inference_steps": 50},
-    TaskType.repaint: {
-        "model": "acestep-v15-sft",
-        "inference_steps": 50,
-        # blend the repainted region into its surroundings instead of the
-        # engine default hard splice, and stay close to the source groove
-        "repaint_wav_crossfade_sec": 0.4,
-        "repaint_mode": "balanced",
-    },
-}
+# Model names are resolved per the engine's loaded family (2B vs XL).
+async def _task_settings(task_type: TaskType) -> dict:
+    client = get_acestep()
+    if task_type in (TaskType.extract, TaskType.complete):
+        return {"model": await client.base_model(), "inference_steps": 50}
+    sft_model, steps = await client.quality_model("pro")
+    if task_type is TaskType.cover:
+        return {"model": sft_model, "inference_steps": steps}
+    if task_type is TaskType.repaint:
+        return {
+            "model": sft_model,
+            "inference_steps": steps,
+            # blend the repainted region into its surroundings instead of the
+            # engine default hard splice, and stay close to the source groove
+            "repaint_wav_crossfade_sec": 0.4,
+            "repaint_mode": "balanced",
+        }
+    return {}
 
 
 def _ready_source(session: Session, track_id: str) -> Track:
@@ -69,7 +74,7 @@ async def _spawn_child(
             repainting_start=repainting_start,
             repainting_end=repainting_end,
             audio_cover_strength=audio_cover_strength,
-            **_TASK_SETTINGS.get(task_type, {}),
+            **(await _task_settings(task_type)),
         )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(502, f"engine rejected the task: {exc}") from exc
