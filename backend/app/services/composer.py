@@ -106,7 +106,89 @@ async def _run_engine_task(**kwargs) -> str:
     raise ComposeError("section generation timed out")
 
 
+def _compile_arrangement_script(sections: list[dict]) -> str:
+    """Compile the arc plan into one tagged lyric script.
+
+    Research note: both Suno and ACE-Step's LM planner achieve coherent
+    arrangements from a SINGLE generation guided by bracketed section tags in
+    the lyrics — one plan, one key, one groove, musical transitions. Stitching
+    separate generations can never recover that coherence, so single-pass is
+    the default compose mode.
+    """
+    parts: list[str] = []
+    for section in sections:
+        name = section.get("name", "section")
+        descriptor = section.get("prompt", "").strip()
+        duration = section.get("duration")
+        hint = f" (~{int(duration)}s)" if duration else ""
+        tag = f"[{name}{hint}: {descriptor}]" if descriptor else f"[{name}{hint}]"
+        lyric = (section.get("lyrics") or "").strip()
+        parts.append(f"{tag}\n{lyric}" if lyric else tag)
+    return "\n\n".join(parts)
+
+
 async def compose_track(
+    track_id: str,
+    base_prompt: str,
+    sections: list[dict],
+    *,
+    mode: str = "single",
+    model: str | None = None,
+    inference_steps: int | None = None,
+    guidance_scale: float | None = None,
+    vocal_language: str | None = None,
+) -> None:
+    """Orchestrate the full arrangement build for an already-created Track."""
+    if mode == "single":
+        await _compose_single_pass(
+            track_id, base_prompt, sections,
+            model=model, inference_steps=inference_steps,
+            guidance_scale=guidance_scale, vocal_language=vocal_language,
+        )
+        return
+    await _compose_stitched(
+        track_id, base_prompt, sections,
+        model=model, inference_steps=inference_steps,
+        guidance_scale=guidance_scale, vocal_language=vocal_language,
+    )
+
+
+async def _compose_single_pass(
+    track_id: str,
+    base_prompt: str,
+    sections: list[dict],
+    *,
+    model: str | None,
+    inference_steps: int | None,
+    guidance_scale: float | None,
+    vocal_language: str | None,
+) -> None:
+    """One coherent generation over the full tagged arrangement script."""
+    try:
+        total = sum(float(s.get("duration", 0)) for s in sections)
+        script = _compile_arrangement_script(sections)
+        _set(track_id, status=TrackStatus.generating, stage="generating full arrangement",
+             lyrics=script)
+        audio = await _run_engine_task(
+            task_type="text2music",
+            prompt=base_prompt,
+            lyrics=script,
+            audio_duration=total if total > 0 else None,
+            model=model,
+            inference_steps=inference_steps,
+            guidance_scale=guidance_scale,
+            vocal_language=vocal_language,
+        )
+        _set(track_id, stage="mastering")
+        local = await master_track(track_id, audio)
+        _set(track_id, audio_path=audio, local_path=local,
+             status=TrackStatus.ready, stage=None)
+    except Exception as exc:  # noqa: BLE001
+        log.exception("single-pass compose failed for %s", track_id)
+        _set(track_id, status=TrackStatus.failed, error=str(exc), stage=None)
+
+
+async def _compose_stitched(
     track_id: str,
     base_prompt: str,
     sections: list[dict],
@@ -116,7 +198,7 @@ async def compose_track(
     guidance_scale: float | None = None,
     vocal_language: str | None = None,
 ) -> None:
-    """Orchestrate the full multi-section build for an already-created Track."""
+    """Legacy mode: chain per-section continuations and reassemble locally."""
     audio_so_far: str | None = None
     total = len(sections)
     post = post_production_enabled()

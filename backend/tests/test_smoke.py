@@ -142,6 +142,7 @@ def test_compose_builds_sections_and_completes(client):
     resp = client.post("/api/songs/compose", json={
         "title": "Composed Test",
         "base_prompt": "melodic techno, 124 bpm",
+        "mode": "stitch",
         "sections": [
             {"name": "Intro", "prompt": "stripped intro", "duration": 10},
             {"name": "Drop", "prompt": "full drop", "duration": 20, "lyrics": "hook line"},
@@ -189,3 +190,35 @@ def test_upload_rejects_unknown_extension(client):
         "file": ("virus.exe", io.BytesIO(b"MZ"), "application/octet-stream"),
     })
     assert resp.status_code == 415
+
+
+def test_compose_single_pass_makes_one_coherent_generation(client):
+    import time
+
+    resp = client.post("/api/songs/compose", json={
+        "title": "Single Pass",
+        "base_prompt": "afro house, 122 bpm",
+        "sections": [
+            {"name": "Intro", "prompt": "stripped drums", "duration": 20},
+            {"name": "Drop", "prompt": "full power", "duration": 40, "lyrics": "hook line"},
+            {"name": "Outro", "prompt": "fade out", "duration": 20},
+        ],
+    })
+    assert resp.status_code == 201, resp.text
+    track = resp.json()
+
+    for _ in range(100):
+        got = client.get(f"/api/songs/{track['id']}").json()
+        if got["status"] in ("ready", "failed"):
+            break
+        time.sleep(0.1)
+    assert got["status"] == "ready", got
+
+    # exactly ONE engine generation over the full tagged script
+    submitted = [t for t in client.fake.tasks.values() if "Single" not in str(t)]
+    task = list(client.fake.tasks.values())[-1]
+    assert task["task_type"] == "text2music"
+    assert task["audio_duration"] == 80
+    assert "[Intro (~20s): stripped drums]" in task["lyrics"]
+    assert "[Drop (~40s): full power]\nhook line" in task["lyrics"]
+    assert got["lyrics"] == task["lyrics"]

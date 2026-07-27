@@ -47,6 +47,12 @@ class ComposeRequest(BaseModel):
     title: Optional[str] = None
     base_prompt: str = Field(..., min_length=1, description="Shared style prompt for every section")
     sections: list[ComposeSection] = Field(..., min_length=2, max_length=12)
+    mode: str = Field(
+        "single",
+        pattern="^(single|stitch)$",
+        description="single = one coherent generation over the tagged script (recommended); "
+                    "stitch = legacy per-section continuation chain",
+    )
     vocal_language: Optional[str] = None
     model: Optional[str] = None
     inference_steps: Optional[int] = Field(None, ge=1, le=200)

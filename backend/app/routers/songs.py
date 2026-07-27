@@ -84,6 +84,7 @@ async def compose_song(req: ComposeRequest, session: Session = Depends(get_sessi
         track.id,
         req.base_prompt,
         [s.model_dump() for s in req.sections],
+        mode=req.mode,
         model=req.model,
         inference_steps=req.inference_steps,
         guidance_scale=req.guidance_scale,
