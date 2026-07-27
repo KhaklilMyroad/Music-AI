@@ -4,6 +4,13 @@ services:
     image: diegosouzapw/omniroute
     ports:
       - "4000:4000"
+    environment:
+      # must match the backend's OMNIROUTE_API_KEY so /v1 calls authenticate
+      API_KEY: ${OMNIROUTE_API_KEY:-sk-omniroute-local}
+      ADMIN_PASSWORD: ${OMNIROUTE_ADMIN_PASSWORD:-crescendo-admin}
+      NEXT_PUBLIC_BASE_URL: http://localhost:4000
+    volumes:
+      - omniroute-data:/app/data
     restart: unless-stopped
 
   backend:
@@ -40,3 +47,4 @@ services:
 
 volumes:
   crescendo-data:
+  omniroute-data:
