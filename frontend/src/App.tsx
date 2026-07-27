@@ -193,6 +193,7 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
               prompt: s.prompt,
               duration: Math.min(120, Math.max(5, Math.round(duration * s.weight))),
               lyrics: s.vocal ? hook : '',
+              gain: s.gain,
             })),
             ...(quality === 'pro'
               ? { model: 'acestep-v15-sft', inference_steps: 50 }

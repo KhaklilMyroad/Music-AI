@@ -40,6 +40,7 @@ class ComposeSection(BaseModel):
     prompt: str = Field(..., min_length=1, description="Energy/production direction for this section")
     duration: float = Field(..., ge=5, le=120)
     lyrics: str = ""
+    gain: float = Field(0.0, ge=-24, le=6, description="Section level in dB for the energy arc")
 
 
 class ComposeRequest(BaseModel):

@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./crescendo.db"
     media_dir: str = "./media"
     mastering_enabled: bool = True
-    # -9 LUFS = loud club master; use -14 for streaming-platform delivery
-    master_lufs: float = -9.0
+    # -12 LUFS matches measured commercial AI-music masters; -14 for streaming delivery
+    master_lufs: float = -12.0
     cors_origins: str = "http://localhost:5173"
     poll_interval_seconds: float = 3.0
 
