@@ -103,6 +103,14 @@ def test_studio_ops_create_children(client):
     task_types = {t["task_type"] for t in client.get("/api/songs").json()}
     assert {"text2music", "extract", "cover", "repaint", "complete"} <= task_types
 
+    # ops must run on models that actually support them (engine support matrix)
+    by_type = {t["task_type"]: t for t in client.fake.tasks.values()}
+    assert by_type["extract"]["model"] == "acestep-v15-base"
+    assert by_type["complete"]["model"] == "acestep-v15-base"
+    assert by_type["repaint"]["model"] == "acestep-v15-sft"
+    assert by_type["repaint"]["repaint_wav_crossfade_sec"] == 0.4
+    assert by_type["cover"]["inference_steps"] == 50
+
 
 def test_repaint_validates_range(client):
     track = client.post("/api/songs", json={"prompt": "rock"}).json()

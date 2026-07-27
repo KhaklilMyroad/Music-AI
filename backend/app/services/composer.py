@@ -199,6 +199,10 @@ async def _compose_stitched(
     vocal_language: str | None = None,
 ) -> None:
     """Legacy mode: chain per-section continuations and reassemble locally."""
+    # 'complete' is only supported by the base model (engine support matrix),
+    # so the whole chain runs on it for consistency.
+    model = "acestep-v15-base"
+    inference_steps = 50
     audio_so_far: str | None = None
     total = len(sections)
     post = post_production_enabled()

@@ -82,6 +82,9 @@ class AceStepClient:
         repainting_start: Optional[float] = None,
         repainting_end: Optional[float] = None,
         audio_cover_strength: Optional[float] = None,
+        repaint_mode: Optional[str] = None,
+        repaint_strength: Optional[float] = None,
+        repaint_wav_crossfade_sec: Optional[float] = None,
     ) -> str:
         """Submit a generation/edit task. Returns the engine task_id."""
         payload: dict[str, Any] = {
@@ -106,6 +109,9 @@ class AceStepClient:
             "repainting_start": repainting_start,
             "repainting_end": repainting_end,
             "audio_cover_strength": audio_cover_strength,
+            "repaint_mode": repaint_mode,
+            "repaint_strength": repaint_strength,
+            "repaint_wav_crossfade_sec": repaint_wav_crossfade_sec,
         }
         payload.update({k: v for k, v in optional.items() if v is not None})
 

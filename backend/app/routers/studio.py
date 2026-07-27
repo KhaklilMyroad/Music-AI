@@ -11,6 +11,23 @@ from ..services.acestep import get_acestep
 
 router = APIRouter(prefix="/api/studio", tags=["studio"])
 
+# Engine model-support matrix (README Model Zoo): extract/complete are ONLY
+# supported by the base model; repaint/cover need the 50-step CFG models —
+# running them on turbo (8 steps, no CFG) produces noise instead of music.
+_TASK_SETTINGS: dict[TaskType, dict] = {
+    TaskType.extract: {"model": "acestep-v15-base", "inference_steps": 50},
+    TaskType.complete: {"model": "acestep-v15-base", "inference_steps": 50},
+    TaskType.cover: {"model": "acestep-v15-sft", "inference_steps": 50},
+    TaskType.repaint: {
+        "model": "acestep-v15-sft",
+        "inference_steps": 50,
+        # blend the repainted region into its surroundings instead of the
+        # engine default hard splice, and stay close to the source groove
+        "repaint_wav_crossfade_sec": 0.4,
+        "repaint_mode": "balanced",
+    },
+}
+
 
 def _ready_source(session: Session, track_id: str) -> Track:
     track = session.get(Track, track_id)
@@ -52,6 +69,7 @@ async def _spawn_child(
             repainting_start=repainting_start,
             repainting_end=repainting_end,
             audio_cover_strength=audio_cover_strength,
+            **_TASK_SETTINGS.get(task_type, {}),
         )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(502, f"engine rejected the task: {exc}") from exc
