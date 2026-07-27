@@ -49,6 +49,14 @@ export const api = {
     req<Track>('/api/songs', { method: 'POST', body: JSON.stringify(body) }),
   composeSong: (body: object) =>
     req<Track>('/api/songs/compose', { method: 'POST', body: JSON.stringify(body) }),
+  uploadSong: async (file: File, title?: string): Promise<Track> => {
+    const fd = new FormData()
+    fd.append('file', file)
+    if (title) fd.append('title', title)
+    const res = await fetch(`${BASE}/api/songs/upload`, { method: 'POST', body: fd })
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text().catch(() => res.statusText)}`)
+    return res.json()
+  },
   deleteSong: (id: string) => req<void>(`/api/songs/${id}`, { method: 'DELETE' }),
   audioUrl: (id: string) => `${BASE}/api/songs/${id}/audio`,
 

@@ -344,6 +344,33 @@ details summary { cursor: pointer; color: var(--muted); margin-top: 10px; font-s
 .spin.light { border-color: #ffffff44; border-top-color: #fff; width: 16px; height: 16px; }
 @keyframes rotate { to { transform: rotate(360deg); } }
 
+/* ---------- studio (DAW) ---------- */
+.studio-toolbar { display: flex; gap: 10px; margin-bottom: 14px; }
+.studio-toolbar select { flex: 1; }
+.upload-btn {
+  display: inline-flex; align-items: center; gap: 7px; margin: 0;
+  background: #1c2230; color: var(--text); font-size: 13.5px;
+  border: 1px solid var(--border); border-radius: 9px;
+  padding: 9px 15px; cursor: pointer; white-space: nowrap;
+}
+.upload-btn:hover { border-color: var(--accent); }
+
+.wave-wrap {
+  border: 1px solid var(--border); border-radius: 14px;
+  background: #0c0f15; padding: 14px; margin-bottom: 14px;
+  position: relative;
+}
+.waveform {
+  width: 100%; height: 150px; display: block;
+  border-radius: 8px; cursor: crosshair; user-select: none;
+}
+.wave-loading {
+  position: absolute; inset: 14px; z-index: 2;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: #0c0f15dd; border-radius: 8px; color: var(--muted);
+}
+.wave-footer { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; }
+
 /* ---------- global player bar ---------- */
 .player-bar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;

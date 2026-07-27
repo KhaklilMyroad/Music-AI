@@ -24,6 +24,7 @@ class TaskType(str, Enum):
     extract = "extract"  # generative stem separation
     complete = "complete"  # extend / continuation
     compose = "compose"  # multi-section arrangement pipeline (ours, not an engine op)
+    upload = "upload"  # user-imported audio file
 
 
 class Track(SQLModel, table=True):

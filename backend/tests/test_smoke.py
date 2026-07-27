@@ -163,3 +163,29 @@ def test_compose_builds_sections_and_completes(client):
     assert tasks["task-2"]["task_type"] == "complete"
     assert tasks["task-2"]["src_audio_path"] == "/outputs/task-1.mp3"
     assert tasks["task-2"]["lyrics"] == "hook line"
+
+
+def test_upload_creates_ready_track_and_streams(client, tmp_path):
+    import io
+
+    resp = client.post("/api/songs/upload", files={
+        "file": ("my_song.mp3", io.BytesIO(b"ID3fakebytes"), "audio/mpeg"),
+    })
+    assert resp.status_code == 201, resp.text
+    track = resp.json()
+    assert track["status"] == "ready"
+    assert track["task_type"] == "upload"
+    assert track["title"] == "my_song"
+
+    audio = client.get(f"/api/songs/{track['id']}/audio")
+    assert audio.status_code == 200
+    assert audio.content == b"ID3fakebytes"
+
+
+def test_upload_rejects_unknown_extension(client):
+    import io
+
+    resp = client.post("/api/songs/upload", files={
+        "file": ("virus.exe", io.BytesIO(b"MZ"), "application/octet-stream"),
+    })
+    assert resp.status_code == 415

@@ -1,9 +1,15 @@
 import asyncio
 import os
+import shutil
+import tempfile
+from pathlib import Path
+from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlmodel import Session, select
+
+from ..config import get_settings
 
 from ..db import get_session
 from ..models import TaskType, Track, TrackStatus
@@ -83,6 +89,50 @@ async def compose_song(req: ComposeRequest, session: Session = Depends(get_sessi
         guidance_scale=req.guidance_scale,
         vocal_language=req.vocal_language,
     ))
+    return track
+
+
+_UPLOAD_EXTS = {"mp3", "wav", "flac", "ogg", "m4a", "aac", "opus"}
+
+
+@router.post("/upload", status_code=201)
+async def upload_song(
+    file: UploadFile = File(...),
+    title: str = Form(None),
+    session: Session = Depends(get_session),
+):
+    """Import the user's own audio so it can be edited with the studio ops.
+
+    The file is written into the SYSTEM temp dir because that is the one
+    absolute-path location the engine's src-path validator accepts — which
+    works when the engine runs on the same host as this backend.
+    """
+    name = file.filename or "audio"
+    ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
+    if ext not in _UPLOAD_EXTS:
+        raise HTTPException(415, f"unsupported audio type '.{ext}' (use {', '.join(sorted(_UPLOAD_EXTS))})")
+
+    uid = uuid4().hex
+    engine_path = Path(tempfile.gettempdir()) / f"crescendo_upload_{uid}.{ext}"
+    media_dir = Path(get_settings().media_dir)
+    media_dir.mkdir(parents=True, exist_ok=True)
+    local_path = media_dir / f"{uid}.upload.{ext}"
+
+    with open(engine_path, "wb") as fh:
+        shutil.copyfileobj(file.file, fh)
+    shutil.copyfile(engine_path, local_path)
+
+    track = Track(
+        title=title or name.rsplit(".", 1)[0],
+        prompt="(uploaded audio)",
+        task_type=TaskType.upload,
+        status=TrackStatus.ready,
+        audio_path=str(engine_path),
+        local_path=str(local_path),
+    )
+    session.add(track)
+    session.commit()
+    session.refresh(track)
     return track
 
 

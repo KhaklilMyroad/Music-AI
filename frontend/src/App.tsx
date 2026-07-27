@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, SongPlan, Track } from './api'
 import { ARRANGEMENTS, COMPOSE_PLANS, GENRE_PRESETS, PRESET_FAMILIES } from './presets'
+import { StudioView } from './Studio'
 
 const LANGS = ['english', 'hebrew', 'spanish', 'french', 'japanese', 'arabic', 'german', 'portuguese']
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
@@ -11,7 +12,11 @@ interface Health {
   producer_reachable?: boolean
 }
 
-type View = { name: 'create' } | { name: 'library' } | { name: 'track'; id: string }
+type View =
+  | { name: 'create' }
+  | { name: 'library' }
+  | { name: 'track'; id: string }
+  | { name: 'studio'; id?: string }
 
 function coverHue(id: string): number {
   let h = 0
@@ -115,8 +120,11 @@ export default function App() {
         </div>
         <nav>
           <a className={`nav-item ${view.name === 'create' ? 'active' : ''}`} onClick={() => setView({ name: 'create' })}>🎛 Create</a>
-          <a className={`nav-item ${view.name !== 'create' ? 'active' : ''}`} onClick={() => setView({ name: 'library' })}>
+          <a className={`nav-item ${view.name === 'library' || view.name === 'track' ? 'active' : ''}`} onClick={() => setView({ name: 'library' })}>
             🎵 Library <span className="count">{tracks.length}</span>
+          </a>
+          <a className={`nav-item ${view.name === 'studio' ? 'active' : ''}`} onClick={() => setView({ name: 'studio' })}>
+            🎚 Studio
           </a>
         </nav>
         <div className="sidebar-status">
@@ -147,10 +155,15 @@ export default function App() {
             onOpen={id => setView({ name: 'track', id })}
             onBack={() => setView({ name: 'library' })}
             onChanged={refresh} onError={setError}
-            onDeleted={() => { refresh(); setView({ name: 'library' }) }} />
+            onDeleted={() => { refresh(); setView({ name: 'library' }) }}
+            onStudio={id => setView({ name: 'studio', id })} />
         )}
         {view.name === 'track' && !current && (
           <div className="empty"><span>🎵</span><p>Track not found.</p></div>
+        )}
+        {view.name === 'studio' && (
+          <StudioView tracks={tracks} initialId={view.id} onError={setError}
+            onChanged={refresh} onOpenTrack={id => setView({ name: 'track', id })} />
         )}
       </div>
 
@@ -462,7 +475,7 @@ function LibraryView({ tracks, playing, onPlay, onOpen }: {
 
 /* ---------------- track view ---------------- */
 
-function TrackView({ track, tracks, playing, onPlay, onOpen, onBack, onChanged, onError, onDeleted }: {
+function TrackView({ track, tracks, playing, onPlay, onOpen, onBack, onChanged, onError, onDeleted, onStudio }: {
   track: Track
   tracks: Track[]
   playing: Track | null
@@ -472,6 +485,7 @@ function TrackView({ track, tracks, playing, onPlay, onOpen, onBack, onChanged, 
   onChanged: () => void
   onError: (m: string) => void
   onDeleted: () => void
+  onStudio?: (id: string) => void
 }) {
   const [editPrompt, setEditPrompt] = useState('')
   const [start, setStart] = useState(0)
@@ -519,6 +533,7 @@ function TrackView({ track, tracks, playing, onPlay, onOpen, onBack, onChanged, 
             {track.status === 'ready' && (
               <>
                 <button className="primary inline" onClick={() => onPlay(track)}>▶ Play</button>
+                {onStudio && <button onClick={() => onStudio(track.id)}>🎚 Open in Studio</button>}
                 <a className="download" href={`${api.audioUrl(track.id)}?download=1`}>⬇ Download</a>
               </>
             )}
