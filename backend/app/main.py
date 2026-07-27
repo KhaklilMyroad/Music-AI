@@ -45,4 +45,18 @@ app.include_router(copilot.router)
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "engine_reachable": await get_acestep().health()}
+    from .services.llm import get_llm
+    from .services.mastering import ffmpeg_available
+
+    producer_ok = False
+    try:
+        resp = await get_llm()._client.get("/models", timeout=3.0)
+        producer_ok = resp.status_code < 500
+    except Exception:  # noqa: BLE001
+        producer_ok = False
+    return {
+        "status": "ok",
+        "engine_reachable": await get_acestep().health(),
+        "mastering_ready": ffmpeg_available(),
+        "producer_reachable": producer_ok,
+    }

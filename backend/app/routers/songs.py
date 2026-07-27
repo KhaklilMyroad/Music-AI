@@ -109,23 +109,25 @@ def delete_song(track_id: str, session: Session = Depends(get_session)):
 
 
 @router.get("/{track_id}/audio")
-async def stream_song(track_id: str, session: Session = Depends(get_session)):
+async def stream_song(track_id: str, download: bool = False, session: Session = Depends(get_session)):
     track = session.get(Track, track_id)
     if not track:
         raise HTTPException(404, "track not found")
     if track.status is not TrackStatus.ready or not (track.audio_path or track.local_path):
         raise HTTPException(409, f"track is not ready (status={track.status})")
+    disposition = "attachment" if download else "inline"
+    safe_title = "".join(c for c in track.title if c.isalnum() or c in " -_")[:60] or track.id
     if track.local_path and os.path.exists(track.local_path):
         ext = track.local_path.rsplit(".", 1)[-1].lower()
         return FileResponse(
             track.local_path,
             media_type=_MEDIA_TYPES.get(ext, "application/octet-stream"),
-            filename=f"{track.title}.{ext}",
-            content_disposition_type="inline",
+            filename=f"{safe_title}.{ext}",
+            content_disposition_type=disposition,
         )
     ext = track.audio_path.rsplit(".", 1)[-1].lower()
     return StreamingResponse(
         get_acestep().stream_audio(track.audio_path),
         media_type=_MEDIA_TYPES.get(ext, "application/octet-stream"),
-        headers={"Content-Disposition": f'inline; filename="{track.id}.{ext}"'},
+        headers={"Content-Disposition": f'{disposition}; filename="{safe_title}.{ext}"'},
     )
