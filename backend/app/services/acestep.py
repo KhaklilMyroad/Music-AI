@@ -18,6 +18,20 @@ class AceStepError(RuntimeError):
     pass
 
 
+def _engine_relative(path: Optional[str]) -> Optional[str]:
+    """Engine security rules reject absolute src paths unless they're in the
+    system temp dir, but accept paths relative to the engine's working dir.
+    Generated audio always lands under <engine>/.cache/acestep/, so slice from
+    the .cache segment to produce an accepted relative path."""
+    if not path:
+        return path
+    normalized = path.replace("\\", "/")
+    idx = normalized.find(".cache/")
+    if idx > 0:
+        return normalized[idx:]
+    return path
+
+
 class AceStepClient:
     def __init__(self, base_url: Optional[str] = None, timeout: float = 120.0):
         settings = get_settings()
@@ -88,7 +102,7 @@ class AceStepClient:
             "time_signature": time_signature,
             "vocal_language": vocal_language,
             "seed": seed,
-            "src_audio_path": src_audio_path,
+            "src_audio_path": _engine_relative(src_audio_path),
             "repainting_start": repainting_start,
             "repainting_end": repainting_end,
             "audio_cover_strength": audio_cover_strength,

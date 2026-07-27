@@ -47,6 +47,29 @@ const TYPE_LABEL: Record<string, string> = {
   extract: 'Stems', repaint: 'Repaint', complete: 'Extended',
 }
 
+/** AI cover art generated from the track's style prompt (free Pollinations API),
+ *  with the gradient as an instant/offline fallback. Deterministic per track. */
+function CoverArt({ track, className, children }: {
+  track: Track
+  className?: string
+  children?: React.ReactNode
+}) {
+  const [loaded, setLoaded] = useState(false)
+  const seed = coverHue(track.id) * 131 + track.id.charCodeAt(0)
+  const prompt = encodeURIComponent(
+    `album cover art, ${(track.prompt || track.title).slice(0, 180)}, moody professional music artwork, no text`,
+  )
+  const url = `https://image.pollinations.ai/prompt/${prompt}?width=512&height=512&nologo=true&seed=${seed}`
+  return (
+    <div className={`cover ${className ?? ''}`} style={coverStyle(track.id)}>
+      <img className="cover-img" src={url} alt="" loading="lazy"
+        style={{ opacity: loaded ? 1 : 0 }}
+        onLoad={() => setLoaded(true)} onError={() => setLoaded(false)} />
+      {children}
+    </div>
+  )
+}
+
 export default function App() {
   const [tracks, setTracks] = useState<Track[]>([])
   const [view, setView] = useState<View>({ name: 'create' })
@@ -163,7 +186,7 @@ function PlayerBar({ track, onEnded }: { track: Track | null; onEnded: () => voi
         onPause={() => setPaused(true)}
         onEnded={onEnded}
       />
-      <div className="cover small" style={coverStyle(track.id)}>♪</div>
+      <CoverArt track={track} className="small">♪</CoverArt>
       <div className="player-meta">
         <strong>{track.title}</strong>
         <small>{track.bpm ? `${track.bpm} bpm · ` : ''}{track.key_scale ?? ''}</small>
@@ -406,7 +429,7 @@ function LibraryView({ tracks, playing, onPlay, onOpen }: {
       <ul className="lib-rows">
         {shown.map(t => (
           <li key={t.id} onClick={() => onOpen(t.id)}>
-            <div className="cover big" style={coverStyle(t.id)}>
+            <CoverArt track={t} className="big">
               {t.status === 'generating' || t.status === 'queued'
                 ? <span className="spin light" />
                 : t.status === 'ready'
@@ -415,7 +438,7 @@ function LibraryView({ tracks, playing, onPlay, onOpen }: {
                     </button>
                   : '♪'}
               {t.duration ? <span className="dur">{fmt(t.duration)}</span> : null}
-            </div>
+            </CoverArt>
             <div className="lib-meta">
               <div className="lib-title">
                 <strong>{t.title}</strong>
@@ -476,11 +499,11 @@ function TrackView({ track, tracks, playing, onPlay, onOpen, onBack, onChanged, 
     <div className="view">
       <button className="back" onClick={onBack}>← Library</button>
       <div className="track-hero">
-        <div className="cover hero" style={coverStyle(track.id)}>
+        <CoverArt track={track} className="hero">
           {track.status === 'ready'
             ? <button className="cover-play big" onClick={() => onPlay(track)}>{playing?.id === track.id ? '♫' : '▶'}</button>
             : (track.status === 'failed' ? '✕' : <span className="spin light" />)}
-        </div>
+        </CoverArt>
         <div className="track-info">
           <h2>{track.title}</h2>
           <div className="lib-title">
@@ -552,15 +575,15 @@ function TrackView({ track, tracks, playing, onPlay, onOpen, onBack, onChanged, 
             )}
             {parent && (
               <div className="rel-row" onClick={() => onOpen(parent.id)}>
-                <div className="cover small" style={coverStyle(parent.id)}>♪</div>
+                <CoverArt track={parent} className="small">♪</CoverArt>
                 <div><strong>{parent.title}</strong><small className="muted"> · source</small></div>
               </div>
             )}
             {children.map(c => (
               <div className="rel-row" key={c.id} onClick={() => onOpen(c.id)}>
-                <div className="cover small" style={coverStyle(c.id)}>
+                <CoverArt track={c} className="small">
                   {c.status === 'generating' || c.status === 'queued' ? <span className="spin light" /> : '♪'}
-                </div>
+                </CoverArt>
                 <div>
                   <strong>{c.title}</strong>
                   <small className="muted"> · {TYPE_LABEL[c.task_type] ?? c.task_type} · {c.stage ?? c.status}</small>
