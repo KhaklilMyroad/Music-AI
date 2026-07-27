@@ -47,7 +47,8 @@ class AceStepClient:
 
     async def health(self) -> bool:
         try:
-            resp = await self._client.get("/health")
+            # short timeout: this feeds the UI status pills and must never hang
+            resp = await self._client.get("/health", timeout=4.0)
             return resp.status_code == 200
         except httpx.HTTPError:
             return False
