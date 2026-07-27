@@ -34,6 +34,9 @@ services:
       - omniroute
     restart: unless-stopped
 
+  # note: no depends_on backend — the backend often runs natively on the host
+  # (Windows + Docker networking), and a compose dependency would silently
+  # resurrect the containerized one and steal port 8000.
   frontend:
     build:
       context: ./frontend
@@ -41,8 +44,6 @@ services:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     ports:
       - "5173:80"
-    depends_on:
-      - backend
     restart: unless-stopped
 
 volumes:

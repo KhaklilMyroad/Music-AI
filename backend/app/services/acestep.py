@@ -96,7 +96,11 @@ class AceStepClient:
         payload.update({k: v for k, v in optional.items() if v is not None})
 
         resp = await self._client.post("/release_task", json=payload)
-        resp.raise_for_status()
+        if resp.status_code >= 400:
+            raise AceStepError(
+                f"engine returned {resp.status_code} for {payload.get('task_type')}: "
+                f"{resp.text[:400]}"
+            )
         data = resp.json()
         task_id = data.get("task_id") or data.get("data", {}).get("task_id")
         if not task_id:
