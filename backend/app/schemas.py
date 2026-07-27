@@ -14,6 +14,9 @@ class GenerateRequest(BaseModel):
     vocal_language: Optional[str] = None
     batch_size: int = Field(1, ge=1, le=8, description="Parallel takes (engine max 8)")
     seed: Optional[int] = None
+    model: Optional[str] = Field(None, description="DiT model, e.g. acestep-v15-sft for quality")
+    inference_steps: Optional[int] = Field(None, ge=1, le=200)
+    guidance_scale: Optional[float] = Field(None, ge=0, le=30)
 
 
 class RepaintRequest(BaseModel):

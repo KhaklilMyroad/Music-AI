@@ -98,3 +98,102 @@ export const GENRE_PRESETS: GenrePreset[] = [
 ]
 
 export const PRESET_FAMILIES = [...new Set(GENRE_PRESETS.map(p => p.family))]
+
+// Club arrangement blueprints: an energy-curve scaffold the engine follows.
+// Section tags carry production directives; vocal lines can be written inside
+// any section (or left as-is for instrumental).
+export const ARRANGEMENTS: Record<string, string> = {
+  House: `[Intro: dry drum groove and shaker only, filtered pad slowly opening, 8 bars, low energy]
+
+[Groove: bassline enters, main percussion locks in, subtle melodic hint, head-nodding energy]
+
+[Build: layers stack one by one, rising filter sweep, snare roll in the last bar, tension climbing]
+
+[Drop: full groove hits hard, main hook front and center, maximum energy, everything moving]
+
+[Breakdown: drums drop out, only atmospheric pads and one melodic element floating in reverb, emotional pause]
+
+[Build 2: percussion returns piece by piece, longer riser, biggest tension of the track]
+
+[Drop 2: peak moment, extra percussion layer and ad-lib textures answering the hook, euphoric]
+
+[Outro: elements exit one by one, back to dry drums, long filter close, fade]`,
+
+  Techno: `[Intro: pounding kick and rumble bass alone, dark warehouse atmosphere, hypnotic, 16 bars]
+
+[Groove: hypnotic stab pattern enters, hats driving, relentless momentum]
+
+[Build: acid line rising, white-noise sweep, tension stacking bar by bar]
+
+[Peak: full power, lead synth hook cutting through, strobe-light energy, maximum drive]
+
+[Breakdown: kick disappears, vast dark pad and echoing lead, suspense hanging in the air]
+
+[Build 2: kick returns with a long riser, snares doubling, unbearable tension]
+
+[Peak 2: hardest moment of the track, all layers together, driving to the end]
+
+[Outro: layers strip away, kick and rumble fade into darkness]`,
+
+  Trance: `[Intro: rolling bassline and crisp percussion, arps hinting the melody, 16 bars]
+
+[Groove: plucked sequence enters, energy building steadily]
+
+[Build: layers rise, snare roll accelerating, huge white-noise riser]
+
+[Drop: euphoric main melody at full power, supersaws wide, hands-in-the-air moment]
+
+[Breakdown: beat stops, emotional piano and pad carry the melody alone, goosebumps section]
+
+[Build 2: melody rejoined by rising drums, longest riser of the track]
+
+[Drop 2: biggest euphoric peak, full stack, anthem energy]
+
+[Outro: melody fades, bassline and percussion close the journey]`,
+
+  Bass: `[Intro: atmospheric textures and sparse drums, dark tension, 8 bars]
+
+[Build: drums accelerate, riser screaming upward, vocal chop echoes, snare roll]
+
+[Drop: massive bass hook hits, heavy and aggressive, maximum impact]
+
+[Switch: bass pattern flips to a new variation, keeps the energy fresh]
+
+[Breakdown: half-time moment, airy pads, tension resets]
+
+[Build 2: faster risers, drum fills stacking]
+
+[Drop 2: hardest drop, extra bass layers and fills, relentless]
+
+[Outro: energy decays, textures dissolve into silence]`,
+
+  Synth: `[Intro: iconic synth riff alone with soft drum machine, nostalgic mood, 8 bars]
+
+[Verse: groove settles, bassline pumping, riff developing]
+
+[Build: drums intensify, arpeggios climbing, filter opening]
+
+[Chorus: full anthem energy, lead melody soaring, wide and bright]
+
+[Breakdown: stripped to bass and pad, cinematic pause]
+
+[Build 2: toms rolling, riser, energy returning]
+
+[Chorus 2: biggest version, extra harmony layer on the lead]
+
+[Outro: riff returns alone, slow fade with reverb tails]`,
+
+  Chill: `[Intro: soft textures fade in, gentle rhythm emerging, calm]
+
+[Theme A: main melodic motif enters, warm and intimate, slow head-nod groove]
+
+[Development: new layer joins each 8 bars, subtle harmonic shifts, gently rising warmth]
+
+[Peak: fullest moment, all layers breathing together, emotional but restrained]
+
+[Theme B: variation of the motif, slightly different color, fresh perspective]
+
+[Resolution: layers thin out gradually, returning to the opening texture]
+
+[Outro: last melodic echo dissolves, ambience fades to silence]`,
+}

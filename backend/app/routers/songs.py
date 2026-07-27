@@ -39,6 +39,9 @@ async def create_song(req: GenerateRequest, session: Session = Depends(get_sessi
             vocal_language=req.vocal_language,
             batch_size=req.batch_size,
             seed=req.seed,
+            model=req.model,
+            inference_steps=req.inference_steps,
+            guidance_scale=req.guidance_scale,
         )
     except (AceStepError, Exception) as exc:  # noqa: BLE001
         raise HTTPException(502, f"engine rejected the task: {exc}") from exc

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, SongPlan, Track } from './api'
-import { GENRE_PRESETS, PRESET_FAMILIES } from './presets'
+import { ARRANGEMENTS, GENRE_PRESETS, PRESET_FAMILIES } from './presets'
 
 const LANGS = ['english', 'hebrew', 'spanish', 'french', 'japanese', 'arabic', 'german', 'portuguese']
 
@@ -52,6 +52,14 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
   const [presetId, setPresetId] = useState('')
   const [bpm, setBpm] = useState<number | null>(null)
   const [instrumental, setInstrumental] = useState(false)
+  const [quality, setQuality] = useState<'draft' | 'pro'>('pro')
+
+  const insertArrangement = () => {
+    const preset = GENRE_PRESETS.find(p => p.id === presetId)
+    const blueprint = ARRANGEMENTS[preset?.family ?? 'House']
+    setInstrumental(false)
+    setLyrics(current => (current.trim() ? `${blueprint}\n\n${current}` : blueprint))
+  }
 
   const applyPreset = (id: string) => {
     setPresetId(id)
@@ -123,10 +131,15 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
       </label>
       {!instrumental && (
         <>
-          <label>Lyrics ([verse]/[chorus] tags, empty = instrumental)</label>
+          <label>Lyrics / arrangement script ([section: production directions] + words; works instrumental too)</label>
           <textarea value={lyrics} onChange={e => setLyrics(e.target.value)} rows={6} dir="auto" />
         </>
       )}
+      <div className="row">
+        <button disabled={!!busy} onClick={insertArrangement}>
+          🏗 Insert club structure {presetId ? `(${GENRE_PRESETS.find(p => p.id === presetId)?.family})` : ''}
+        </button>
+      </div>
 
       <div className="row">
         <label>Language
@@ -143,6 +156,12 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
             {[1, 2, 4, 8].map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </label>
+        <label>Quality
+          <select value={quality} onChange={e => setQuality(e.target.value as 'draft' | 'pro')}>
+            <option value="draft">Draft · turbo, ~fast</option>
+            <option value="pro">Pro · sft 50 steps, best</option>
+          </select>
+        </label>
       </div>
 
       <button className="primary" disabled={!prompt || !!busy}
@@ -150,6 +169,9 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
           await api.createSong({
             title: title || undefined, prompt, lyrics: instrumental ? '' : lyrics, duration,
             vocal_language: language, batch_size: takes, bpm: bpm ?? undefined,
+            ...(quality === 'pro'
+              ? { model: 'acestep-v15-sft', inference_steps: 50 }
+              : { model: 'acestep-v15-turbo' }),
           })
           onCreated()
         })}>

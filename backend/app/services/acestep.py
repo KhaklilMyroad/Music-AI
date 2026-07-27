@@ -62,6 +62,8 @@ class AceStepClient:
         audio_format: Optional[str] = None,
         thinking: bool = True,
         model: Optional[str] = None,
+        inference_steps: Optional[int] = None,
+        guidance_scale: Optional[float] = None,
         src_audio_path: Optional[str] = None,
         repainting_start: Optional[float] = None,
         repainting_end: Optional[float] = None,
@@ -78,6 +80,8 @@ class AceStepClient:
             "batch_size": max(1, min(batch_size, 8)),
         }
         optional = {
+            "inference_steps": inference_steps,
+            "guidance_scale": guidance_scale,
             "audio_duration": audio_duration,
             "bpm": bpm,
             "key_scale": key_scale,
