@@ -52,6 +52,7 @@ async def create_song(req: GenerateRequest, session: Session = Depends(get_sessi
             model=req.model,
             inference_steps=req.inference_steps,
             guidance_scale=req.guidance_scale,
+            thinking=req.thinking,
         )
     except (AceStepError, Exception) as exc:  # noqa: BLE001
         raise HTTPException(502, f"engine rejected the task: {exc}") from exc
@@ -85,6 +86,7 @@ async def compose_song(req: ComposeRequest, session: Session = Depends(get_sessi
         req.base_prompt,
         [s.model_dump() for s in req.sections],
         mode=req.mode,
+        thinking=req.thinking,
         model=req.model,
         inference_steps=req.inference_steps,
         guidance_scale=req.guidance_scale,

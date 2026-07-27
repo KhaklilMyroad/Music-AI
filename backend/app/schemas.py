@@ -17,6 +17,11 @@ class GenerateRequest(BaseModel):
     model: Optional[str] = Field(None, description="DiT model, e.g. acestep-v15-sft for quality")
     inference_steps: Optional[int] = Field(None, ge=1, le=200)
     guidance_scale: Optional[float] = Field(None, ge=0, le=30)
+    thinking: bool = Field(
+        True,
+        description="True = engine LM plans the song; False = DiT follows your prompt/script "
+                    "directly (useful when an external LLM already wrote the full blueprint)",
+    )
 
 
 class RepaintRequest(BaseModel):
@@ -53,6 +58,7 @@ class ComposeRequest(BaseModel):
         description="single = one coherent generation over the tagged script (recommended); "
                     "stitch = legacy per-section continuation chain",
     )
+    thinking: bool = True
     vocal_language: Optional[str] = None
     model: Optional[str] = None
     inference_steps: Optional[int] = Field(None, ge=1, le=200)

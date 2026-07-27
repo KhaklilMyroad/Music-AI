@@ -137,6 +137,7 @@ async def compose_track(
     inference_steps: int | None = None,
     guidance_scale: float | None = None,
     vocal_language: str | None = None,
+    thinking: bool = True,
 ) -> None:
     """Orchestrate the full arrangement build for an already-created Track."""
     if mode == "single":
@@ -144,6 +145,7 @@ async def compose_track(
             track_id, base_prompt, sections,
             model=model, inference_steps=inference_steps,
             guidance_scale=guidance_scale, vocal_language=vocal_language,
+            thinking=thinking,
         )
         return
     await _compose_stitched(
@@ -162,6 +164,7 @@ async def _compose_single_pass(
     inference_steps: int | None,
     guidance_scale: float | None,
     vocal_language: str | None,
+    thinking: bool = True,
 ) -> None:
     """One coherent generation over the full tagged arrangement script."""
     try:
@@ -178,6 +181,7 @@ async def _compose_single_pass(
             inference_steps=inference_steps,
             guidance_scale=guidance_scale,
             vocal_language=vocal_language,
+            thinking=thinking,
         )
         _set(track_id, stage="mastering")
         local = await master_track(track_id, audio)

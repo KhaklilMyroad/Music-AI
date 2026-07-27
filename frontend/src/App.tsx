@@ -237,6 +237,7 @@ function CreateView({ onCreated, onError }: { onCreated: () => void; onError: (m
   const [bpm, setBpm] = useState<number | null>(null)
   const [instrumental, setInstrumental] = useState(false)
   const [quality, setQuality] = useState<'draft' | 'pro'>('pro')
+  const [planner, setPlanner] = useState<'lm' | 'direct'>('lm')
 
   const family = GENRE_PRESETS.find(p => p.id === presetId)?.family ?? 'House'
 
@@ -357,6 +358,13 @@ function CreateView({ onCreated, onError }: { onCreated: () => void; onError: (m
               <option value="pro">Pro · full quality</option>
             </select>
           </label>
+          <label title="Engine LM: the engine's language model plans the song. Direct: the synthesizer follows your script exactly — best when the AI Producer or Compose already wrote a full blueprint">
+            Planner
+            <select value={planner} onChange={e => setPlanner(e.target.value as 'lm' | 'direct')}>
+              <option value="lm">Engine LM</option>
+              <option value="direct">Direct · my script</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -364,7 +372,8 @@ function CreateView({ onCreated, onError }: { onCreated: () => void; onError: (m
         onClick={() => run('gen', async () => {
           await api.createSong({
             title: title || undefined, prompt, lyrics: instrumental ? '' : lyrics, duration,
-            vocal_language: language, batch_size: takes, bpm: bpm ?? undefined, ...qualityBody,
+            vocal_language: language, batch_size: takes, bpm: bpm ?? undefined,
+            thinking: planner === 'lm', ...qualityBody,
           })
           onCreated()
         })}>
@@ -387,6 +396,7 @@ function CreateView({ onCreated, onError }: { onCreated: () => void; onError: (m
               lyrics: s.vocal ? hook : '',
               gain: s.gain,
             })),
+            thinking: planner === 'lm',
             ...qualityBody,
           })
           onCreated()
