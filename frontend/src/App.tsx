@@ -11,6 +11,8 @@ interface Health {
   producer_reachable?: boolean
 }
 
+type View = { name: 'create' } | { name: 'library' } | { name: 'track'; id: string }
+
 function coverHue(id: string): number {
   let h = 0
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 360
@@ -19,7 +21,7 @@ function coverHue(id: string): number {
 
 function coverStyle(id: string) {
   return {
-    background: `linear-gradient(135deg, hsl(${coverHue(id)} 70% 45%), hsl(${(coverHue(id) + 60) % 360} 70% 30%))`,
+    background: `linear-gradient(135deg, hsl(${coverHue(id)} 72% 46%), hsl(${(coverHue(id) + 70) % 360} 72% 28%))`,
   }
 }
 
@@ -30,18 +32,31 @@ function fmt(s?: number | null): string {
   return `${m}:${sec.toString().padStart(2, '0')}`
 }
 
+function fmtDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    })
+  } catch {
+    return iso
+  }
+}
+
+const TYPE_LABEL: Record<string, string> = {
+  text2music: 'One shot', compose: 'Composed', cover: 'Cover',
+  extract: 'Stems', repaint: 'Repaint', complete: 'Extended',
+}
+
 export default function App() {
   const [tracks, setTracks] = useState<Track[]>([])
-  const [selected, setSelected] = useState<Track | null>(null)
+  const [view, setView] = useState<View>({ name: 'create' })
   const [playing, setPlaying] = useState<Track | null>(null)
   const [error, setError] = useState('')
   const [health, setHealth] = useState<Health | null>(null)
 
   const refresh = useCallback(async () => {
     try {
-      const list = await api.listSongs()
-      setTracks(list)
-      setSelected(s => (s ? list.find(t => t.id === s.id) ?? null : null))
+      setTracks(await api.listSongs())
     } catch (e) {
       setError(String(e))
     }
@@ -63,10 +78,12 @@ export default function App() {
     return () => { clearInterval(iv); clearInterval(hv) }
   }, [refresh, pollHealth])
 
+  const current = view.name === 'track' ? tracks.find(t => t.id === view.id) ?? null : null
+
   return (
     <div className="app">
       <aside className="sidebar">
-        <div className="brand">
+        <div className="brand" onClick={() => setView({ name: 'create' })} style={{ cursor: 'pointer' }}>
           <span className="logo">♪</span>
           <div>
             <h1>Crescendo</h1>
@@ -74,8 +91,10 @@ export default function App() {
           </div>
         </div>
         <nav>
-          <a className="nav-item active" href="#create">🎛 Create</a>
-          <a className="nav-item" href="#library">🎵 Library</a>
+          <a className={`nav-item ${view.name === 'create' ? 'active' : ''}`} onClick={() => setView({ name: 'create' })}>🎛 Create</a>
+          <a className={`nav-item ${view.name !== 'create' ? 'active' : ''}`} onClick={() => setView({ name: 'library' })}>
+            🎵 Library <span className="count">{tracks.length}</span>
+          </a>
         </nav>
         <div className="sidebar-status">
           <span className={`pill ${health?.engine_reachable ? 'on' : 'off'}`}>● Engine</span>
@@ -93,14 +112,23 @@ export default function App() {
             <em>click to dismiss</em>
           </div>
         )}
-        <main>
-          <CreatePanel onCreated={refresh} onError={setError} />
-          <Library
-            tracks={tracks} selected={selected} playing={playing}
-            onSelect={setSelected} onPlay={setPlaying}
+        {view.name === 'create' && (
+          <CreateView onCreated={() => { refresh(); setView({ name: 'library' }) }} onError={setError} />
+        )}
+        {view.name === 'library' && (
+          <LibraryView tracks={tracks} playing={playing} onPlay={setPlaying}
+            onOpen={id => setView({ name: 'track', id })} />
+        )}
+        {view.name === 'track' && current && (
+          <TrackView track={current} tracks={tracks} playing={playing} onPlay={setPlaying}
+            onOpen={id => setView({ name: 'track', id })}
+            onBack={() => setView({ name: 'library' })}
             onChanged={refresh} onError={setError}
-          />
-        </main>
+            onDeleted={() => { refresh(); setView({ name: 'library' }) }} />
+        )}
+        {view.name === 'track' && !current && (
+          <div className="empty"><span>🎵</span><p>Track not found.</p></div>
+        )}
       </div>
 
       <PlayerBar track={playing} onEnded={() => setPlaying(null)} />
@@ -158,9 +186,9 @@ function PlayerBar({ track, onEnded }: { track: Track | null; onEnded: () => voi
   )
 }
 
-/* ---------------- create ---------------- */
+/* ---------------- create view ---------------- */
 
-function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (m: string) => void }) {
+function CreateView({ onCreated, onError }: { onCreated: () => void; onError: (m: string) => void }) {
   const [idea, setIdea] = useState('')
   const [title, setTitle] = useState('')
   const [prompt, setPrompt] = useState('')
@@ -214,8 +242,8 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
     : { model: 'acestep-v15-turbo' }
 
   return (
-    <section className="panel" id="create">
-      <h2>Create</h2>
+    <div className="view narrow">
+      <h2 className="view-title">Create</h2>
 
       <div className="field-group">
         <label>Your idea (any language)</label>
@@ -329,22 +357,19 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
         })}>
         {busy === 'compose' ? 'Composing…' : `🎼 Compose full arrangement · ${family} arc`}
       </button>
-    </section>
+    </div>
   )
 }
 
-/* ---------------- library ---------------- */
+/* ---------------- library view ---------------- */
 
 type SortKey = 'newest' | 'oldest' | 'title'
 
-function Library({ tracks, selected, playing, onSelect, onPlay, onChanged, onError }: {
+function LibraryView({ tracks, playing, onPlay, onOpen }: {
   tracks: Track[]
-  selected: Track | null
   playing: Track | null
-  onSelect: (t: Track | null) => void
   onPlay: (t: Track) => void
-  onChanged: () => void
-  onError: (m: string) => void
+  onOpen: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<SortKey>('newest')
@@ -358,8 +383,8 @@ function Library({ tracks, selected, playing, onSelect, onPlay, onChanged, onErr
     })
 
   return (
-    <section className="panel" id="library">
-      <h2>Library <span className="count">{tracks.length}</span></h2>
+    <div className="view">
+      <h2 className="view-title">Library</h2>
       <div className="library-tools">
         <input placeholder="🔍 Search tracks…" value={query} onChange={e => setQuery(e.target.value)} />
         <select value={sort} onChange={e => setSort(e.target.value as SortKey)}>
@@ -368,18 +393,20 @@ function Library({ tracks, selected, playing, onSelect, onPlay, onChanged, onErr
           <option value="title">Title A→Z</option>
         </select>
       </div>
+
       {shown.length === 0 && (
         <div className="empty">
           <span>🎵</span>
           <p>{tracks.length === 0
-            ? <>No tracks yet.<br />Pick a genre, hit Compose, and your first track lands here.</>
+            ? <>No tracks yet.<br />Head to Create, pick a genre, hit Compose.</>
             : 'No tracks match your search.'}</p>
         </div>
       )}
-      <ul className="tracks">
+
+      <ul className="lib-rows">
         {shown.map(t => (
-          <li key={t.id} className={selected?.id === t.id ? 'active' : ''} onClick={() => onSelect(t)}>
-            <div className="cover" style={coverStyle(t.id)}>
+          <li key={t.id} onClick={() => onOpen(t.id)}>
+            <div className="cover big" style={coverStyle(t.id)}>
               {t.status === 'generating' || t.status === 'queued'
                 ? <span className="spin light" />
                 : t.status === 'ready'
@@ -389,12 +416,16 @@ function Library({ tracks, selected, playing, onSelect, onPlay, onChanged, onErr
                   : '♪'}
               {t.duration ? <span className="dur">{fmt(t.duration)}</span> : null}
             </div>
-            <div className="meta">
-              <strong>{t.title}</strong>
-              <small>
-                {t.stage ?? t.status}
-                {t.bpm ? ` · ${t.bpm} bpm` : ''}
-                {t.key_scale ? ` · ${t.key_scale}` : ''}
+            <div className="lib-meta">
+              <div className="lib-title">
+                <strong>{t.title}</strong>
+                <span className="chip">{TYPE_LABEL[t.task_type] ?? t.task_type}</span>
+                {t.bpm ? <span className="chip subtle">{t.bpm} bpm</span> : null}
+                {t.key_scale ? <span className="chip subtle">{t.key_scale}</span> : null}
+              </div>
+              <p className="lib-desc">{t.prompt}</p>
+              <small className="muted">
+                {t.stage ?? t.status} · {fmtDate(t.created_at)}
               </small>
               {(t.status === 'generating' || t.status === 'queued') && <div className="bar"><div /></div>}
             </div>
@@ -402,18 +433,22 @@ function Library({ tracks, selected, playing, onSelect, onPlay, onChanged, onErr
           </li>
         ))}
       </ul>
-      {selected && <StudioPanel track={selected} onPlay={onPlay} onChanged={onChanged} onError={onError} />}
-    </section>
+    </div>
   )
 }
 
-/* ---------------- studio ---------------- */
+/* ---------------- track view ---------------- */
 
-function StudioPanel({ track, onPlay, onChanged, onError }: {
+function TrackView({ track, tracks, playing, onPlay, onOpen, onBack, onChanged, onError, onDeleted }: {
   track: Track
+  tracks: Track[]
+  playing: Track | null
   onPlay: (t: Track) => void
+  onOpen: (id: string) => void
+  onBack: () => void
   onChanged: () => void
   onError: (m: string) => void
+  onDeleted: () => void
 }) {
   const [editPrompt, setEditPrompt] = useState('')
   const [start, setStart] = useState(0)
@@ -421,11 +456,15 @@ function StudioPanel({ track, onPlay, onChanged, onError }: {
   const [strength, setStrength] = useState(0.7)
   const [busy, setBusy] = useState(false)
 
-  const act = async (fn: () => Promise<unknown>) => {
+  const parent = track.parent_id ? tracks.find(t => t.id === track.parent_id) : null
+  const children = tracks.filter(t => t.parent_id === track.id)
+
+  const act = async (fn: () => Promise<unknown>, after?: () => void) => {
     setBusy(true)
     try {
       await fn()
       onChanged()
+      after?.()
     } catch (e) {
       onError(String(e))
     } finally {
@@ -434,51 +473,103 @@ function StudioPanel({ track, onPlay, onChanged, onError }: {
   }
 
   return (
-    <div className="studio">
-      <div className="studio-head">
-        <h3>{track.title}</h3>
-        <div className="row" style={{ margin: 0 }}>
-          {track.status === 'ready' && (
-            <>
-              <button onClick={() => onPlay(track)}>▶ Play</button>
-              <a className="download" href={`${api.audioUrl(track.id)}?download=1`}>⬇ Download</a>
-            </>
+    <div className="view">
+      <button className="back" onClick={onBack}>← Library</button>
+      <div className="track-hero">
+        <div className="cover hero" style={coverStyle(track.id)}>
+          {track.status === 'ready'
+            ? <button className="cover-play big" onClick={() => onPlay(track)}>{playing?.id === track.id ? '♫' : '▶'}</button>
+            : (track.status === 'failed' ? '✕' : <span className="spin light" />)}
+        </div>
+        <div className="track-info">
+          <h2>{track.title}</h2>
+          <div className="lib-title">
+            <span className="chip">{TYPE_LABEL[track.task_type] ?? track.task_type}</span>
+            {track.bpm ? <span className="chip subtle">{track.bpm} bpm</span> : null}
+            {track.key_scale ? <span className="chip subtle">{track.key_scale}</span> : null}
+            {track.time_signature ? <span className="chip subtle">{track.time_signature}</span> : null}
+            {track.duration ? <span className="chip subtle">{fmt(track.duration)}</span> : null}
+          </div>
+          <p className="track-desc">{track.prompt}</p>
+          <small className="muted">{fmtDate(track.created_at)}{track.vocal_language ? ` · ${track.vocal_language}` : ''}</small>
+          <div className="row" style={{ marginTop: 14 }}>
+            {track.status === 'ready' && (
+              <>
+                <button className="primary inline" onClick={() => onPlay(track)}>▶ Play</button>
+                <a className="download" href={`${api.audioUrl(track.id)}?download=1`}>⬇ Download</a>
+              </>
+            )}
+            <button className="danger" disabled={busy}
+              onClick={() => act(() => api.deleteSong(track.id), onDeleted)}>🗑 Delete</button>
+          </div>
+          {track.status === 'failed' && <p className="fail">{track.error}</p>}
+          {(track.status === 'queued' || track.status === 'generating') && (
+            <p className="muted working"><span className="spin" /> {track.stage ?? track.status}…</p>
           )}
         </div>
       </div>
-      {track.status === 'failed' && <p className="fail">{track.error}</p>}
-      {(track.status === 'queued' || track.status === 'generating') && (
-        <p className="muted working"><span className="spin" /> {track.stage ?? track.status}…</p>
-      )}
 
-      {track.status === 'ready' && (
-        <>
-          <label>Edit prompt (repaint / cover / extend)</label>
-          <input value={editPrompt} onChange={e => setEditPrompt(e.target.value)}
-            placeholder="new style or direction…" />
-          <div className="row">
-            <button disabled={busy} onClick={() => act(() => api.stems(track.id))}>🎚 Split stems</button>
-            <button disabled={busy || !editPrompt} onClick={() => act(() => api.cover(track.id, editPrompt, strength))}>🎭 Cover</button>
-            <button disabled={busy || !editPrompt} onClick={() => act(() => api.extend(track.id, editPrompt))}>➕ Extend</button>
+      <div className="track-columns">
+        <div>
+          {track.status === 'ready' && (
+            <div className="field-group">
+              <h3>Studio</h3>
+              <label>Edit prompt (repaint / cover / extend)</label>
+              <input value={editPrompt} onChange={e => setEditPrompt(e.target.value)}
+                placeholder="new style or direction…" />
+              <div className="row">
+                <button disabled={busy} onClick={() => act(() => api.stems(track.id))}>🎚 Split stems</button>
+                <button disabled={busy || !editPrompt} onClick={() => act(() => api.cover(track.id, editPrompt, strength))}>🎭 Cover</button>
+                <button disabled={busy || !editPrompt} onClick={() => act(() => api.extend(track.id, editPrompt))}>➕ Extend</button>
+              </div>
+              <div className="row">
+                <label>From <input type="number" min={0} value={start} onChange={e => setStart(Number(e.target.value))} style={{ width: 70 }} />s</label>
+                <label>To <input type="number" min={1} value={end} onChange={e => setEnd(Number(e.target.value))} style={{ width: 70 }} />s</label>
+                <button disabled={busy || !editPrompt || end <= start}
+                  onClick={() => act(() => api.repaint(track.id, editPrompt, start, end))}>
+                  🖌 Repaint section
+                </button>
+                <label>Cover strength {strength}
+                  <input type="range" min={0} max={1} step={0.05} value={strength}
+                    onChange={e => setStrength(Number(e.target.value))} />
+                </label>
+              </div>
+            </div>
+          )}
+          {track.lyrics && (
+            <div className="field-group">
+              <h3>Lyrics / arrangement</h3>
+              <pre dir="auto">{track.lyrics}</pre>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div className="field-group">
+            <h3>Versions & remixes</h3>
+            {!parent && children.length === 0 && (
+              <p className="muted">Nothing yet — use the Studio tools to create stems, covers and extensions of this track. They'll appear here as a family tree.</p>
+            )}
+            {parent && (
+              <div className="rel-row" onClick={() => onOpen(parent.id)}>
+                <div className="cover small" style={coverStyle(parent.id)}>♪</div>
+                <div><strong>{parent.title}</strong><small className="muted"> · source</small></div>
+              </div>
+            )}
+            {children.map(c => (
+              <div className="rel-row" key={c.id} onClick={() => onOpen(c.id)}>
+                <div className="cover small" style={coverStyle(c.id)}>
+                  {c.status === 'generating' || c.status === 'queued' ? <span className="spin light" /> : '♪'}
+                </div>
+                <div>
+                  <strong>{c.title}</strong>
+                  <small className="muted"> · {TYPE_LABEL[c.task_type] ?? c.task_type} · {c.stage ?? c.status}</small>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="row">
-            <label>From <input type="number" min={0} value={start} onChange={e => setStart(Number(e.target.value))} style={{ width: 70 }} />s</label>
-            <label>To <input type="number" min={1} value={end} onChange={e => setEnd(Number(e.target.value))} style={{ width: 70 }} />s</label>
-            <button disabled={busy || !editPrompt || end <= start}
-              onClick={() => act(() => api.repaint(track.id, editPrompt, start, end))}>
-              🖌 Repaint section
-            </button>
-            <label>Cover strength {strength}
-              <input type="range" min={0} max={1} step={0.05} value={strength}
-                onChange={e => setStrength(Number(e.target.value))} />
-            </label>
-          </div>
-        </>
-      )}
-      <div className="row">
-        <button className="danger" disabled={busy} onClick={() => act(() => api.deleteSong(track.id))}>🗑 Delete</button>
+        </div>
       </div>
-      {track.lyrics && <details><summary>Lyrics / arrangement</summary><pre dir="auto">{track.lyrics}</pre></details>}
     </div>
   )
 }
