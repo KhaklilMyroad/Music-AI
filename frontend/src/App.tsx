@@ -59,8 +59,6 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
     if (preset) {
       setPrompt(preset.prompt)
       setBpm(preset.bpm)
-      setInstrumental(true)
-      setLyrics('')
     }
   }
 
@@ -101,7 +99,7 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
         </button>
       </div>
 
-      <label>Electronic genre preset (fills prompt + BPM, sets instrumental)</label>
+      <label>Electronic genre preset (fills prompt + BPM)</label>
       <select value={presetId} onChange={e => applyPreset(e.target.value)}>
         <option value="">— pick a genre —</option>
         {PRESET_FAMILIES.map(family => (
