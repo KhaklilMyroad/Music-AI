@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, SongPlan, Track } from './api'
-import { ARRANGEMENTS, GENRE_PRESETS, PRESET_FAMILIES } from './presets'
+import { ARRANGEMENTS, COMPOSE_PLANS, GENRE_PRESETS, PRESET_FAMILIES } from './presets'
 
 const LANGS = ['english', 'hebrew', 'spanish', 'french', 'japanese', 'arabic', 'german', 'portuguese']
 
@@ -175,7 +175,32 @@ function CreatePanel({ onCreated, onError }: { onCreated: () => void; onError: (
           })
           onCreated()
         })}>
-        {busy === 'gen' ? 'Submitting…' : '🎧 Generate'}
+        {busy === 'gen' ? 'Submitting…' : '🎧 Generate (one shot)'}
+      </button>
+
+      <button className="primary compose" disabled={!prompt || !!busy}
+        title="Builds the track section-by-section (intro→build→drop→break→drop) so it has a real energy arc, then masters it"
+        onClick={() => run('compose', async () => {
+          const family = GENRE_PRESETS.find(p => p.id === presetId)?.family ?? 'House'
+          const plan = COMPOSE_PLANS[family]
+          const hook = instrumental ? '' : lyrics
+          await api.composeSong({
+            title: title || undefined,
+            base_prompt: bpm ? `${prompt}, ${bpm} bpm, professional club mix` : `${prompt}, professional club mix`,
+            vocal_language: language,
+            sections: plan.map(s => ({
+              name: s.name,
+              prompt: s.prompt,
+              duration: Math.min(120, Math.max(5, Math.round(duration * s.weight))),
+              lyrics: s.vocal ? hook : '',
+            })),
+            ...(quality === 'pro'
+              ? { model: 'acestep-v15-sft', inference_steps: 50 }
+              : { model: 'acestep-v15-turbo' }),
+          })
+          onCreated()
+        })}>
+        {busy === 'compose' ? 'Composing…' : `🎼 Compose full arrangement (${GENRE_PRESETS.find(p => p.id === presetId)?.family ?? 'House'} arc)`}
       </button>
     </section>
   )
@@ -198,7 +223,7 @@ function Library({ tracks, selected, onSelect, onChanged, onError }: {
             <span className={`dot ${t.status}`} title={t.status} />
             <div>
               <strong>{t.title}</strong>
-              <small>{t.task_type} · {t.status}{t.bpm ? ` · ${t.bpm} bpm` : ''}{t.key_scale ? ` · ${t.key_scale}` : ''}</small>
+              <small>{t.task_type} · {t.stage ?? t.status}{t.bpm ? ` · ${t.bpm} bpm` : ''}{t.key_scale ? ` · ${t.key_scale}` : ''}</small>
             </div>
           </li>
         ))}
@@ -232,7 +257,7 @@ function StudioPanel({ track, onChanged, onError }: { track: Track; onChanged: (
       <h3>{track.title}</h3>
       {track.status === 'ready' && <audio controls src={api.audioUrl(track.id)} style={{ width: '100%' }} />}
       {track.status === 'failed' && <p className="error">{track.error}</p>}
-      {(track.status === 'queued' || track.status === 'generating') && <p className="muted">⏳ {track.status}…</p>}
+      {(track.status === 'queued' || track.status === 'generating') && <p className="muted">⏳ {track.stage ?? track.status}…</p>}
 
       {track.status === 'ready' && (
         <>

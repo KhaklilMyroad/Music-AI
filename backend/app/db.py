@@ -12,6 +12,16 @@ engine = create_engine(
 
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
+    # naive additive migration for pre-existing SQLite databases
+    from sqlalchemy import text
+
+    with engine.connect() as conn:
+        for column, ddl in (("local_path", "VARCHAR"), ("stage", "VARCHAR")):
+            try:
+                conn.execute(text(f"ALTER TABLE track ADD COLUMN {column} {ddl}"))
+                conn.commit()
+            except Exception:  # noqa: BLE001 - column already exists
+                conn.rollback()
 
 
 def get_session():

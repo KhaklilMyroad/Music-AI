@@ -35,6 +35,23 @@ class ExtendRequest(BaseModel):
     duration: Optional[float] = Field(None, ge=10, le=600)
 
 
+class ComposeSection(BaseModel):
+    name: str = Field(..., min_length=1)
+    prompt: str = Field(..., min_length=1, description="Energy/production direction for this section")
+    duration: float = Field(..., ge=5, le=120)
+    lyrics: str = ""
+
+
+class ComposeRequest(BaseModel):
+    title: Optional[str] = None
+    base_prompt: str = Field(..., min_length=1, description="Shared style prompt for every section")
+    sections: list[ComposeSection] = Field(..., min_length=2, max_length=12)
+    vocal_language: Optional[str] = None
+    model: Optional[str] = None
+    inference_steps: Optional[int] = Field(None, ge=1, le=200)
+    guidance_scale: Optional[float] = Field(None, ge=0, le=30)
+
+
 class PlanRequest(BaseModel):
     idea: str = Field(..., min_length=1)
     language: Optional[str] = None

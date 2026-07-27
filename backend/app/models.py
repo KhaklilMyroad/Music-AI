@@ -23,6 +23,7 @@ class TaskType(str, Enum):
     cover = "cover"
     extract = "extract"  # generative stem separation
     complete = "complete"  # extend / continuation
+    compose = "compose"  # multi-section arrangement pipeline (ours, not an engine op)
 
 
 class Track(SQLModel, table=True):
@@ -37,6 +38,8 @@ class Track(SQLModel, table=True):
     # ACE-Step engine linkage
     engine_task_id: Optional[str] = Field(default=None, index=True)
     audio_path: Optional[str] = None  # path on the engine host, streamed via our proxy
+    local_path: Optional[str] = None  # mastered file on this host (preferred for playback)
+    stage: Optional[str] = None  # human-readable progress, e.g. "section 3/8: Drop"
     seed: Optional[int] = None
 
     # Musical metadata (requested and/or detected by the engine)

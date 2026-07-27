@@ -3,6 +3,8 @@ import os
 import sys
 import tempfile
 
+os.environ["POLL_INTERVAL_SECONDS"] = "0.05"
+os.environ["MASTERING_ENABLED"] = "false"
 os.environ["DATABASE_URL"] = f"sqlite:///{tempfile.mkdtemp()}/test.db"
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -132,3 +134,32 @@ def test_audio_path_extracted_from_engine_download_url():
 
     result = [{"file": "/v1/audio?path=C%3A%5CUsers%5Cronen%5Ctmp%5Cabc.flac", "wave": ""}]
     assert _find_audio_path(result) == "C:\\Users\\ronen\\tmp\\abc.flac"
+
+
+def test_compose_builds_sections_and_completes(client):
+    import time
+
+    resp = client.post("/api/songs/compose", json={
+        "title": "Composed Test",
+        "base_prompt": "melodic techno, 124 bpm",
+        "sections": [
+            {"name": "Intro", "prompt": "stripped intro", "duration": 10},
+            {"name": "Drop", "prompt": "full drop", "duration": 20, "lyrics": "hook line"},
+        ],
+    })
+    assert resp.status_code == 201, resp.text
+    track = resp.json()
+    assert track["task_type"] == "compose"
+
+    for _ in range(100):
+        got = client.get(f"/api/songs/{track['id']}").json()
+        if got["status"] in ("ready", "failed"):
+            break
+        time.sleep(0.1)
+    assert got["status"] == "ready", got
+    # first section: text2music; second: complete continuing the first audio
+    tasks = client.fake.tasks
+    assert tasks["task-1"]["task_type"] == "text2music"
+    assert tasks["task-2"]["task_type"] == "complete"
+    assert tasks["task-2"]["src_audio_path"] == "/outputs/task-1.mp3"
+    assert tasks["task-2"]["lyrics"] == "hook line"

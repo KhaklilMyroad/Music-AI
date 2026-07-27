@@ -9,6 +9,7 @@ export interface Track {
   lyrics: string
   task_type: string
   status: TrackStatus
+  stage?: string | null
   error?: string | null
   duration?: number | null
   bpm?: number | null
@@ -46,6 +47,8 @@ export const api = {
   listSongs: () => req<Track[]>('/api/songs'),
   createSong: (body: object) =>
     req<Track>('/api/songs', { method: 'POST', body: JSON.stringify(body) }),
+  composeSong: (body: object) =>
+    req<Track>('/api/songs/compose', { method: 'POST', body: JSON.stringify(body) }),
   deleteSong: (id: string) => req<void>(`/api/songs/${id}`, { method: 'DELETE' }),
   audioUrl: (id: string) => `${BASE}/api/songs/${id}/audio`,
 

@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     omniroute_model: str = "claude-sonnet-5"
 
     database_url: str = "sqlite:///./crescendo.db"
+    media_dir: str = "./media"
+    mastering_enabled: bool = True
+    # -9 LUFS = loud club master; use -14 for streaming-platform delivery
+    master_lufs: float = -9.0
     cors_origins: str = "http://localhost:5173"
     poll_interval_seconds: float = 3.0
 

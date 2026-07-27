@@ -11,6 +11,7 @@ from ..config import get_settings
 from ..db import engine
 from ..models import Track, TrackStatus
 from .acestep import get_acestep
+from .mastering import master_track
 
 log = logging.getLogger("crescendo.jobs")
 
@@ -92,6 +93,7 @@ async def poll_once() -> int:
             log.warning("engine poll failed: %s", exc)
             return len(pending)
 
+        newly_ready: list[tuple[str, str]] = []
         for task_id, state in states.items():
             track = by_task.get(task_id)
             if track is None:
@@ -102,6 +104,8 @@ async def poll_once() -> int:
                 track.status = TrackStatus.ready if track.audio_path else TrackStatus.failed
                 if track.status is TrackStatus.failed:
                     track.error = "engine completed but returned no audio path"
+                else:
+                    newly_ready.append((track.id, track.audio_path))
             elif status == 2:
                 track.status = TrackStatus.failed
                 failure = state.get("result")
@@ -112,8 +116,26 @@ async def poll_once() -> int:
                 track.status = TrackStatus.generating
             track.updated_at = datetime.now(timezone.utc)
             session.add(track)
+        still_pending = sum(
+            1 for t in pending if t.status in (TrackStatus.queued, TrackStatus.generating)
+        )
         session.commit()
-        return sum(1 for t in pending if t.status in (TrackStatus.queued, TrackStatus.generating))
+
+    for ready_id, engine_path in newly_ready:
+        asyncio.create_task(_master_and_store(ready_id, engine_path))
+    return still_pending
+
+
+async def _master_and_store(track_id: str, engine_path: str) -> None:
+    local = await master_track(track_id, engine_path)
+    if local:
+        with Session(engine) as session:
+            track = session.get(Track, track_id)
+            if track:
+                track.local_path = local
+                track.updated_at = datetime.now(timezone.utc)
+                session.add(track)
+                session.commit()
 
 
 async def poll_loop(stop: asyncio.Event) -> None:
