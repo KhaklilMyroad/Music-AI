@@ -1,20 +1,20 @@
-# MALALELE (Luna Plină) — Afro Tech × Eurodance-hook DNA
+# DÉMARRE — Afro Tech, Ibiza peak-time, French vocal
 
-A production-ready **Suno v5.5** prompt package: an Afro Tech club record built on the
-structural DNA of early-2000s Romanian Eurodance (minor-key `i–VI–III–VII` loop, syllabic
-non-lexical chant hook, Romanian-language lead) — **not a cover**. All lyrics and the hook
-syllables are original.
+A production-ready **Suno v5.5** prompt package: a fast, analog, fat-bass Afro Tech club
+record built on the *structural* DNA of early-2000s Romanian Eurodance (minor-key
+`i–VI–III–VII` loop, phonetic non-lexical chant hook, syllabic staccato lead) — but with a
+**brand-new French lyric written for the floor**, not a translation of anything.
 
 | File | Suno field | Chars | Limit |
 |---|---|---|---|
-| `title.txt` | Title | 22 | ~100 |
-| `style.txt` | Styles / Style of Music | 850 | 1000 |
-| `style-b-dark.txt` | Styles (variant B, underground) | 677 | 1000 |
+| `title.txt` | Title | 7 | ~100 |
+| `style.txt` | Styles / Style of Music | 986 | 1000 |
+| `style-b-dark.txt` | Styles (variant B, after-hours) | 782 | 1000 |
 | `exclude.txt` | Advanced Options → Exclude Styles | 433 | 1000 |
-| `lyrics.txt` | Lyrics (Custom mode) | 2713 | 5000 |
-| `lyrics-no-diacritics.txt` | Lyrics fallback (ASCII Romanian) | 2713 | 5000 |
+| `lyrics.txt` | Lyrics (Custom mode) | 3050 | 5000 |
+| `lyrics-ascii.txt` | Lyrics fallback (accent-stripped) | 3051 | 5000 |
 
-Duration slider: **5:45** (v5.5, web). Arrangement is written to land at 5:40.
+**128 BPM · A minor · 5:45 · 184 bars.** Duration slider: **5:45**.
 
 ---
 
@@ -33,7 +33,7 @@ The seven passes this package went through. Re-run pass 6–7 on every regenerat
 5. **Prompt engineering** — translate the spec into Suno's three-layer model
    (Style / Lyrics+meta tags / Exclude), respecting field limits and first-token weighting.
 6. **Self-QA** — the checklist in §7: limits, tag reliability, redundancy, contradiction,
-   legal exposure, Romanian grammar.
+   legal exposure, French grammar and singability.
 7. **Generation loop** — 4 renders, judge on the §8 criteria, keep one, extend/remaster.
 
 ---
@@ -43,17 +43,19 @@ The seven passes this package went through. Re-run pass 6–7 on every regenerat
 Afro Tech is the club-focused hybrid where South African / Afro House rhythm meets techno's
 drum programming and tension-release architecture. Rhythmic intensity replaces harmonic warmth.
 
-- **Tempo** — 124–129 BPM is the working band (the wider genre stretches to 135).
+- **Tempo** — 124–129 BPM is the working band (the wider genre stretches to 135). This track
+  sits at **128**: top of the band, Ibiza peak-time, still swung.
 - **Kick** — tight, dry, punchy, four-on-the-floor. Not a big-room kick, not a boomy house kick.
 - **Percussion** — the actual instrument of the genre. Congas, bongos, djembe, shakers on swung
   16ths, off-beat shakers, tom runs, woodblock, rim/cross-stick, shekere — interlocking
   polyrhythms rather than one busy loop. Swing/shuffle is mandatory; straight grids sound wrong.
 - **Bass** — deep round mono sub, frequently doubled by a melodic **log-drum** bass (the
-  Amapiano import) that carries the hook as much as the vocal does.
+  Amapiano import) that carries the hook as much as the vocal does. Here it is pushed further:
+  saturated and overdriven, the fattest element in the mix.
 - **Harmony** — minimal on purpose. One or two chords, minor mode (Aeolian, occasionally Dorian),
   a hypnotic arpeggio, metallic pluck stabs, dub delay throws, wide airy pads.
 - **Vocals** — sparse, mantra-like. Chants, single repeated phrases, spoken fragments,
-  call-and-response group answers. Rarely a full pop topline.
+  call-and-response crowd answers. Rarely a full pop topline.
 - **Arrangement** — long DJ tools. 16–32 bar drum-only intro and outro, patient filter builds,
   a percussion-only breakdown, cathartic drop. 6–8 minutes is normal.
 - **Mix** — analog warmth, tape saturation, tight sidechain, very wide stereo percussion, dry
@@ -62,8 +64,8 @@ drum programming and tension-release architecture. Rhythmic intensity replaces h
 ## 3. The reference record — structural analysis
 
 *O-Zone — "Dragostea Din Tei" (2003).* Used as a **structural** reference only; nothing is
-quoted, and the artist/title never appear in any prompt field (Suno rejects artist names, and
-the point is DNA, not imitation).
+quoted or translated, and the artist/title never appear in any prompt field (Suno rejects artist
+names, and the point is DNA, not imitation).
 
 - **Tempo** ~130 BPM, 4/4, allegro. **Key** A minor (databases often report the relative
   C major — same pitch set, minor tonic).
@@ -73,47 +75,68 @@ the point is DNA, not imitation).
 - **Melody** — one-octave range (≈B3–C5), stepwise descending motif, heavy repeated notes,
   syllabic eighth-note delivery: one syllable per eighth, almost no melisma.
 - **The hook is phonetic, not lexical.** The famous line is nonsense syllables — open vowels
-  and a single consonant, chantable by anyone who speaks no Romanian. That is the transferable
-  asset, and it is *exactly* what Afro Tech's mantra-vocal convention wants.
+  and a single consonant, chantable by anyone who speaks none of the language. That is the
+  transferable asset, and it is *exactly* what Afro Tech's mantra-vocal convention wants.
 - **Repetition** — extremely high. Same loop, same rhythm, hook restated every 4 bars.
-- **Vocal register** — male mid-baritone, dry, forward, octave-doubled, group answers.
+- **Vocal register** — male mid-baritone, dry, forward, octave-doubled, crowd answers.
 
 ## 4. The intersection — what transfers, what gets cut
 
 | Transfers | Cut |
 |---|---|
-| `i–VI–III–VII` minor loop, hook landing on VI | 130 BPM (→ 124, for the rolling swing) |
-| Phonetic non-lexical chant hook | 2003 supersaw brass and trance lead |
-| Syllabic staccato Romanian lead, octave doubling | Bright pop-major sheen |
-| Call-and-response group answers | 3:30 radio arrangement (→ 5:40 DJ arrangement) |
-| Extreme repetition | Novelty/comedy tone — the #1 failure mode here |
+| `i–VI–III–VII` minor loop, hook landing on VI | 130 BPM (→ 128, keeps the swing) |
+| The *principle* of a phonetic non-lexical hook | The reference's actual syllables |
+| Syllabic staccato lead, octave doubling | The Romanian language, and the original imagery |
+| Call-and-response crowd answers | 2003 supersaw brass and trance lead |
+| Extreme repetition | 3:30 radio arrangement (→ 5:45 DJ arrangement) |
+|  | Novelty/comedy tone — the #1 failure mode here |
+
+### Why French, and why this lyric
+
+The lyric is **new writing, not a translation** — a different scene, different images, a
+different hook. It works musically for three reasons:
+
+- **The hook is French-native.** `Dé-ma-ré / dé-ma-ro / dé-ma-ré-lé-o` is nonsense you can chant
+  after one listen, but it shadows a real French word — so the drop line **"Ça démarre, ça monte,
+  ça part"** lands the meaning a bar later. Phonetic hook *and* lexical payoff from the same
+  sound. The crowd answer `O-lé-lé-o!` needs no French at all.
+- **French cuts through at 128.** Closed `é` endings and hard consonant onsets (`p`, `t`, `k`)
+  give the staccato eighth-note grid its attack, while the nasal vowels (`en`, `on`, `an`)
+  sustain over the sub without fighting it.
+- **Francophone Afro House is a real, current club lineage** — the language reads as native to
+  Ibiza terraces, not as a costume.
+
+The lyric itself is written as club copy, not poetry: no story, no chorus-verse narrative arc.
+Short declarative lines, present tense, second person, physical images (bass in the stomach,
+sweat on the wall, salt on skin, 4am terrace), and two producer-wink build lines
+(*"Encore huit mesures"* / *"Quatre… trois… deux…"*) that tell Suno exactly where the tension is.
 
 ## 5. Musical spec
 
-- **BPM 124** · 4/4 · **A minor** (Aeolian; Dorian F♯ colour on the breakdown arp)
+- **BPM 128** · 4/4 · **A minor** (Aeolian; Dorian F♯ colour on the breakdown arp)
 - **Loop** Am–F–C–G, two bars, unchanged; breakdown collapses to a static Am
-- **Sub** on A1 (55 Hz), mono; log-drum bass doubles the hook contour
+- **Sub** on A1 (55 Hz), mono, saturated; overdriven log-drum bass doubles the hook contour
 - **Lead melody** stepwise descending, range ≈B3–C5, one syllable per eighth note
-- **Balance** groove 70% / vocal 30%
-- **Length** 5:40 · 176 bars
+- **Balance** groove 75% / vocal 25% — the bass and drums are the lead instrument
+- **Length** 5:45 · 184 bars
 
-### Arrangement grid (124 BPM · 1 bar ≈ 1.94 s)
+### Arrangement grid (128 BPM · 1 bar = 1.875 s)
 
 | Section | Bars | In | Out |
 |---|---|---|---|
-| Intro — drum tool, filtered | 16 | 0:00 | 0:31 |
-| Intro — chant hook teaser | 8 | 0:31 | 0:46 |
-| Percussion build | 8 | 0:46 | 1:02 |
-| Verse 1 | 16 | 1:02 | 1:33 |
-| Pre-Chorus / build | 8 | 1:33 | 1:49 |
-| **Drop 1 (Chorus)** | 16 | 1:49 | 2:19 |
-| Instrumental break | 8 | 2:19 | 2:35 |
-| Verse 2 | 16 | 2:35 | 3:06 |
-| Breakdown (Bridge) | 16 | 3:06 | 3:37 |
-| Build 2 | 8 | 3:37 | 3:52 |
-| **Drop 2 (Chorus)** | 24 | 3:52 | 4:39 |
-| Chant peak | 16 | 4:39 | 5:10 |
-| Outro — drum tool | 16 | 5:10 | 5:41 |
+| Intro — drum tool, filtered | 16 | 0:00 | 0:30 |
+| Intro — chant hook teaser | 8 | 0:30 | 0:45 |
+| Percussion build | 8 | 0:45 | 1:00 |
+| Verse 1 | 16 | 1:00 | 1:30 |
+| Pre-Chorus / build | 8 | 1:30 | 1:45 |
+| **Drop 1 (Chorus)** | 16 | 1:45 | 2:15 |
+| Instrumental break | 8 | 2:15 | 2:30 |
+| Verse 2 | 16 | 2:30 | 3:00 |
+| Breakdown (Bridge) | 16 | 3:00 | 3:30 |
+| Build 2 | 8 | 3:30 | 3:45 |
+| **Drop 2 (Chorus) — fattest bass** | 32 | 3:45 | 4:45 |
+| Chant peak | 16 | 4:45 | 5:15 |
+| Outro — drum tool | 16 | 5:15 | 5:45 |
 
 ## 6. Why the prompt is written the way it is
 
@@ -122,6 +145,12 @@ the point is DNA, not imitation).
   both mechanisms point the same way instead of fighting.
 - **One lead genre.** Two stacked genres is the reliable hybrid ceiling; the other two entries
   are colour, kept small and placed last.
+- **Analog is stated as hardware, not as a mood.** "Analog warmth" alone is a weak tag, so the
+  style names the machines by family — Juno-style pads, Moog-style resonant filter, hardware
+  drum machine feel, tape saturation — which pushes the model toward that timbre far harder.
+- **The bass is described three times** (fat saturated analog sub / thick overdriven log-drum
+  bassline / fat mono sub in the mix clause). Deliberate redundancy: it is the one element the
+  brief will not tolerate coming out thin.
 - **Reliable section labels first inside the bracket.** Every meta tag opens with a label from
   the dependable set (`[Intro]`, `[Verse]`, `[Pre-Chorus]`, `[Chorus]`, `[Bridge]`,
   `[Instrumental Break]`, `[Outro]`, `[End]`) and then uses the `:` parameter syntax to describe
@@ -136,34 +165,37 @@ the point is DNA, not imitation).
 
 | Check | Result |
 |---|---|
-| All fields inside character limits | Pass (see table above) |
-| Lyrics inside the 2000–3500 sweet spot | Pass — 2713 |
+| All fields inside character limits | Pass — style 986/1000 is the tightest |
+| Lyrics inside the 2000–3500 sweet spot | Pass — 3050 |
 | Percentages sum to 100 (A: 65/15/10/10, B: 60/20/15/5) | Pass |
 | Tag order matches declared percentages | Pass |
-| BPM / key / mode consistent between Style, spec and grid | Pass — 124, A minor |
-| No artist or track names anywhere in any field | Pass — grep-verified |
-| No quoted lyrics; hook syllables original | Pass |
+| BPM / key / balance consistent between Style, spec and grid | Pass — 128, A minor, 75/25 |
+| No artist or track names in any field | Pass — grep-verified |
+| No quoted or translated lyrics; hook syllables original | Pass — grep-verified, no residue |
+| Lyric is new writing, not a translation of the reference | Pass — new scene, images and hook |
 | Every section tag from the reliable label set | Pass |
 | Style vs Exclude contradiction | None |
-| Romanian grammar and diacritics | Reviewed; ASCII fallback shipped |
-| Arrangement sums to the stated duration | Pass — 176 bars = 5:40 |
+| French grammar and singability at 128 BPM | Reviewed; accent-stripped fallback shipped |
+| Arrangement sums to the stated duration | Pass — 184 bars × 1.875 s = 5:45 exactly |
 
 ## 8. Generation protocol
 
 1. Custom mode → paste `lyrics.txt`, `style.txt`, `title.txt`, `exclude.txt`. Model **v5.5**.
    Duration slider **5:45**.
-2. Generate **4** renders. Judge only on: (a) does the drop hit, (b) is the percussion swung and
-   layered or a flat loop, (c) is the chant hook actually singable after one listen,
-   (d) is the vocal dry and forward or drowned.
-3. If it comes out too poppy → swap in `style-b-dark.txt` and re-roll.
-4. If Romanian pronunciation mangles → swap in `lyrics-no-diacritics.txt`.
-5. If the drums stay thin → move `Tight punchy kick, deep round sub bass, log-drum bass melody`
-   to the front of the style prompt, ahead of the genre percentages, for one render.
-6. Keep the best take → **Persona** it, then **Extend** to 7:00 for the DJ edit, and **Cover**
+2. Generate **4** renders. Judge only on: (a) does the drop actually hit, (b) is the bass fat and
+   saturated or thin and polite, (c) is the percussion swung and layered or a flat loop,
+   (d) can you chant `Dé-ma-ré-lé-o` after one listen.
+3. Bass still thin → move `Fat saturated analog sub bass, thick overdriven log-drum bassline` to
+   the very front of the style prompt, ahead of the genre percentages, for one render.
+4. Too clean / too digital → swap in `style-b-dark.txt` (130 BPM, after-hours, 85/15 groove).
+5. French pronunciation mangled → swap in `lyrics-ascii.txt`.
+6. Too vocal-heavy → drop the balance line to `Groove 80% / vocal 20%` and delete the second
+   `(O-lé-lé-o!)` in each chorus.
+7. Keep the best take → **Persona** it, then **Extend** to 7:00 for the DJ edit, and **Cover**
    the same persona for a 3:30 radio edit if needed.
 
 ### Alternate titles
-`MALALELE` · `Luna Plină` · `AI-O-MA` · `Tobele Vorbesc` · `Malalele (Full Moon Mix)`
+`DÉMARRE` · `DÉMARRE (Ibiza Terrace Mix)` · `O-LÉ-LÉ-O` · `Encore Huit Mesures` · `Quatre Heures`
 
 ---
 
