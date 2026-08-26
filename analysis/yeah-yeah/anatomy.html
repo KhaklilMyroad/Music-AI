@@ -1,0 +1,623 @@
+<title>אנטומיית Yeah Yeah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Assistant:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+
+<style>
+:root{
+  --ground:#EDEFF3; --surface:#FFFFFF; --surface-2:#E4E8EF; --surface-3:#DBE0E9;
+  --ink:#111621; --ink-2:#4B5563; --ink-3:#79838F;
+  --rule:#CBD2DC; --rule-strong:#AAB4C2;
+  --accent:#8A5A00; --accent-fill:#E8B23A; --accent-soft:#F8E9C4;
+  --cool:#1C6874; --cool-fill:#4FBACD; --cool-soft:#D9F0F5;
+  --hot:#A32741;
+  --shadow:0 1px 2px rgba(17,22,33,.06), 0 8px 24px -12px rgba(17,22,33,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0D1320; --surface:#141C2B; --surface-2:#1B2434; --surface-3:#222D40;
+    --ink:#E9EEF6; --ink-2:#A6B1C1; --ink-3:#77839A;
+    --rule:#283245; --rule-strong:#3A465E;
+    --accent:#E8B23A; --accent-fill:#E8B23A; --accent-soft:#3B3018;
+    --cool:#63CBDD; --cool-fill:#4FBACD; --cool-soft:#14313A;
+    --hot:#E8637F;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D1320; --surface:#141C2B; --surface-2:#1B2434; --surface-3:#222D40;
+  --ink:#E9EEF6; --ink-2:#A6B1C1; --ink-3:#77839A;
+  --rule:#283245; --rule-strong:#3A465E;
+  --accent:#E8B23A; --accent-fill:#E8B23A; --accent-soft:#3B3018;
+  --cool:#63CBDD; --cool-fill:#4FBACD; --cool-soft:#14313A;
+  --hot:#E8637F;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; direction:rtl;
+  background:var(--ground); color:var(--ink);
+  font-family:"Assistant","Segoe UI",system-ui,sans-serif;
+  font-size:17px; line-height:1.7; font-weight:400;
+  overflow-x:hidden;
+}
+.wrap{width:min(1080px, calc(100% - 2.5rem)); margin-inline:auto}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:"Frank Ruhl Libre",Georgia,serif; font-weight:700; text-wrap:balance; margin:0; line-height:1.25}
+h2{font-size:clamp(1.5rem,3.2vw,2.05rem); font-weight:900; letter-spacing:-.01em}
+h3{font-size:1.18rem; font-weight:700}
+h4{font-size:1rem; font-weight:700; font-family:"Assistant",sans-serif}
+p{margin:0}
+a{color:var(--accent)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; direction:ltr; unicode-bidi:isolate}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:1px solid var(--rule);
+  background:var(--surface);
+  padding-block:clamp(2.2rem,6vw,3.6rem) 0;
+}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:.72rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.mast h1{font-size:clamp(2.4rem,7vw,4.2rem); font-weight:900; letter-spacing:-.02em; margin-top:.5rem}
+.mast h1 .lat{font-family:"Frank Ruhl Libre",serif; direction:ltr; unicode-bidi:isolate}
+.mast .sub{margin-top:.9rem; max-width:60ch; color:var(--ink-2); font-size:1.06rem}
+
+.specstrip{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:0; margin-top:2.2rem; border-top:1px solid var(--rule);
+}
+.spec{padding:1rem 0 1.15rem; border-inline-start:1px solid var(--rule)}
+.spec:first-child{border-inline-start:0}
+.spec .k{font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3)}
+.spec .v{font-family:"Frank Ruhl Libre",serif; font-size:1.65rem; font-weight:900; line-height:1.15; margin-top:.15rem; font-variant-numeric:tabular-nums; direction:ltr; unicode-bidi:isolate; text-align:start}
+.spec .n{font-size:.82rem; color:var(--ink-3); line-height:1.4}
+.spec + .spec{padding-inline-start:1.1rem}
+
+/* ---------- sections ---------- */
+section{padding-block:clamp(2.6rem,6vw,4rem); border-bottom:1px solid var(--rule)}
+section:nth-of-type(even){background:var(--surface)}
+.shead{display:flex; align-items:baseline; gap:.9rem; flex-wrap:wrap; margin-bottom:1.4rem}
+.shead .tag{
+  font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent); border:1px solid var(--accent);
+  padding:.15rem .5rem; border-radius:2px; white-space:nowrap;
+}
+.lede{color:var(--ink-2); font-size:1.05rem; max-width:66ch; margin-bottom:1.6rem}
+.stack{display:flex; flex-direction:column; gap:1.15rem}
+.stack-lg{display:flex; flex-direction:column; gap:2rem}
+
+ul.clean{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.6rem; max-width:68ch}
+ul.clean li{padding-inline-start:1.1rem; position:relative}
+ul.clean li::before{
+  content:""; position:absolute; inset-inline-start:0; top:.72em;
+  width:.42rem; height:.42rem; background:var(--accent-fill); border-radius:1px;
+}
+
+/* ---------- cards ---------- */
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem}
+.grid3{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1rem}
+.card{
+  background:var(--surface-2); border:1px solid var(--rule); border-radius:3px;
+  padding:1.1rem 1.2rem; display:flex; flex-direction:column; gap:.55rem;
+}
+section:nth-of-type(even) .card{background:var(--surface-3)}
+.card h4{letter-spacing:.01em}
+.card .meta{font-family:"IBM Plex Mono",monospace; font-size:.78rem; color:var(--ink-3); direction:ltr; unicode-bidi:isolate; text-align:start}
+.card p{font-size:.95rem; color:var(--ink-2)}
+
+/* ---------- arrangement timeline ---------- */
+.tl{display:flex; width:100%; gap:2px; margin-block:.4rem 0; align-items:flex-end; height:132px}
+.tl .seg{display:flex; flex-direction:column; justify-content:flex-end; min-width:0; position:relative}
+.tl .bar{
+  border-radius:2px 2px 0 0; background:var(--accent-fill);
+  border:1px solid color-mix(in srgb, var(--accent-fill) 70%, #000 30%);
+  border-bottom:0;
+}
+.tl .seg[data-kind="low"] .bar{background:var(--surface-3); border-color:var(--rule-strong)}
+.tl .seg[data-kind="mid"] .bar{background:var(--cool-fill); border-color:color-mix(in srgb,var(--cool-fill) 70%,#000 30%)}
+.tl .seg[data-kind="gap"] .bar{background:repeating-linear-gradient(45deg,var(--rule) 0 3px,transparent 3px 6px); border-color:var(--rule-strong)}
+.tl .lbl{
+  font-family:"IBM Plex Mono",monospace; font-size:.64rem; color:var(--ink-2);
+  padding-top:.35rem; border-top:1px solid var(--rule-strong);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; direction:ltr; text-align:start;
+}
+.tlruler{display:flex; gap:2px; margin-top:.15rem}
+.tlruler span{font-family:"IBM Plex Mono",monospace; font-size:.6rem; color:var(--ink-3); min-width:0; overflow:hidden; direction:ltr; text-align:start}
+.tlkey{display:flex; gap:1.1rem; flex-wrap:wrap; font-size:.8rem; color:var(--ink-3); margin-top:.9rem}
+.tlkey i{display:inline-block; width:.7rem; height:.7rem; border-radius:1px; margin-inline-end:.35rem; vertical-align:-1px}
+
+/* ---------- step sequencer ---------- */
+.seq{display:flex; flex-direction:column; gap:.3rem; margin-block:.2rem}
+.seqrow{display:grid; grid-template-columns:9.5rem 1fr; align-items:center; gap:.7rem}
+.seqrow .name{font-size:.88rem; font-weight:600; text-align:start}
+.seqrow .name em{display:block; font-style:normal; font-size:.72rem; color:var(--ink-3); font-family:"IBM Plex Mono",monospace; direction:ltr}
+.cells{display:grid; grid-template-columns:repeat(16,1fr); gap:2px; direction:ltr}
+.cells b{
+  display:block; height:1.5rem; border-radius:1px;
+  border:1px solid var(--rule); background:var(--surface);
+}
+section:nth-of-type(even) .cells b{background:var(--surface-2)}
+.cells b[data-on="1"]{background:var(--accent-fill); border-color:color-mix(in srgb,var(--accent-fill) 65%,#000 35%)}
+.cells b[data-on="2"]{background:color-mix(in srgb,var(--accent-fill) 45%, var(--surface) 55%); border-color:var(--rule-strong)}
+.cells b[data-on="3"]{background:var(--cool-fill); border-color:color-mix(in srgb,var(--cool-fill) 65%,#000 35%)}
+.cells b[data-beat="1"]{border-inline-start-color:var(--rule-strong); border-inline-start-width:2px}
+.seqlabels{display:grid; grid-template-columns:9.5rem 1fr; gap:.7rem; margin-top:.15rem}
+.seqlabels .cells span{font-family:"IBM Plex Mono",monospace; font-size:.6rem; color:var(--ink-3); text-align:center}
+@media (max-width:640px){
+  .seqrow,.seqlabels{grid-template-columns:1fr; gap:.25rem}
+  .seqrow .name em{display:inline; margin-inline-start:.5rem}
+}
+
+/* ---------- tables ---------- */
+.tblwrap{overflow-x:auto; border:1px solid var(--rule); border-radius:3px; background:var(--surface)}
+section:nth-of-type(even) .tblwrap{background:var(--surface-2)}
+table{border-collapse:collapse; width:100%; font-size:.9rem; min-width:520px}
+th,td{padding:.55rem .8rem; text-align:start; border-bottom:1px solid var(--rule)}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-3); font-weight:400;
+  background:var(--surface-2); position:sticky; top:0;
+}
+section:nth-of-type(even) thead th{background:var(--surface-3)}
+tbody tr:last-child td{border-bottom:0}
+td.n{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; direction:ltr; unicode-bidi:isolate; white-space:nowrap}
+tbody tr.hl td{background:var(--accent-soft)}
+
+/* meter bars inside tables */
+.mtr{display:flex; align-items:center; gap:.5rem}
+.mtr .track{flex:1; height:.5rem; background:var(--surface-3); border-radius:1px; overflow:hidden; min-width:60px}
+.mtr .fill{display:block; height:100%; background:var(--accent-fill)}
+.mtr .fill.cool{background:var(--cool-fill)}
+
+/* ---------- callouts ---------- */
+.note{
+  border-inline-start:3px solid var(--cool); background:var(--cool-soft);
+  padding:.9rem 1.1rem; border-radius:0 3px 3px 0; font-size:.95rem; color:var(--ink-2);
+  max-width:70ch;
+}
+.note strong{color:var(--ink)}
+.warn{border-inline-start-color:var(--hot); background:color-mix(in srgb,var(--hot) 10%, var(--surface) 90%)}
+
+/* ---------- steps ---------- */
+ol.steps{list-style:none; counter-reset:s; padding:0; margin:0; display:flex; flex-direction:column; gap:1.1rem}
+ol.steps > li{counter-increment:s; display:grid; grid-template-columns:2.3rem 1fr; gap:.9rem; align-items:start}
+ol.steps > li::before{
+  content:counter(s,decimal-leading-zero);
+  font-family:"IBM Plex Mono",monospace; font-size:.85rem; font-weight:600;
+  color:var(--accent); border:1px solid var(--accent); border-radius:2px;
+  width:2.3rem; height:1.75rem; display:grid; place-items:center; margin-top:.15rem;
+}
+ol.steps h4{margin-bottom:.15rem}
+ol.steps p{font-size:.95rem; color:var(--ink-2)}
+ol.steps .det{font-family:"IBM Plex Mono",monospace; font-size:.8rem; color:var(--ink-3); direction:ltr; unicode-bidi:isolate; text-align:start; margin-top:.3rem}
+
+/* ---------- envelope svg ---------- */
+.env{width:100%; max-width:520px; height:auto; display:block}
+.env .grid{stroke:var(--rule); stroke-width:1}
+.env .curve{fill:none; stroke:var(--accent-fill); stroke-width:2.5; stroke-linejoin:round}
+.env .fillarea{fill:var(--accent-fill); opacity:.14}
+.env text{font-family:"IBM Plex Mono",monospace; font-size:9px; fill:var(--ink-3)}
+.env .kick{stroke:var(--hot); stroke-width:1.5; stroke-dasharray:3 3}
+
+footer{padding-block:2.4rem 3.4rem; color:var(--ink-3); font-size:.88rem}
+footer .wrap{display:flex; flex-direction:column; gap:.5rem}
+
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){
+  .tl .bar{transition:filter .15s ease}
+  .tl .seg:hover .bar{filter:brightness(1.08)}
+}
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <div class="eyebrow">פירוק הפקה · ניתוח אקוסטי של הקובץ</div>
+    <h1><span class="lat">Yeah Yeah</span></h1>
+    <p class="sub">כל מספר במסמך הזה נמדד מתוך הקובץ עצמו — רשת הביט, גובה הבאס, עומק הסיידצ׳יין, מאזן התדרים ורמת המאסטר. מכאן ואילך זה ספר הוראות: מה לשים, איפה, ובאיזה ערך.</p>
+
+    <div class="specstrip">
+      <div class="spec"><div class="k">Tempo</div><div class="v">125.00</div><div class="n">BPM קבוע · תיבה = 1.92ש׳</div></div>
+      <div class="spec"><div class="k">Key</div><div class="v">F min</div><div class="n">טוניקה F1 = 43.65Hz</div></div>
+      <div class="spec"><div class="k">Length</div><div class="v">2:22</div><div class="n">74 תיבות · ללא מיקס־אין</div></div>
+      <div class="spec"><div class="k">Loudness</div><div class="v">−8.4</div><div class="n">LUFS-I · +1.19 dBTP</div></div>
+      <div class="spec"><div class="k">Groove</div><div class="v">4×4</div><div class="n">קיק בכל רבע · באס 16ths</div></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap stack">
+    <div class="shead"><span class="tag">01 · הזיהוי</span><h2>מה הטראק הזה, בשורה אחת</h2></div>
+    <div class="prose stack">
+      <p><strong>פיוצ׳ר־האוס / בייס־האוס ב־125 BPM בפה מינור</strong>, בפורמט קצר של רדיו־אדיט: אין אינטרו די־ג׳יי, אין אאוטרו — הטראק נכנס ישר לתוך הלופ ונחתך בסוף. שני דרופים זהים, שני ורסים, ובנייה שמסתיימת בתיבה מרוקנת.</p>
+      <p>מה שנותן לו את החתימה הוא לא ההרמוניה — היא פשוטה בכוונה — אלא <strong>שלושה דברים שנמדדו כאן במדויק</strong>: קיק מכוונן לטוניקה עם גליסנדו יורד של אוקטבה ב־25ms, סיידצ׳יין בעומק 14dB שמתאושש כמעט לאורך כל הפעימה, ובאס סינקופי בשש־עשריות שיושב אך ורק בחורים שהקיק משאיר.</p>
+      <div class="note">
+        <strong>הערה על מקור הקובץ:</strong> הקובץ הועלה כ־MP3 ב־134kbps עם חיתוך בסביבות 16kHz, ובלי מטא־דאטה של אמן/אלבום. המשמעות המעשית: כל האמירות על מבנה, ריתמוס, הרמוניה ורמות — מדויקות. אמירות על <em>אוויר</em> מעל 15kHz — לא ניתנות לאימות מהקובץ הזה.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="shead"><span class="tag">02 · המבנה</span><h2>מפת הסידור, תיבה אחר תיבה</h2></div>
+    <p class="lede">הדאונביט הראשון נופל ב־<span class="mono">0.200s</span>. כל תיבה = 1.92 שניות. הגובה בגרף = ה־RMS הממוצע לתיבה, כלומר האנרגיה בפועל.</p>
+
+    <div class="tl">
+      <div class="seg" style="flex:1"   data-kind="low"><div class="bar" style="height:22%"></div><div class="lbl">·</div></div>
+      <div class="seg" style="flex:8"   data-kind="low"><div class="bar" style="height:38%"></div><div class="lbl">Verse 1</div></div>
+      <div class="seg" style="flex:7"   data-kind="mid"><div class="bar" style="height:64%"></div><div class="lbl">Build 1</div></div>
+      <div class="seg" style="flex:1"   data-kind="gap"><div class="bar" style="height:40%"></div><div class="lbl">gap</div></div>
+      <div class="seg" style="flex:16"  data-kind="hi"><div class="bar" style="height:100%"></div><div class="lbl">DROP 1</div></div>
+      <div class="seg" style="flex:16"  data-kind="low"><div class="bar" style="height:41%"></div><div class="lbl">Verse 2</div></div>
+      <div class="seg" style="flex:7"   data-kind="mid"><div class="bar" style="height:63%"></div><div class="lbl">Build 2</div></div>
+      <div class="seg" style="flex:1"   data-kind="gap"><div class="bar" style="height:44%"></div><div class="lbl">gap</div></div>
+      <div class="seg" style="flex:16"  data-kind="hi"><div class="bar" style="height:100%"></div><div class="lbl">DROP 2</div></div>
+      <div class="seg" style="flex:1"   data-kind="low"><div class="bar" style="height:8%"></div><div class="lbl">·</div></div>
+    </div>
+    <div class="tlkey">
+      <span><i style="background:var(--accent-fill)"></i>דרופ (−7.3dB RMS)</span>
+      <span><i style="background:var(--cool-fill)"></i>בנייה (−10.5dB)</span>
+      <span><i style="background:var(--surface-3);border:1px solid var(--rule-strong)"></i>ורס (−14dB)</span>
+      <span><i style="background:repeating-linear-gradient(45deg,var(--rule) 0 3px,transparent 3px 6px);border:1px solid var(--rule-strong)"></i>תיבת ניתוק</span>
+    </div>
+
+    <div class="tblwrap" style="margin-top:1.4rem">
+      <table>
+        <thead><tr><th>חלק</th><th>תיבות</th><th>זמן</th><th>אורך</th><th>RMS</th><th>מה קורה</th></tr></thead>
+        <tbody>
+          <tr><td>Pickup</td><td class="n">0</td><td class="n">0:00.2 – 0:02.1</td><td class="n">1</td><td class="n">−15.6</td><td>תיבה אחת של אווירה + פאד, בלי סאב</td></tr>
+          <tr><td>Verse 1</td><td class="n">1–8</td><td class="n">0:02.1 – 0:17.5</td><td class="n">8</td><td class="n">−14.1</td><td>לופ 8 תיבות, באס ב־60–160Hz, בלי סאב</td></tr>
+          <tr><td>Build 1</td><td class="n">9–15</td><td class="n">0:17.5 – 0:30.9</td><td class="n">7</td><td class="n">−10.4</td><td>סאב נכנס, 16ths מתמידים, פילטר עולה</td></tr>
+          <tr><td>Gap</td><td class="n">16</td><td class="n">0:30.9 – 0:32.8</td><td class="n">1</td><td class="n">−14.0</td><td>HPF שואב את הלואו החוצה תוך תיבה</td></tr>
+          <tr class="hl"><td>Drop 1</td><td class="n">17–32</td><td class="n">0:32.8 – 1:03.6</td><td class="n">16</td><td class="n">−7.3</td><td>לופ 8 תיבות ×2, סאב מלא, שיא האנרגיה</td></tr>
+          <tr><td>Verse 2</td><td class="n">33–48</td><td class="n">1:03.6 – 1:34.3</td><td class="n">16</td><td class="n">−14.3</td><td>אותו לופ של ורס 1, פעמיים</td></tr>
+          <tr><td>Build 2</td><td class="n">49–55</td><td class="n">1:34.3 – 1:47.7</td><td class="n">7</td><td class="n">−10.8</td><td>העתק כמעט מדויק של Build 1</td></tr>
+          <tr><td>Gap</td><td class="n">56</td><td class="n">1:47.7 – 1:49.6</td><td class="n">1</td><td class="n">−12.3</td><td>אותו שאיבה, קצת פחות ריקה</td></tr>
+          <tr class="hl"><td>Drop 2</td><td class="n">57–72</td><td class="n">1:49.6 – 2:20.4</td><td class="n">16</td><td class="n">−7.3</td><td>העתק־הדבק של Drop 1 (דמיון 0.90–0.97)</td></tr>
+          <tr><td>Tail</td><td class="n">73</td><td class="n">2:20.4 – 2:22.5</td><td class="n">1</td><td class="n">−24.6</td><td>חיתוך + זנב ריוורב ~0.6ש׳</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="clean" style="margin-top:1.2rem">
+      <li><strong>הדרופ השני הוא לא ואריאציה — הוא אותו אודיו.</strong> מדידת דמיון בין תיבות מחזירה 0.90–0.97 בין תיבות 57–72 לתיבות 17–32. אם אתה מייצר את זה, זה בפועל copy‑paste של האזור בטיימליין.</li>
+      <li><strong>הורס השני הוא ורס ראשון פעמיים.</strong> תיבות 33–40 ו־41–48 זהות זו לזו וזהות לתיבות 1–8.</li>
+      <li><strong>אין 32 תיבות בשום מקום.</strong> הכל עובד ביחידות של 8, ורק הדרופים נמתחים ל־16 (8+8). זה מה שמייצר את הקצב הקצר של 2:22.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="shead"><span class="tag">03 · הרמוניה</span><h2>שני עולמות הרמוניים, לא אחד</h2></div>
+    <p class="lede">זה החלק שהכי קל לפספס: הורס והדרופ לא מנגנים את אותה פרוגרסיה, ואפילו לא את אותו מספר אקורדים.</p>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>הורס — לופ 8 תיבות</h4>
+        <div class="meta">Fm · Eb · Db · Bbm &nbsp;|&nbsp; 2 תיבות לאקורד</div>
+        <p>i – ♭VII – ♭VI – iv בפה מינור. הבאס נע <span class="mono">F1 → Eb2 → Db2 → Bb1</span> — כלומר הצליל הכי נמוך בורס הוא ה־F, ואז הבאס <em>עולה</em>. זה מה שמשאיר את הורס קליל.</p>
+        <p>הווייסינגים מעורפלים בכוונה: המדידה מראה נוכחות חזקה של הקווינטה והקוורטה ונוכחות חלשה של הטרצה. בפועל — <strong>sus2/sus4 וסטאקים של קווינטות</strong>, לא טריאדות מלאות.</p>
+      </div>
+      <div class="card">
+        <h4>הדרופ — לופ 8 תיבות</h4>
+        <div class="meta">F (×4 תיבות) · Db (×2) · Bb (×2)</div>
+        <p>רק שלושה אקורדים, וה־F מחזיק חצי מהלופ. הבאס יורד ל־<span class="mono">F1</span> ונשאר שם רוב הזמן — הסאב הוא פדל־נוט, לא קו מלודי.</p>
+        <p>הטרצה של ה־F לא ניתנת לזיהוי חד־משמעי (A ו־A♭ נמדדו כמעט שווים). זה הסימן הקלאסי ל־<strong>אקורדי כוח F5 עם קוורטה תלויה</strong>. אל תנגן שם טרצה — היא תשבור את הצליל.</p>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>המהלך שמייצר את ה"הרמה" בדרופ:</strong> אותו באס־נוט F, אבל בורס הוא נושא Fm ובדרופ הוא נושא F5 שמתפרש כלפי Db ו־Bb. אתה מקבל תחושת פתיחה מז׳ורית בלי לשנות טוניקה ובלי מודולציה.
+    </div>
+
+    <h3 style="margin-top:1rem">איך לנגן את זה בפועל</h3>
+    <ul class="clean">
+      <li><strong>פאד הורס:</strong> ווייסינג סגור באוקטבה 3–4, שלושה קולות: שורש, קווינטה, קוורטה/סקונדה. בלי טרצה, בלי אוקטבות כפולות.</li>
+      <li><strong>סטאב הדרופ:</strong> F5 (F+C) באוקטבה 3, מוכפל באוקטבה 4. בתיבות ה־Db וה־Bb מזיזים את כל הבלוק במקביל (parallel motion) — לא מחפשים voice leading.</li>
+      <li><strong>סאב:</strong> סינוס טהור על F1 בלבד לאורך כל הדרופ, כולל מתחת ל־Db ול־Bb. זה מה שמייצר את הפדל.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack-lg">
+    <div>
+      <div class="shead"><span class="tag">04 · תופים</span><h2>הגרוב, צעד אחר צעד</h2></div>
+      <p class="lede">רשת של 16 צעדים לתיבה. צהוב מלא = מכה חזקה, צהוב חלש = מכה משנית (ghost), תכלת = פתיחה.</p>
+    </div>
+
+    <div>
+      <h3>הדרופ</h3>
+      <div class="seq" style="margin-top:.7rem">
+        <div class="seqrow"><div class="name">Kick<em>tuned F1</em></div><div class="cells">
+          <b data-on="1" data-beat="1"></b><b></b><b></b><b></b><b data-on="1" data-beat="1"></b><b></b><b></b><b></b><b data-on="1" data-beat="1"></b><b></b><b></b><b></b><b data-on="1" data-beat="1"></b><b></b><b></b><b></b>
+        </div></div>
+        <div class="seqrow"><div class="name">Clap + Snare<em>backbeat</em></div><div class="cells">
+          <b data-beat="1"></b><b></b><b></b><b></b><b data-on="1" data-beat="1"></b><b></b><b></b><b></b><b data-beat="1"></b><b></b><b></b><b></b><b data-on="1" data-beat="1"></b><b></b><b></b><b></b>
+        </div></div>
+        <div class="seqrow"><div class="name">Closed hat<em>16ths, ducked</em></div><div class="cells">
+          <b data-beat="1"></b><b data-on="1"></b><b data-on="1"></b><b data-on="2"></b><b data-beat="1"></b><b data-on="2"></b><b data-on="1"></b><b data-on="1"></b><b data-beat="1"></b><b data-on="1"></b><b data-on="2"></b><b data-on="2"></b><b data-beat="1"></b><b data-on="1"></b><b data-on="2"></b><b data-on="1"></b>
+        </div></div>
+        <div class="seqrow"><div class="name">Open hat<em>offbeat 8ths</em></div><div class="cells">
+          <b data-beat="1"></b><b></b><b data-on="3"></b><b></b><b data-beat="1"></b><b></b><b data-on="3"></b><b></b><b data-beat="1"></b><b></b><b data-on="3"></b><b></b><b data-beat="1"></b><b></b><b data-on="3"></b><b></b>
+        </div></div>
+        <div class="seqrow"><div class="name">Bass / lead<em>syncopated</em></div><div class="cells">
+          <b data-beat="1"></b><b></b><b></b><b data-on="1"></b><b data-beat="1"></b><b></b><b data-on="1"></b><b data-on="2"></b><b data-beat="1"></b><b data-on="2"></b><b data-on="2"></b><b data-on="2"></b><b data-beat="1"></b><b></b><b data-on="1"></b><b data-on="2"></b>
+        </div></div>
+      </div>
+      <div class="seqlabels"><div></div><div class="cells">
+        <span>1</span><span>e</span><span>&amp;</span><span>a</span><span>2</span><span>e</span><span>&amp;</span><span>a</span><span>3</span><span>e</span><span>&amp;</span><span>a</span><span>4</span><span>e</span><span>&amp;</span><span>a</span>
+      </div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>למה יש חורים בדאונביטים</h4>
+        <p>במדידה, האנרגיה של ההייהאטים בצעדים 1/5/9/13 היא <span class="mono">0.00</span> — לא כי לא נוגנה שם מכה, אלא כי הסיידצ׳יין בולע אותה לגמרי. זה לא באג, זה הסאונד. אם ההייהאט שלך נשמע בדאונביט — הסיידצ׳יין שלך רדוד מדי.</p>
+      </div>
+      <div class="card">
+        <h4>הבאס לא נוגע בדאונביט</h4>
+        <p>המכות החזקות של הבאס נמצאות ב־<span class="mono">1a · 2&amp; · 4&amp;</span> ובשלישייה קלה על ביט 3. הוא ממלא רק את החורים בין הקיקים. זה כל ההבדל בין "בייס האוס" ל"אלקטרו־האוס עייף".</p>
+      </div>
+    </div>
+
+    <div>
+      <h3>הורס</h3>
+      <p class="lede" style="margin-bottom:.9rem">בורס הגרוב מתהפך: הקלאפ נשאר על 2 ו־4, אבל הבאס הופך לפאד מתמשך במקום לקו מקוטע, והסאב נעלם לחלוטין מתחת ל־60Hz.</p>
+      <div class="seq">
+        <div class="seqrow"><div class="name">Kick<em>softer, no sub</em></div><div class="cells">
+          <b data-on="2" data-beat="1"></b><b></b><b></b><b></b><b data-on="2" data-beat="1"></b><b></b><b></b><b></b><b data-on="2" data-beat="1"></b><b></b><b></b><b></b><b data-on="2" data-beat="1"></b><b></b><b></b><b></b>
+        </div></div>
+        <div class="seqrow"><div class="name">Clap<em>2 &amp; 4</em></div><div class="cells">
+          <b data-beat="1"></b><b></b><b></b><b></b><b data-on="1" data-beat="1"></b><b></b><b></b><b></b><b data-beat="1"></b><b></b><b></b><b></b><b data-on="1" data-beat="1"></b><b></b><b></b><b></b>
+        </div></div>
+        <div class="seqrow"><div class="name">Perc / shaker<em>8ths + ghosts</em></div><div class="cells">
+          <b data-on="2" data-beat="1"></b><b></b><b data-on="1"></b><b data-on="2"></b><b data-on="2" data-beat="1"></b><b></b><b data-on="1"></b><b data-on="2"></b><b data-on="2" data-beat="1"></b><b></b><b data-on="1"></b><b data-on="2"></b><b data-on="2" data-beat="1"></b><b></b><b data-on="1"></b><b data-on="2"></b>
+        </div></div>
+      </div>
+      <div class="seqlabels"><div></div><div class="cells">
+        <span>1</span><span>e</span><span>&amp;</span><span>a</span><span>2</span><span>e</span><span>&amp;</span><span>a</span><span>3</span><span>e</span><span>&amp;</span><span>a</span><span>4</span><span>e</span><span>&amp;</span><span>a</span>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack-lg">
+    <div>
+      <div class="shead"><span class="tag">05 · סאונד־דיזיין</span><h2>המתכונים לכל אלמנט</h2></div>
+      <p class="lede">כל מספר כאן נמדד מהקובץ, לא נוחש. אלה ערכי התחלה שיביאו אותך קרוב מאוד.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h4>הקיק — הלב של הטראק</h4>
+        <div class="meta">86 Hz → 43 Hz in ~25 ms</div>
+        <p>המכה מתחילה סביב <strong>86Hz</strong> ונופלת לאוקטבה מתחת, ל־<strong>43.1Hz</strong>, תוך 25 מילישניות בערך — ואז מחזיקה שם. 43.65Hz זה F1, כלומר <strong>הקיק מכוונן לטוניקה</strong>.</p>
+        <p class="meta">מעטפת גובה: התחלה +12 סמיטונים, זמן נפילה 25ms, עקומה אקספוננציאלית · טרנזיינט קליק ב־2–4kHz · בלי סאסטיין ארוך — הסאב הנפרד מחזיק את הלואו.</p>
+      </div>
+
+      <div class="card">
+        <h4>הסאב</h4>
+        <div class="meta">F1 · 43.65 Hz · sine · mono</div>
+        <p>בדרופ הרצועה של 31–50Hz עולה ב־<strong>20dB ויותר</strong> לעומת הורס. זה לא EQ — זה אלמנט שנכנס ויוצא. סינוס טהור, בלי הרמוניות, מונו מוחלט (קורלציה 0.999 מתחת ל־60Hz).</p>
+        <p class="meta">HPF ב־28Hz · לא לרוות · glue רק בין קיק לסאב, לא על שאר המיקס.</p>
+      </div>
+
+      <div class="card">
+        <h4>הבאס המסונקף</h4>
+        <div class="meta">150–500 Hz · 16th-note driven</div>
+        <p>זו שכבה נפרדת מהסאב: אותה תבנית של 16ths, אבל בטווח 150–500Hz עם הרמוניות. מדידת המודולציה מחזירה שיא ב־<span class="mono">8.34 Hz</span> — בדיוק קצב השש־עשרית ב־125 BPM.</p>
+        <p class="meta">Saw/square, unison 3–5 קולות, detune קל · LP filter ~1.2kHz עם envelope קצר · דיסטורשן/סאטורציה בינונית · HPF ב־120Hz כדי לא להתנגש בסאב.</p>
+      </div>
+
+      <div class="card">
+        <h4>הפאד/סטאב של הורס</h4>
+        <div class="meta">300–3000 Hz · sus voicings</div>
+        <p>בורס יש יותר אנרגיה ב־1–4kHz מאשר בדרופ — הוא הפורוורד יותר מבחינת "נוכחות", למרות שהוא שקט ב־7dB. הפאד רחב סטריאופונית (side/mid = <span class="mono">−7.9dB</span> ב־300–800Hz).</p>
+        <p class="meta">פוליסינת עם אטאק 5–20ms · ריוורב plate בזנב ~1.2ש׳ · פינג־פונג דיליי 1/8 dotted במינון נמוך · HPF ב־200Hz.</p>
+      </div>
+    </div>
+
+    <div>
+      <h3>הסיידצ׳יין — המדידה המדויקת</h3>
+      <p class="lede" style="margin-bottom:1rem">ממוצע של המעטפת בטווח 300Hz–6kHz על פני 16 תיבות דרופ, מסונכרן למכת הקיק.</p>
+      <svg class="env" viewBox="0 0 520 170" role="img" aria-label="גרף מעטפת הסיידצ'יין לאורך פעימה אחת: נפילה של 14dB בכ-90ms והתאוששות הדרגתית עד סוף הפעימה">
+        <line class="grid" x1="40" y1="20" x2="500" y2="20"></line>
+        <line class="grid" x1="40" y1="65" x2="500" y2="65"></line>
+        <line class="grid" x1="40" y1="110" x2="500" y2="110"></line>
+        <line class="grid" x1="40" y1="140" x2="500" y2="140"></line>
+        <line class="kick" x1="40" y1="14" x2="40" y2="146"></line>
+        <line class="kick" x1="500" y1="14" x2="500" y2="146"></line>
+        <path class="fillarea" d="M40,86 L69,116 L98,131 L127,140 L156,127 L185,118 L214,126 L243,126 L272,80 L301,86 L330,113 L359,124 L388,82 L417,101 L446,127 L475,133 L500,86 L500,140 L40,140 Z"></path>
+        <path class="curve" d="M40,86 L69,116 L98,131 L127,140 L156,127 L185,118 L214,126 L243,126 L272,80 L301,86 L330,113 L359,124 L388,82 L417,101 L446,127 L475,133 L500,86"></path>
+        <text x="4" y="24">0 dB</text>
+        <text x="0" y="114">−10 dB</text>
+        <text x="0" y="144">−14 dB</text>
+        <text x="30" y="162">kick</text>
+        <text x="255" y="162">240 ms</text>
+        <text x="470" y="162">480 ms</text>
+      </svg>
+      <div class="grid3" style="margin-top:1.2rem">
+        <div class="card"><h4>עומק</h4><div class="meta">−14.1 dB</div><p>ירידה כמעט של פי חמישה בעוצמה. זה עמוק — עמוק יותר ממה שרוב האנשים מגדירים כברירת מחדל.</p></div>
+        <div class="card"><h4>נקודת השפל</h4><div class="meta">~90 ms אחרי המכה</div><p>לא מיידי. יש attack קצר של כ־5–10ms ואז ירידה מתמשכת. זה מה שנותן את התחושה ה"נושמת" ולא ה"קופצת".</p></div>
+        <div class="card"><h4>התאוששות</h4><div class="meta">~460 ms ל־90%</div><p>הפעימה עצמה היא 480ms. כלומר הסיידצ׳יין <strong>בקושי מספיק להתאושש</strong> לפני המכה הבאה. זה מקור ה"פאמפ".</p></div>
+      </div>
+      <div class="note" style="margin-top:1.1rem">
+        <strong>איך לשחזר:</strong> קומפרסור עם sidechain מ־trigger נפרד (לא מהקיק המושמע), ratio ~8:1, attack 5ms, release 400–450ms, threshold כזה שנותן 14dB gain reduction בשיא. שולחים אליו את <em>כל</em> המיקס חוץ מהקיק ומהסאב — כולל ההייהאטים. השטוחות של ההייהאט בדאונביט בגרף הצעדים היא בדיוק התוצאה של זה.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack-lg">
+    <div>
+      <div class="shead"><span class="tag">06 · מעברים</span><h2>איך נכנסים לדרופ</h2></div>
+      <p class="lede">המעבר הזה הוא לא "רייזר וקראש". הוא מהלך של שלוש שכבות שנמדד תיבה־תיבה.</p>
+    </div>
+
+    <ol class="steps">
+      <li>
+        <div>
+          <h4>הבנייה: לחץ קבוע, לא האצה</h4>
+          <p>לאורך שמונה תיבות הפרקשן רץ בקצב <strong>קבוע</strong> של שש־עשריות (8.61Hz במדידה, זהה בכל תיבה) — אין סנר־רול שמאיץ. מה שכן משתנה: עוצמת הגבוהים עולה מ־<span class="mono">−19.8dB</span> ל־<span class="mono">−17.7dB</span>, והמרכז הספקטרלי מטפס מ־<span class="mono">4296Hz</span> ל־<span class="mono">4911Hz</span>.</p>
+          <p class="det">→ פילטר פתיחה איטי + עליית עוצמה. לא tempo ramp.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>תיבת הניתוק: שאיבת הלואו</h4>
+          <p>בתיבה האחרונה לפני הדרופ, אנרגיית ה־20–80Hz יורדת בהדרגה מ־<span class="mono">+34dB</span> ל־<span class="mono">−17dB</span> לאורך התיבה — כ־50dB. הבינוניים נשארים בדיוק במקום. זו אוטומציית <strong>High‑Pass Filter</strong> שעולה, לא fade out.</p>
+          <p class="det">HPF: 20Hz → ~400Hz על פני 1 תיבה (1.92s), עקומה לוגריתמית.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>השש־עשרית האחרונה: impact</h4>
+          <p>ברבע שנייה שלפני הדרופ יש קפיצה חדה — הסאב מזנק ב־<span class="mono">+27dB</span> והמרכז הספקטרלי קופץ ל־<span class="mono">6205Hz</span>. זה שילוב של <strong>אימפקט/דאונליפטר בסאב + נויז־ספריי בגבוהים</strong>, שנופל בדיוק על הצעד ה־16.</p>
+          <p class="det">שים את האימפקט על 4a, לא על הדאונביט של הדרופ.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h4>הדרופ עצמו: בלי קראש בפרונט</h4>
+          <p>התיבה הראשונה של הדרופ מודדת <span class="mono">2.3–2.8dB</span> בלבד בטווח 3–16kHz — הרבה <em>פחות</em> מהתיבה שלפניה. אין קראש רועם בכניסה; הקיק והסאב נכנסים עירומים, והגבוהים חוזרים רק בחצי הפעימה.</p>
+          <p class="det">זה מה שגורם לדרופ להישמע כבד ולא "רועש".</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack-lg">
+    <div>
+      <div class="shead"><span class="tag">07 · מיקס</span><h2>יעדי תדר ורוחב סטריאו</h2></div>
+      <p class="lede">רמות ממוצעות בשלישי־אוקטבה, מנורמלות לאותה נקודת ייחוס. השווה את המיקס שלך לעמודת ה־DROP.</p>
+    </div>
+
+    <div class="tblwrap">
+      <table>
+        <thead><tr><th>תדר</th><th>אינטרו</th><th>ורס</th><th>דרופ</th><th>מה זה אומר</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td class="n">31 Hz</td><td class="n">10.1</td><td class="n">9.5</td><td class="n">45.0</td><td>הסאב נכנס רק בדרופ — פער של 35dB</td></tr>
+          <tr class="hl"><td class="n">39 Hz</td><td class="n">29.9</td><td class="n">30.0</td><td class="n">54.2</td><td>שיא האנרגיה של כל הטראק (F1 + קיק)</td></tr>
+          <tr><td class="n">50 Hz</td><td class="n">29.9</td><td class="n">29.5</td><td class="n">50.2</td><td>גוף הקיק</td></tr>
+          <tr><td class="n">63 Hz</td><td class="n">37.0</td><td class="n">37.1</td><td class="n">46.5</td><td>באס הורס יושב כאן</td></tr>
+          <tr><td class="n">99 Hz</td><td class="n">31.9</td><td class="n">17.8</td><td class="n">38.8</td><td>הורס מרוקן כאן — מקום לווקאל</td></tr>
+          <tr><td class="n">250 Hz</td><td class="n">31.5</td><td class="n">34.0</td><td class="n">33.6</td><td>שווה בכל החלקים</td></tr>
+          <tr><td class="n">500 Hz</td><td class="n">25.8</td><td class="n">25.8</td><td class="n">27.1</td><td>שקע מכוון — 10dB מתחת ל־250</td></tr>
+          <tr><td class="n">1 kHz</td><td class="n">20.3</td><td class="n">23.2</td><td class="n">20.1</td><td>הורס דווקא <em>קדימה</em> יותר מהדרופ</td></tr>
+          <tr><td class="n">2 kHz</td><td class="n">11.7</td><td class="n">18.2</td><td class="n">15.7</td><td>נוכחות: הורס +6.5dB מעל האינטרו</td></tr>
+          <tr><td class="n">4 kHz</td><td class="n">10.1</td><td class="n">15.4</td><td class="n">13.8</td><td>הייהאטים וטרנזיינטים</td></tr>
+          <tr><td class="n">8 kHz</td><td class="n">8.2</td><td class="n">9.3</td><td class="n">12.0</td><td>ברייטנס של הדרופ</td></tr>
+          <tr><td class="n">12.7 kHz</td><td class="n">0.9</td><td class="n">0.4</td><td class="n">7.4</td><td>אוויר — קיים רק בדרופ</td></tr>
+          <tr><td class="n">16 kHz</td><td class="n">−14.7</td><td class="n">−13.6</td><td class="n">−3.8</td><td>מכאן והלאה: חיתוך של ה־MP3</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h3>רוחב סטריאו לפי רצועה</h3>
+      <p class="lede" style="margin-bottom:1rem">יחס Side/Mid — ככל שהמספר שלילי יותר, האלמנט מרוכז יותר במרכז.</p>
+      <div class="tblwrap">
+        <table>
+          <thead><tr><th>טווח</th><th>Side/Mid</th><th></th><th>קורלציה</th><th>מסקנה</th></tr></thead>
+          <tbody>
+            <tr><td class="n">20–60 Hz</td><td class="n">−32.9 dB</td><td><div class="mtr"><span class="track"><span class="fill" style="width:6%"></span></span></div></td><td class="n">0.999</td><td>מונו מוחלט</td></tr>
+            <tr><td class="n">60–120 Hz</td><td class="n">−26.7 dB</td><td><div class="mtr"><span class="track"><span class="fill" style="width:14%"></span></span></div></td><td class="n">0.996</td><td>מונו מוחלט</td></tr>
+            <tr><td class="n">120–300 Hz</td><td class="n">−10.0 dB</td><td><div class="mtr"><span class="track"><span class="fill" style="width:47%"></span></span></div></td><td class="n">0.820</td><td>מתחיל להיפתח</td></tr>
+            <tr><td class="n">300–800 Hz</td><td class="n">−7.9 dB</td><td><div class="mtr"><span class="track"><span class="fill cool" style="width:60%"></span></span></div></td><td class="n">0.721</td><td>הפאדים — רחב</td></tr>
+            <tr><td class="n">800–2.5 kHz</td><td class="n">−10.9 dB</td><td><div class="mtr"><span class="track"><span class="fill" style="width:42%"></span></span></div></td><td class="n">0.849</td><td>הלידים ממורכזים</td></tr>
+            <tr><td class="n">2.5–7 kHz</td><td class="n">−8.3 dB</td><td><div class="mtr"><span class="track"><span class="fill cool" style="width:57%"></span></span></div></td><td class="n">0.742</td><td>פרקשן פרוס</td></tr>
+            <tr><td class="n">7–16 kHz</td><td class="n">−6.3 dB</td><td><div class="mtr"><span class="track"><span class="fill cool" style="width:72%"></span></span></div></td><td class="n">0.623</td><td>הכי רחב בטראק</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note" style="margin-top:1rem">
+        זו עקומה קלאסית של <strong>רוחב עולה עם התדר</strong>, בלי חריגות. השיטה שמייצרת אותה: מונו־מייקר עד 120Hz, ואז הרחבה הדרגתית — אין צורך ב־mid/side EQ מסובך.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="shead"><span class="tag">08 · מאסטר</span><h2>הרמה — ומה המחיר שלה</h2></div>
+    <div class="grid3">
+      <div class="card"><h4>Integrated</h4><div class="meta" style="font-size:1.4rem;color:var(--ink)">−8.44 LUFS</div><p>חם מאוד. סטרימינג ינרמל את זה ל־−14 ויוריד כ־5.5dB.</p></div>
+      <div class="card"><h4>True Peak</h4><div class="meta" style="font-size:1.4rem;color:var(--hot)">+1.19 dBTP</div><p>מעל אפס. 8,537 סמפלים נוגעים ב־full scale — יש קליפינג בפועל.</p></div>
+      <div class="card"><h4>Crest / PLR</h4><div class="meta" style="font-size:1.4rem;color:var(--ink)">9.6 / 8.4</div><p>דינמיקה שנשמרה יפה יחסית לרמה כזאת — התופים עדיין נושמים.</p></div>
+      <div class="card"><h4>Short-term</h4><div class="meta">−6.6 עד −13.6 LUFS</div><p>7 LU בין הדרופ לורס. הפרש קטן — הורס לא באמת "נופל".</p></div>
+      <div class="card"><h4>טווח דינמי</h4><div class="meta">~4.7 LU</div><p>צר. זה מכוון בז׳אנר הזה, אבל זה הגבול התחתון.</p></div>
+      <div class="card"><h4>מה הייתי משנה</h4><div class="meta">−9.5 LUFS · −1.0 dBTP</div><p>אותה תחושת עוצמה, בלי הקליפינג ובלי עיוותי קידוד.</p></div>
+    </div>
+    <div class="note warn">
+      <strong>הליקוי היחיד שנמצא במאסטר:</strong> ה־true peak חורג ב־1.19dB מעל 0dBFS. זה לא נשמע רע בקובץ ה־WAV, אבל בכל המרה ל־MP3/AAC — כלומר בכל פלטפורמת סטרימינג — זה הופך לעיוות שמיע. תקן עם לימיטר ב־true‑peak mode וסף של −1.0dBTP. תפסיד פחות מ־0.5 LU ותרוויח מאסטר נקי.
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack-lg">
+    <div>
+      <div class="shead"><span class="tag">09 · הביצוע</span><h2>מתכון בנייה מאפס</h2></div>
+      <p class="lede">סדר העבודה שמגיע לתוצאה הזאת הכי מהר. שעה־שעתיים לסקיצה שעומדת.</p>
+    </div>
+
+    <ol class="steps">
+      <li><div><h4>הכן את הסשן</h4>
+        <p>125 BPM, 4/4, גריד של שש־עשריות. סמן אזורים ריקים לפי מפת המבנה: 1 · 8 · 8 · 16 · 16 · 8 · 16 · 1 תיבות. אל תתחיל לכתוב לפני שהמפה בטיימליין.</p></div></li>
+      <li><div><h4>קיק + סאב קודם</h4>
+        <p>קיק מכוונן ל־F1 עם גליסנדו 86→43Hz. סאב סינוס על F1. תשמע אותם לבד עד שהם נשמעים כמו צליל אחד — אם יש "מכה ואז באס", העיתוי לא נכון.</p>
+        <p class="det">בדוק על ספקטרום: פיק יחיד ב־39–43Hz, בלי חריץ.</p></div></li>
+      <li><div><h4>הרכב את לופ הדרופ — 8 תיבות</h4>
+        <p>סטאב F5 ל־4 תיבות, Db ל־2, Bb ל־2. באס מסונקף לפי רשת הצעדים. קלאפ על 2 ו־4. הייהאטים בשש־עשריות. זה הלב — אם 8 התיבות האלה לא עובדות, שום דבר אחר לא יציל.</p></div></li>
+      <li><div><h4>קבע את הסיידצ׳יין לפני שאתה ממשיך</h4>
+        <p>14dB, attack 5ms, release 440ms, מ־trigger נפרד. שלח לשם הכל חוץ מקיק וסאב. עכשיו נגן את הלופ — אם הוא לא "נושם", עצור ותקן כאן.</p></div></li>
+      <li><div><h4>גזור את הורס מהדרופ</h4>
+        <p>שכפל את לופ הדרופ, החלף את הפרוגרסיה ל־Fm–Eb–Db–Bbm, הורד את הסאב לגמרי, החלף את הסטאב בפאד, והורד 7dB. אל תכתוב ורס חדש מאפס — הקוהרנטיות של הטראק הזה נובעת בדיוק מזה.</p></div></li>
+      <li><div><h4>בנה את הבנייה</h4>
+        <p>העתק את 8 התיבות של סוף הורס, הוסף פרקשן בשש־עשריות, ואוטומט פילטר פתיחה + עלייה של 2dB לאורך 8 תיבות. בתיבה האחרונה: HPF מ־20 ל־400Hz.</p></div></li>
+      <li><div><h4>הנח את האימפקט</h4>
+        <p>על הצעד ה־16 של תיבת הניתוק — לא על הדאונביט. סאב־דרופ + נויז. ואז שקט יחסי בגבוהים בתיבה הראשונה של הדרופ.</p></div></li>
+      <li><div><h4>שכפל, אל תלחין</h4>
+        <p>דרופ 2 = העתק־הדבק של דרופ 1. ורס 2 = ורס 1 פעמיים. בנייה 2 = בנייה 1. זה בדיוק מה שהטראק המקורי עושה, וזה מה שנותן לו את התחושה ההדוקה.</p></div></li>
+      <li><div><h4>מיקס לפי הטבלאות</h4>
+        <p>מונו עד 120Hz, הרחבה הדרגתית מעל. השווה את עקומת השלישי־אוקטבה שלך לעמודת ה־DROP. שים לב במיוחד לשקע ב־500Hz ולשיא ב־39Hz.</p></div></li>
+      <li><div><h4>מאסטר — אבל שמור על הראש</h4>
+        <p>כוון ל־−9 LUFS עם לימיטר ב־true‑peak mode וסף −1.0dBTP. אל תשחזר את הקליפינג של המקור.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="shead"><span class="tag">10 · מה לא נמדד</span><h2>גבולות הניתוח</h2></div>
+    <div class="prose stack">
+      <p>שקוף לגבי מה שהמדידות <em>לא</em> יכולות לקבוע, כדי שלא תבנה על הנחות:</p>
+      <ul class="clean">
+        <li><strong>ווקאל.</strong> יש תוכן מלודי ממורכז ומתמשך בטווח 250Hz ומעלה לאורך כל הטראק, אבל בדיקות פורמנטים החזירו רזוננסים צרים מדי (רוחב פס 2–50Hz) מכדי להיות קול אנושי מושר, ומודולציית ויברטו נמוכה. הקריאה הסבירה: <strong>ליד סינתטי, אולי עם צ׳ופ ווקאלי קצר על ההוק</strong> — אבל זה לא ודאי מהמדידה בלבד.</li>
+        <li><strong>הטרצה בדרופ.</strong> A ו־A♭ נמדדו כמעט זהים. פירשתי את זה כאקורדי כוח בלי טרצה — זה הפירוש הסביר, אבל אם באוזן שלך יש שם מז׳ור ברור, לך עם האוזן.</li>
+        <li><strong>אוויר מעל 15kHz.</strong> חסום ע"י קידוד ה־MP3 ב־134kbps.</li>
+        <li><strong>מקור הצלילים.</strong> אי אפשר לקבוע מהאודיו אילו פלאגינים או סמפלים שימשו. הערכים כאן הם ערכי יעד, לא שחזור של שרשרת ספציפית.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>כל המדידות בוצעו על קובץ ה־MP3 שהועלה — <span class="mono">2:22.58 · 44.1kHz · stereo · 134kbps</span> — באמצעות ניתוח STFT/CQT, גרידת ביט בחיפוש ממצה, ומדידת עוצמה לפי ITU‑R BS.1770.</p>
+    <p>המספרים כאן הם תיאור של הקובץ, לא של הכוונה המקורית של מי שהפיק אותו.</p>
+  </div>
+</footer>
