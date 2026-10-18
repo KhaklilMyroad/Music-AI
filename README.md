@@ -1,5 +1,24 @@
 # Music-AI
 
+## App
+
+Vite + React + TypeScript + Tailwind CSS v4, with:
+
+- **GSAP** (`gsap`, `@gsap/react`): animation
+- **Lenis** (`lenis`): smooth scrolling, wired to GSAP's ticker and ScrollTrigger in `src/hooks/useLenis.ts`
+- **React Bits**: copy-in components in `src/components/` (currently `SplitText` and `BlurText`)
+
+```bash
+npm install
+npm run dev
+```
+
+Add more React Bits components with the shadcn CLI (`components.json` is already set up):
+
+```bash
+npx shadcn@latest add https://reactbits.dev/r/<Component>-TS-TW
+```
+
 ## Claude Code: caveman plugin
 
 This repo is configured to use the [caveman](https://github.com/JuliusBrussee/caveman)
