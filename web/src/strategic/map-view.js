@@ -40,6 +40,10 @@ export class MapView {
     this.hoverPath = null;
     this.onSelect = () => {};
     this.onTapEmpty = () => {};
+    // Tapping a tile inside the selected unit's movement overlay is a move
+    // target, not a new selection. The shell handles it; the view does not
+    // get monkey-patched to find out.
+    this.onMoveTarget = () => {};
     this.pointers = new Map();
     this.pinch = null;
     this.dragged = 0;
@@ -147,6 +151,12 @@ export class MapView {
     const id = `${this.theater}:${q},${r}`;
     const tile = this.campaign.tiles[id];
     if (!tile) { this.onTapEmpty(); return; }
+
+    if (this.selection?.kind === 'unit' && (this.range?.tiles || []).some((t) => t.tile_id === id)) {
+      this.previewPath(id);
+      this.onMoveTarget(this.selection.id, id);
+      return;
+    }
 
     // Prefer a unit on the tile the player can order, then the city, then the tile.
     const mine = Object.values(this.campaign.units)

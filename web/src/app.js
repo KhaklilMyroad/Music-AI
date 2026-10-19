@@ -247,6 +247,12 @@ class App {
     this.map = new MapView($('#map-canvas'), this.svc, i18n, this.settings);
     this.map.onSelect = (sel) => this.openSelectionSheet(sel);
     this.map.onTapEmpty = () => this.closeSheet();
+    this.map.onMoveTarget = (unit_id, tile_id) => {
+      const u = this.svc.c.units[unit_id];
+      if (!u) return;
+      const kind = u.allowed_actions.includes('move') ? 'move' : 'move_covert';
+      this.confirmOrder({ kind, unit_id, tile_id });
+    };
     this.map.setTheater(this.theaterForDate());
     this.renderTopbar();
     this.renderMapbar();
@@ -274,6 +280,9 @@ class App {
   }
 
   renderTopbar() {
+    // Campaign events can fire before the map view exists (recover() runs on
+    // adopt, ahead of the first render), so the chrome renderers are guarded.
+    if (!this.map) return;
     const c = this.svc.c;
     $('#tb-date').textContent = i18n.date(c.date);
     $('#tb-turn').textContent = `${i18n.t('map.turn')} ${i18n.num(c.turn)}${c.mode === 'sandbox' ? ' · ' + i18n.t('menu.sandbox') : ''}`;
@@ -295,6 +304,7 @@ class App {
   }
 
   renderMapbar() {
+    if (!this.svc) return;
     const bar = $('#mapbar');
     bar.innerHTML = '';
     const queued = this.svc.c.order_queue.length;
@@ -407,25 +417,11 @@ class App {
       if (this.map.range?.tiles.length) {
         const pick = el('button', 'btn btn-primary', i18n.t('map.move_here'));
         pick.append(el('span', 'hint', i18n.locale === 'he' ? 'בחר אריח במפה' : 'pick a tile on the map'));
-        pick.addEventListener('click', () => { this.movePickFor = unit_id; this.closeSheet(); this.toast(i18n.locale === 'he' ? 'הקש על אריח מודגש' : 'Tap a highlighted tile'); });
+        pick.addEventListener('click', () => { this.closeSheet(); this.toast(i18n.locale === 'he' ? 'הקש על אריח מודגש' : 'Tap a highlighted tile'); });
         foot.append(pick);
       }
     });
 
-    // Tapping a highlighted tile while a unit is selected previews the move.
-    this.map.onTapEmpty = () => this.closeSheet();
-    const prevHandler = this.map.handleTap.bind(this.map);
-    this.map.handleTap = (x, y) => {
-      const [q, r] = this.map.fromScreen(x, y);
-      const id = `${this.map.theater}:${q},${r}`;
-      const inRange = (this.map.range?.tiles || []).find((t) => t.tile_id === id);
-      if (inRange && this.map.selection?.kind === 'unit') {
-        this.map.previewPath(id);
-        this.confirmOrder({ kind: u.allowed_actions.includes('move') ? 'move' : 'move_covert', unit_id: this.map.selection.id, tile_id: id });
-        return;
-      }
-      prevHandler(x, y);
-    };
   }
 
   openCitySheet(city_id) {
