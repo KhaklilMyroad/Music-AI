@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0a0b0c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>The War Beneath the Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="src/ui/tokens.css">
+<link rel="stylesheet" href="src/ui/touch.css">
+<link rel="stylesheet" href="src/ui/app.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- 1. launch and content verification -->
+  <section class="screen is-active" id="screen-boot">
+    <div class="boot">
+      <h1>The War Beneath the Map</h1>
+      <div class="sub">Hybrid strategy and first-person survival · mobile design prototype</div>
+      <div class="boot-steps" id="boot-steps"></div>
+      <div class="bar" id="boot-bar"><i></i></div>
+    </div>
+  </section>
+
+  <!-- 2. main menu -->
+  <section class="screen" id="screen-menu">
+    <div class="menu-left">
+      <div class="menu-kicker">1939 — 1945</div>
+      <h1 class="menu-title" id="menu-title">The War Beneath the Map</h1>
+      <div class="menu-actions" id="menu-actions"></div>
+      <div class="menu-note" id="menu-note"></div>
+    </div>
+    <div class="menu-right"><canvas class="menu-art" id="menu-art"></canvas></div>
+  </section>
+
+  <!-- 3. strategic map -->
+  <section class="screen" id="screen-map">
+    <canvas id="map-canvas"></canvas>
+    <div class="topbar">
+      <div class="date-block"><b id="tb-date"></b><span id="tb-turn"></span></div>
+      <div class="theater-tabs" id="tb-theaters"></div>
+      <div class="res" id="tb-res"></div>
+    </div>
+    <div class="mapbar" id="mapbar"></div>
+    <div class="sheet" id="sheet">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="kicker" id="sheet-kicker"></div>
+          <h2 id="sheet-title"></h2>
+        </div>
+        <button class="close-x" id="sheet-close" aria-label="Close">×</button>
+      </div>
+      <div class="sheet-body" id="sheet-body"></div>
+      <div class="sheet-foot" id="sheet-foot"></div>
+    </div>
+  </section>
+
+  <!-- 4. mission briefing -->
+  <section class="screen" id="screen-brief">
+    <div class="brief">
+      <div id="brief-content"></div>
+      <div class="btn-row" id="brief-actions" style="margin-top:22px"></div>
+    </div>
+  </section>
+
+  <!-- 5. loading and transition -->
+  <section class="screen" id="screen-load">
+    <div class="loadbox">
+      <h3 id="load-title"></h3>
+      <div class="what" id="load-what"></div>
+      <div class="bar" id="load-bar"><i></i></div>
+    </div>
+  </section>
+
+  <!-- 6. first-person mission -->
+  <section class="screen" id="screen-mission">
+    <canvas id="mission-canvas"></canvas>
+    <div class="damage-vignette" id="vignette"></div>
+    <div class="hud">
+      <div class="hud-tl"><div class="objcard" id="hud-objectives"></div></div>
+      <div class="hud-bl"><div class="stealth" id="hud-stealth"></div></div>
+      <div class="hud-br">
+        <div class="vitals">
+          <div class="cond">
+            <div class="l" id="hud-cond-label">Condition</div>
+            <div class="meter"><i id="hud-cond-bar"></i></div>
+            <div class="meter" style="margin-top:4px;height:3px"><i id="hud-stam-bar" style="background:var(--sky)"></i></div>
+          </div>
+          <div class="ammo" id="hud-ammo"></div>
+        </div>
+      </div>
+      <div class="hud-c">
+        <div class="reticle" id="reticle"><i></i><i></i><i></i><i></i></div>
+        <div class="hitmark" id="hitmark"><i></i><i></i></div>
+      </div>
+      <div class="prompt" id="hud-prompt"></div>
+      <div class="hud-sub" id="hud-sub"></div>
+    </div>
+    <div class="touch" id="touch" hidden></div>
+    <div class="prototype-mark">Blockout geometry and placeholder materials — not the commercial art bar</div>
+  </section>
+
+  <!-- 7. result -->
+  <section class="screen" id="screen-result">
+    <div class="result">
+      <div id="result-content"></div>
+      <div class="btn-row" id="result-actions" style="margin-top:22px"></div>
+    </div>
+  </section>
+
+  <!-- shared modal -->
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="modal-title"></h2>
+        <button class="close-x" id="modal-close" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-foot" id="modal-foot"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="rotate-hint" id="rotate-hint">
+    <div>
+      <div style="font-size:var(--fs-lg);margin-bottom:10px">Turn your phone sideways</div>
+      <div class="note" style="margin-bottom:18px">Ordinary gameplay is designed for landscape, as the brief specifies.</div>
+      <button class="btn btn-ghost" id="rotate-continue">Continue in portrait anyway</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  document.getElementById('sheet-close').addEventListener('click', () => document.getElementById('sheet').classList.remove('is-open'));
+  document.getElementById('modal-close').addEventListener('click', () => document.getElementById('modal').classList.remove('is-open'));
+</script>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

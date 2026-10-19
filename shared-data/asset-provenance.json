@@ -1,0 +1,98 @@
+{
+ "schema": "wbtm.asset_provenance",
+ "schema_version": 1,
+ "policy": {
+  "rule_1": "Every model, texture, font, photograph, music cue, voice and sound effect that ships needs a row here: creator, source, licence, permissions, processing history and use restrictions.",
+  "rule_2": "A generated asset requires BOTH visual and historical review before it enters the approved production library.",
+  "rule_3": "No asset may ship with review_status other than 'approved'. The weapon registry refuses to mark a weapon's model_status 'approved' without a provenance_ref, and a test asserts it.",
+  "rule_4": "Newly recorded or generated audio must never be described as an original wartime recording.",
+  "rule_5": "No critical feature may depend on an undocumented personal account or an asset that cannot legally ship.",
+  "rule_6": "Every row records may_ship: 'yes' (cleared), 'after_review' (licence or review outstanding), 'prototype_only' (never reaches the shipped game) or 'never' (a blockout or placeholder that must be replaced). A release build may contain only 'yes' rows, and the release gate checks it."
+ },
+ "review_states": [
+  "pending_review",
+  "visual_reviewed",
+  "historical_reviewed",
+  "approved",
+  "rejected"
+ ],
+ "assets": [
+  {
+   "id": "prov_blockout_geometry",
+   "kind": "model",
+   "covers": [
+    "district_normandy_bocage structures, hedgerows, vegetation, props and POIs",
+    "all weapon view models",
+    "all character figures"
+   ],
+   "creator": "generated procedurally at runtime from shared-data/districts/*.json and gameplay code",
+   "source": "this repository",
+   "licence": "same as the project source",
+   "permissions": "unrestricted within this project",
+   "processing_history": "authored as code, not imported; no third-party geometry was used",
+   "use_restrictions": "BLOCKOUT ONLY. Must not be shown as finished art and must not ship. Replace before any art gate.",
+   "review_status": "pending_review",
+   "notes": "Present so that the layout, collision, navigation, lighting and audio rules can be exercised and tested before production art exists.",
+   "may_ship": "never"
+  },
+  {
+   "id": "prov_procedural_materials",
+   "kind": "texture",
+   "covers": [
+    "every surface and material in web/src/fps/materials.js and the fallbacks in godot/gameplay/fps/district_builder.gd"
+   ],
+   "creator": "generated procedurally (value noise) at runtime",
+   "source": "this repository",
+   "licence": "same as the project source",
+   "permissions": "unrestricted within this project",
+   "processing_history": "canvas-generated noise; no photographic or scanned source",
+   "use_restrictions": "PLACEHOLDER ONLY. Must not ship.",
+   "review_status": "pending_review",
+   "may_ship": "never"
+  },
+  {
+   "id": "prov_inter_font",
+   "kind": "font",
+   "covers": [
+    "the prototype interface"
+   ],
+   "creator": "Rasmus Andersson and contributors",
+   "source": "Google Fonts",
+   "licence": "SIL Open Font License 1.1",
+   "permissions": "embedding and redistribution permitted under the OFL",
+   "processing_history": "loaded unmodified from the Google Fonts CDN",
+   "use_restrictions": "Verify the licence text at the point of shipping and include the required attribution. A Hebrew-capable face must be chosen and licensed separately before the Hebrew build ships.",
+   "review_status": "pending_review",
+   "may_ship": "after_review"
+  },
+  {
+   "id": "prov_threejs",
+   "kind": "code_dependency",
+   "covers": [
+    "the web prototype's 3D rendering"
+   ],
+   "creator": "three.js authors",
+   "source": "cdnjs, three.js 0.160.0",
+   "licence": "MIT",
+   "permissions": "permitted, with the licence retained",
+   "processing_history": "loaded unmodified from the CDN",
+   "use_restrictions": "Prototype only. The shipped game is Godot; three.js is not part of it.",
+   "review_status": "approved",
+   "may_ship": "prototype_only"
+  }
+ ],
+ "required_before_launch": [
+  "A row per production mesh, texture set, rig and animation clip.",
+  "A row per recorded foley take, with the recording date, location, microphone chain and processing history.",
+  "A row per music cue, with the composer, the rights record and whether any historical material was licensed.",
+  "A row per voice performance, with the performer, the language and the consent record.",
+  "A Hebrew-capable licensed typeface, and a check that every shipped font permits embedding.",
+  "A dependency licence audit: no copyleft or non-commercial dependency may reach the shipped build."
+ ],
+ "may_ship_states": [
+  "yes",
+  "after_review",
+  "prototype_only",
+  "never"
+ ]
+}

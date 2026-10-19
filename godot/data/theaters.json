@@ -1,0 +1,133 @@
+{
+  "schema": "wbtm.theater_atlas",
+  "schema_version": 2,
+  "encoding": {
+    "grid": "pointy-top hex, axial coordinates. rows[] index = r. Each character = one tile at q = col + row_offset[r].",
+    "legend": {
+      ".": "plain",
+      "f": "farmland",
+      "h": "hills",
+      "w": "woods",
+      "b": "bocage",
+      "m": "mountain",
+      "d": "desert",
+      "s": "marsh",
+      "u": "urban",
+      "p": "port",
+      "~": "water",
+      "#": "impassable"
+    },
+    "control_rows": "Parallel rows[] in 'control'. A=allied, X=axis, N=neutral, C=contested, -=not applicable (water/impassable)."
+  },
+  "terrain_rules": {
+    "plain":      { "move_cost": 1, "cover": 0.10, "concealment": 0.10, "supply_draw": 1.0, "passable": true },
+    "farmland":   { "move_cost": 1, "cover": 0.18, "concealment": 0.25, "supply_draw": 0.9, "passable": true },
+    "hills":      { "move_cost": 2, "cover": 0.35, "concealment": 0.30, "supply_draw": 1.3, "passable": true },
+    "woods":      { "move_cost": 2, "cover": 0.45, "concealment": 0.60, "supply_draw": 1.2, "passable": true },
+    "bocage":     { "move_cost": 2, "cover": 0.55, "concealment": 0.65, "supply_draw": 1.2, "passable": true },
+    "mountain":   { "move_cost": 3, "cover": 0.50, "concealment": 0.35, "supply_draw": 1.8, "passable": true },
+    "desert":     { "move_cost": 1, "cover": 0.05, "concealment": 0.05, "supply_draw": 1.6, "passable": true },
+    "marsh":      { "move_cost": 3, "cover": 0.25, "concealment": 0.40, "supply_draw": 1.5, "passable": true },
+    "urban":      { "move_cost": 2, "cover": 0.60, "concealment": 0.50, "supply_draw": 0.7, "passable": true },
+    "port":       { "move_cost": 2, "cover": 0.45, "concealment": 0.35, "supply_draw": 0.5, "passable": true },
+    "water":      { "move_cost": 0, "cover": 0.00, "concealment": 0.00, "supply_draw": 0.0, "passable": false, "naval_only": true },
+    "impassable": { "move_cost": 0, "cover": 0.00, "concealment": 0.00, "supply_draw": 0.0, "passable": false }
+  },
+  "theaters": [
+    {
+      "id": "theater_western_europe",
+      "label_key": "theater.western_europe",
+      "opens_on": "1939-09-01",
+      "row_offset": [0, 0, -1, -1, -2, -2, -3],
+      "rows":    ["~~~pbb.", "~pbbbf.", "~bbufff", "~fbfufh", "~ffhhwh", "~fuhwww", "~.fhw.m"],
+      "control": ["---XXXX", "-XXXXXX", "-XXXXXX", "-XXXXXX", "-XXXXXX", "-XXXXXX", "-XXXXXX"],
+      "cities": [
+        { "id": "loc_normandy", "label_key": "city.normandy", "q": 3, "r": 0, "population_scale": "small_town_cluster", "districts": ["district_normandy_bocage"], "facilities_max": 4 },
+        { "id": "loc_paris_region", "label_key": "city.paris_region", "q": 3, "r": 2, "population_scale": "capital", "districts": [], "facilities_max": 6 },
+        { "id": "loc_rhine_industrial", "label_key": "city.rhine_industrial", "q": 2, "r": 5, "population_scale": "industrial", "districts": [], "facilities_max": 5 }
+      ],
+      "supply_sources": [{ "q": 3, "r": 0, "faction": "allied_us_army", "throughput": 0, "activates_on": "1944-06-06" }, { "q": 2, "r": 5, "faction": "axis_army", "throughput": 14 }]
+    },
+    {
+      "id": "theater_eastern_europe",
+      "label_key": "theater.eastern_europe",
+      "opens_on": "1939-09-01",
+      "row_offset": [0, 0, -1, -1, -2, -2],
+      "rows":    ["fffuff", "fsfuwf", "fffhww", "wwfhhm", "wwsffh", "..sffm"],
+      "control": ["XXXXXX", "XXXXXX", "XXXXXX", "XXXXCC", "XXCCAA", "XCCAAA"],
+      "cities": [
+        { "id": "loc_warsaw", "label_key": "city.warsaw", "q": 3, "r": 0, "population_scale": "capital", "districts": ["district_warsaw_north"], "facilities_max": 6 },
+        { "id": "loc_eastern_rail_hub", "label_key": "city.eastern_rail_hub", "q": 3, "r": 1, "population_scale": "industrial", "districts": [], "facilities_max": 4 }
+      ],
+      "supply_sources": [{ "q": 3, "r": 1, "faction": "axis_army", "throughput": 12 }, { "q": 5, "r": 5, "faction": "allied_soviet", "throughput": 10, "activates_on": "1943-01-01" }]
+    },
+    {
+      "id": "theater_north_africa",
+      "label_key": "theater.north_africa",
+      "opens_on": "1942-11-08",
+      "row_offset": [0, 0, -1, -1],
+      "rows":    ["~~p~p~", "ddupdd", "dmddhd", "dddmdd"],
+      "control": ["--X-X-", "XXXXXX", "XXXXXX", "XXXXXX"],
+      "cities": [
+        { "id": "loc_tunis", "label_key": "city.tunis", "q": 2, "r": 1, "population_scale": "port_city", "districts": ["district_tunis_medina"], "facilities_max": 5 }
+      ],
+      "supply_sources": [{ "q": 2, "r": 1, "faction": "axis_army", "throughput": 8 }, { "q": 4, "r": 0, "faction": "allied_uk_army", "throughput": 9, "activates_on": "1942-11-08" }]
+    },
+    {
+      "id": "theater_home_front",
+      "label_key": "theater.home_front",
+      "opens_on": "1939-09-01",
+      "row_offset": [0, 0, -1],
+      "rows":    ["~pu~~", "~uup~", "~~p~~"],
+      "control": ["-AA--", "-AAA-", "--A--"],
+      "cities": [
+        { "id": "loc_london", "label_key": "city.london", "q": 2, "r": 0, "population_scale": "capital", "districts": ["district_london_shelter"], "facilities_max": 6 },
+        { "id": "loc_new_york", "label_key": "city.new_york", "q": 2, "r": 2, "population_scale": "capital", "districts": [], "facilities_max": 6 }
+      ],
+      "supply_sources": [{ "q": 2, "r": 0, "faction": "allied_uk_army", "throughput": 13 }, { "q": 2, "r": 2, "faction": "allied_us_army", "throughput": 16 }]
+    }
+  ],
+  "sea_links": [
+    { "from": { "theater": "theater_home_front", "q": 1, "r": 0 }, "to": { "theater": "theater_western_europe", "q": 3, "r": 0 }, "transit_turns": 2, "capacity": 2, "label_key": "link.channel" },
+    { "from": { "theater": "theater_home_front", "q": 3, "r": 1 }, "to": { "theater": "theater_north_africa", "q": 4, "r": 0 }, "transit_turns": 4, "capacity": 1, "label_key": "link.gibraltar_run" },
+    { "from": { "theater": "theater_home_front", "q": 2, "r": 2 }, "to": { "theater": "theater_home_front", "q": 2, "r": 0 }, "transit_turns": 5, "capacity": 3, "label_key": "link.atlantic_convoy" }
+  ],
+  "facility_catalog": [
+    {
+      "id": "fac_medical_depot", "label_key": "facility.medical_depot",
+      "cost": { "materiel": 24, "personnel": 6 }, "build_turns": 3,
+      "prerequisites": { "min_supply": 3, "requires_control": "owner", "requires_facility": null },
+      "benefit": { "civilian_health_capacity": 3, "unit_recovery_bonus": 0.35, "mission_unlock": ["mission_family_medical"] },
+      "on_control_change": "captured_disabled", "on_damaged": "capacity_halved_until_repaired", "repair_cost": { "materiel": 8 }
+    },
+    {
+      "id": "fac_underground_radio", "label_key": "facility.underground_radio",
+      "cost": { "materiel": 18, "personnel": 4 }, "build_turns": 2,
+      "prerequisites": { "min_supply": 1, "requires_control": "any", "requires_facility": null, "requires_network_access": 2 },
+      "benefit": { "intelligence_per_turn": 2, "reveals_adjacent_enemy": true, "mission_unlock": ["mission_family_comms"] },
+      "on_control_change": "survives_hidden", "on_damaged": "silent_until_repaired", "repair_cost": { "materiel": 6 },
+      "risk": { "exposure_per_turn": 0.06, "note": "A transmitting set raises network exposure. Exposure above threshold triggers a search event." }
+    },
+    {
+      "id": "fac_escape_route", "label_key": "facility.escape_route",
+      "cost": { "materiel": 14, "personnel": 8 }, "build_turns": 4,
+      "prerequisites": { "min_supply": 0, "requires_control": "any", "requires_facility": null, "requires_network_access": 3 },
+      "benefit": { "civilian_evacuation_per_turn": 2, "safe_route_bonus": 0.4, "mission_unlock": ["mission_family_extraction"] },
+      "on_control_change": "survives_hidden", "on_damaged": "closed_until_repaired", "repair_cost": { "materiel": 5, "personnel": 3 }
+    },
+    {
+      "id": "fac_fortification", "label_key": "facility.fortification",
+      "cost": { "materiel": 32, "personnel": 10 }, "build_turns": 3,
+      "prerequisites": { "min_supply": 4, "requires_control": "owner", "requires_facility": null },
+      "benefit": { "defence_multiplier": 1.45, "garrison_slots": 1, "mission_unlock": ["mission_family_defence"] },
+      "on_control_change": "captured_intact", "on_damaged": "multiplier_reduced", "repair_cost": { "materiel": 12 }
+    },
+    {
+      "id": "fac_relief_kitchen", "label_key": "facility.relief_kitchen",
+      "cost": { "materiel": 10, "personnel": 5 }, "build_turns": 2,
+      "prerequisites": { "min_supply": 2, "requires_control": "any", "requires_facility": null },
+      "benefit": { "civilian_food_capacity": 4, "morale_per_turn": 1, "mission_unlock": ["mission_family_supply_run"] },
+      "on_control_change": "captured_disabled", "on_damaged": "capacity_halved_until_repaired", "repair_cost": { "materiel": 4 }
+    }
+  ]
+}

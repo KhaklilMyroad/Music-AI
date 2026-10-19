@@ -1,0 +1,77 @@
+[gd_scene load_steps=5 format=3 uid="uid://wbtmmission01"]
+
+[ext_resource type="Script" path="res://gameplay/fps/mission_scene.gd" id="1_mission"]
+[ext_resource type="Script" path="res://gameplay/fps/district_builder.gd" id="2_district"]
+[ext_resource type="Script" path="res://gameplay/fps/player_controller.gd" id="3_player"]
+[ext_resource type="Script" path="res://ui/touch/touch_controls.gd" id="4_touch"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.32
+height = 1.75
+
+[node name="Mission" type="Node3D"]
+script = ExtResource("1_mission")
+
+[node name="District" type="Node3D" parent="."]
+script = ExtResource("2_district")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+script = ExtResource("3_player")
+
+[node name="Collision" type="CollisionShape3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="Head" type="Node3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Player/Head"]
+fov = 72.0
+near = 0.06
+far = 600.0
+
+[node name="ViewModel" type="Node3D" parent="Player/Head/Camera3D"]
+
+[node name="WeaponSlot" type="Node3D" parent="Player/Head/Camera3D/ViewModel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.17, -0.19, -0.42)
+
+[node name="Hands" type="Node3D" parent="Player/Head/Camera3D/ViewModel"]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Touch" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("4_touch")
+
+[node name="Stick" type="Control" parent="UI/Touch"]
+visible = false
+custom_minimum_size = Vector2(148, 148)
+layout_mode = 0
+offset_right = 148.0
+offset_bottom = 148.0
+
+[node name="Knob" type="Panel" parent="UI/Touch/Stick"]
+custom_minimum_size = Vector2(58, 58)
+layout_mode = 0
+offset_left = 45.0
+offset_top = 45.0
+offset_right = 103.0
+offset_bottom = 103.0
+
+[node name="RightCluster" type="VBoxContainer" parent="UI/Touch"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -300.0
+offset_right = -16.0
+offset_bottom = -18.0
+grow_horizontal = 0
+grow_vertical = 0
+alignment = 2

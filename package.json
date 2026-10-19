@@ -1,0 +1,12 @@
+{
+  "name": "war-beneath-the-map",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The War Beneath the Map — simulation core, acceptance tests and playable design prototype",
+  "scripts": {
+    "test": "node web/tests/run-all.js",
+    "district": "python3 -I tools/author_district.py district_normandy_bocage > shared-data/districts/district_normandy_bocage.json",
+    "validate-content": "python3 -I tools/validate_content.py"
+  }
+}

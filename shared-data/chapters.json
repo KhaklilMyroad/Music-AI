@@ -1,0 +1,130 @@
+{
+  "schema": "wbtm.chapter_register",
+  "schema_version": 2,
+  "campaign_range": { "start": "1939-09-01", "end": "1945-05-08" },
+  "turn_length_days": 7,
+  "status_legend": {
+    "authored": "Design, history refs, objectives and outcomes are written. District content may still be blockout.",
+    "outlined": "Scope and history refs fixed. Objectives not yet authored.",
+    "registered": "Placeholder reserving a required location from the brief. No content."
+  },
+  "mission_families": [
+    { "id": "mission_family_recon",      "label_key": "mf.recon",      "primary_verb": "observe",  "lethal_required": false },
+    { "id": "mission_family_courier",    "label_key": "mf.courier",    "primary_verb": "deliver",  "lethal_required": false },
+    { "id": "mission_family_supply_run", "label_key": "mf.supply_run", "primary_verb": "carry",    "lethal_required": false },
+    { "id": "mission_family_extraction", "label_key": "mf.extraction", "primary_verb": "escort",   "lethal_required": false },
+    { "id": "mission_family_sabotage",   "label_key": "mf.sabotage",   "primary_verb": "disable",  "lethal_required": false },
+    { "id": "mission_family_defence",    "label_key": "mf.defence",    "primary_verb": "hold",     "lethal_required": true },
+    { "id": "mission_family_assault",    "label_key": "mf.assault",    "primary_verb": "take",     "lethal_required": true },
+    { "id": "mission_family_evacuation", "label_key": "mf.evacuation", "primary_verb": "move",     "lethal_required": false },
+    { "id": "mission_family_medical",    "label_key": "mf.medical",    "primary_verb": "treat",    "lethal_required": false },
+    { "id": "mission_family_comms",      "label_key": "mf.comms",      "primary_verb": "restore",  "lethal_required": false },
+    { "id": "mission_family_concealment","label_key": "mf.concealment","primary_verb": "endure",   "lethal_required": false }
+  ],
+  "chapters": [
+    {
+      "id": "chapter_nor_01",
+      "label_key": "chapter.nor_01.title",
+      "status": "authored",
+      "theater": "theater_western_europe",
+      "location": "loc_normandy",
+      "district": "district_normandy_bocage",
+      "date_window": { "from": "1944-06-05", "to": "1944-06-12" },
+      "prerequisites": { "events": ["event_normandy_open"], "chapters": [], "min_intelligence": 0 },
+      "perspective": { "role": "resistance_liaison", "is_fictional": true, "faction": "french_resistance" },
+      "history_refs": ["hist_1944_normandy_landings"],
+      "mission_families": ["mission_family_sabotage", "mission_family_recon"],
+      "objectives": [
+        { "id": "obj_cut_field_line", "label_key": "obj.cut_field_line", "required": true,  "type": "disable", "target": "poi_field_telephone_junction" },
+        { "id": "obj_mark_battery",   "label_key": "obj.mark_battery",   "required": true,  "type": "observe", "target": "poi_gun_position" },
+        { "id": "obj_reach_barn",     "label_key": "obj.reach_barn",     "required": true,  "type": "reach",   "target": "poi_safe_barn" },
+        { "id": "obj_no_alarm",       "label_key": "obj.no_alarm",       "required": false, "type": "constraint", "constraint": "alarm_never_raised" },
+        { "id": "obj_recover_cache",  "label_key": "obj.recover_cache",  "required": false, "type": "collect", "target": "poi_arms_cache" }
+      ],
+      "allowed_outcomes": ["success", "partial_success", "failure", "withdrawal"],
+      "strategic_effects": {
+        "success":         { "intelligence": 3, "enemy_readiness_delta": -0.20, "unlock_chapters": ["chapter_nor_02"], "tile_effects": [{ "rel": "mission_tile", "set_supply_penalty": 2 }] },
+        "partial_success": { "intelligence": 1, "enemy_readiness_delta": -0.08, "unlock_chapters": ["chapter_nor_02"] },
+        "failure":         { "network_exposure": 0.18, "personnel": -2 },
+        "withdrawal":      { "network_exposure": 0.06 }
+      },
+      "campaign_time_cost_turns": 0,
+      "editorial_note": "The liaison, the farm and the cut line are fiction. The landings are the documented frame, cited in the journal."
+    },
+    {
+      "id": "chapter_nor_02",
+      "label_key": "chapter.nor_02.title",
+      "status": "authored",
+      "theater": "theater_western_europe",
+      "location": "loc_normandy",
+      "district": "district_normandy_bocage",
+      "date_window": { "from": "1944-06-07", "to": "1944-07-20" },
+      "prerequisites": { "events": ["event_normandy_open"], "chapters": ["chapter_nor_01"], "min_intelligence": 2 },
+      "perspective": { "role": "resistance_liaison", "is_fictional": true, "faction": "french_resistance" },
+      "history_refs": ["hist_1944_normandy_landings"],
+      "mission_families": ["mission_family_defence", "mission_family_medical"],
+      "objectives": [
+        { "id": "obj_hold_crossroad",  "label_key": "obj.hold_crossroad",  "required": true,  "type": "hold",    "target": "poi_crossroad", "duration_s": 180 },
+        { "id": "obj_treat_wounded",   "label_key": "obj.treat_wounded",   "required": true,  "type": "treat",   "target": "npc_group_wounded", "count": 3 },
+        { "id": "obj_keep_barn_intact","label_key": "obj.keep_barn_intact","required": false, "type": "constraint", "constraint": "poi_safe_barn_undestroyed" }
+      ],
+      "allowed_outcomes": ["success", "partial_success", "failure", "withdrawal"],
+      "strategic_effects": {
+        "success":         { "removes_attacking_formation": true, "civilian_health_delta": 2, "materiel": -6, "note_key": "effect.formation_routed" },
+        "partial_success": { "enemy_strength_delta": -0.35, "civilian_health_delta": 1, "materiel": -6 },
+        "failure":         { "tile_control_flip_to": "attacker", "civilian_health_delta": -2 },
+        "withdrawal":      { "tile_control_flip_to": "attacker" }
+      },
+      "campaign_time_cost_turns": 1,
+      "editorial_note": "This chapter is the brief's worked example: a successful defence may remove the attacking formation from the map because the mission represents the whole engagement, and says so in its briefing."
+    },
+    {
+      "id": "chapter_wsw_01",
+      "label_key": "chapter.wsw_01.title",
+      "status": "authored",
+      "theater": "theater_eastern_europe",
+      "location": "loc_warsaw",
+      "district": "district_warsaw_north",
+      "date_window": { "from": "1939-09-01", "to": "1939-10-06" },
+      "prerequisites": { "events": ["event_campaign_open"], "chapters": [], "min_intelligence": 0 },
+      "perspective": { "role": "community_courier", "is_fictional": true, "faction": "civilian" },
+      "history_refs": ["hist_1939_invasion_poland"],
+      "mission_families": ["mission_family_courier", "mission_family_medical"],
+      "objectives": [
+        { "id": "obj_deliver_list",   "label_key": "obj.deliver_list",   "required": true,  "type": "deliver", "target": "poi_community_office" },
+        { "id": "obj_find_pharmacy",  "label_key": "obj.find_pharmacy",  "required": true,  "type": "reach",   "target": "poi_pharmacy" },
+        { "id": "obj_avoid_patrols",  "label_key": "obj.avoid_patrols",  "required": false, "type": "constraint", "constraint": "never_detected" }
+      ],
+      "allowed_outcomes": ["success", "partial_success", "failure", "withdrawal"],
+      "strategic_effects": {
+        "success":         { "network_access": 1, "civilian_health_delta": 1, "unlock_chapters": ["chapter_wsw_02"] },
+        "partial_success": { "network_access": 1, "unlock_chapters": ["chapter_wsw_02"] },
+        "failure":         { "network_exposure": 0.2, "civilian_health_delta": -1 },
+        "withdrawal":      { "network_exposure": 0.05 }
+      },
+      "campaign_time_cost_turns": 0,
+      "editorial_note": "No weapon is issued. The chapter is completed by movement, timing and conversation. Firearms are not in the player's loadout here at all."
+    },
+    { "id": "chapter_wsw_02",  "label_key": "chapter.wsw_02.title",  "status": "outlined",   "theater": "theater_eastern_europe", "location": "loc_warsaw",   "district": "district_warsaw_north",  "date_window": { "from": "1940-10-12", "to": "1942-07-21" }, "prerequisites": { "events": ["event_warsaw_ghetto_sealed"], "chapters": ["chapter_wsw_01"], "min_intelligence": 0 }, "perspective": { "role": "community_courier", "is_fictional": true, "faction": "civilian" }, "history_refs": ["hist_1940_warsaw_ghetto_sealed"], "mission_families": ["mission_family_supply_run", "mission_family_comms"], "objectives": [], "allowed_outcomes": ["success", "partial_success", "failure", "withdrawal"], "strategic_effects": {}, "campaign_time_cost_turns": 0, "sensitivity": "high", "gate": "specialist_review_required" },
+    { "id": "chapter_wsw_02b", "label_key": "chapter.wsw_02b.title", "status": "outlined",   "theater": "theater_eastern_europe", "location": "loc_warsaw",   "district": "district_warsaw_north",  "date_window": { "from": "1942-09-01", "to": "1944-08-01" }, "prerequisites": { "events": ["event_warsaw_ghetto_sealed"], "chapters": ["chapter_wsw_02"], "min_intelligence": 0 }, "perspective": { "role": "hidden_household_member", "is_fictional": true, "faction": "civilian" }, "history_refs": ["fict_household_lindenweg", "hist_1942_frank_family_hiding"], "mission_families": ["mission_family_concealment"], "objectives": [], "allowed_outcomes": ["success", "partial_success", "failure"], "strategic_effects": {}, "campaign_time_cost_turns": 0, "sensitivity": "high", "gate": "specialist_review_required" },
+    { "id": "chapter_wsw_03",  "label_key": "chapter.wsw_03.title",  "status": "outlined",   "theater": "theater_eastern_europe", "location": "loc_warsaw",   "district": "district_warsaw_north",  "date_window": { "from": "1943-04-19", "to": "1943-05-16" }, "prerequisites": { "events": ["event_warsaw_ghetto_uprising"], "chapters": ["chapter_wsw_02"], "min_intelligence": 3 }, "perspective": { "role": "fighting_organisation_member", "is_fictional": true, "faction": "jewish_fighting_organisations" }, "history_refs": ["hist_1943_warsaw_ghetto_uprising"], "mission_families": ["mission_family_defence", "mission_family_evacuation"], "objectives": [], "allowed_outcomes": ["partial_success", "failure", "withdrawal"], "strategic_effects": {}, "campaign_time_cost_turns": 1, "sensitivity": "high", "gate": "specialist_review_required", "editorial_note": "'success' is deliberately not an allowed outcome. The authored outcomes concern who the player gets out, not changing the recorded result." },
+    { "id": "chapter_wsw_04",  "label_key": "chapter.wsw_04.title",  "status": "registered", "theater": "theater_eastern_europe", "location": "loc_warsaw",   "district": "district_warsaw_north",  "date_window": { "from": "1944-08-01", "to": "1944-10-02" }, "prerequisites": { "events": ["event_warsaw_uprising_1944"], "chapters": [], "min_intelligence": 0 }, "perspective": { "role": "home_army_runner", "is_fictional": true, "faction": "polish_home_army" }, "history_refs": ["hist_1944_warsaw_uprising"], "mission_families": ["mission_family_courier", "mission_family_defence"], "objectives": [], "allowed_outcomes": ["partial_success", "failure", "withdrawal"], "strategic_effects": {}, "campaign_time_cost_turns": 1 },
+    { "id": "chapter_sal_01",  "label_key": "chapter.sal_01.title",  "status": "outlined",   "theater": "theater_eastern_europe", "location": "loc_salonica", "district": "district_salonica_port",  "date_window": { "from": "1943-02-01", "to": "1943-08-10" }, "prerequisites": { "events": ["event_salonica_deportations"], "chapters": [], "min_intelligence": 1 }, "perspective": { "role": "community_archivist", "is_fictional": true, "faction": "civilian" }, "history_refs": ["hist_1943_salonica_deportations"], "mission_families": ["mission_family_extraction", "mission_family_courier"], "objectives": [], "allowed_outcomes": ["success", "partial_success", "failure", "withdrawal"], "strategic_effects": {}, "campaign_time_cost_turns": 0, "sensitivity": "high", "gate": "specialist_review_required" },
+    { "id": "chapter_tun_01",  "label_key": "chapter.tun_01.title",  "status": "outlined",   "theater": "theater_north_africa",   "location": "loc_tunis",    "district": "district_tunis_medina",   "date_window": { "from": "1942-11-08", "to": "1943-05-13" }, "prerequisites": { "events": ["event_north_africa_open"], "chapters": [], "min_intelligence": 0 }, "perspective": { "role": "workshop_owner", "is_fictional": true, "faction": "civilian" }, "history_refs": ["hist_1942_operation_torch"], "mission_families": ["mission_family_supply_run", "mission_family_concealment"], "objectives": [], "allowed_outcomes": ["success", "partial_success", "failure", "withdrawal"], "strategic_effects": {}, "campaign_time_cost_turns": 0 },
+    { "id": "chapter_tun_02",  "label_key": "chapter.tun_02.title",  "status": "registered", "theater": "theater_north_africa",   "location": "loc_tunis",    "district": "district_tunis_medina",   "date_window": { "from": "1943-05-13", "to": "1943-07-01" }, "prerequisites": { "events": ["event_tunisia_campaign_end"], "chapters": ["chapter_tun_01"], "min_intelligence": 0 }, "perspective": { "role": "workshop_owner", "is_fictional": true, "faction": "civilian" }, "history_refs": ["hist_1943_tunisia_campaign_end"], "mission_families": ["mission_family_medical", "mission_family_comms"], "objectives": [], "allowed_outcomes": ["success", "partial_success", "failure"], "strategic_effects": {}, "campaign_time_cost_turns": 0 },
+    { "id": "chapter_lon_01",  "label_key": "chapter.lon_01.title",  "status": "outlined",   "theater": "theater_home_front",     "location": "loc_london",   "district": "district_london_shelter", "date_window": { "from": "1940-09-07", "to": "1941-05-11" }, "prerequisites": { "events": ["event_blitz_begins"], "chapters": [], "min_intelligence": 0 }, "perspective": { "role": "civil_defence_warden", "is_fictional": true, "faction": "uk_civil_defence" }, "history_refs": ["hist_1940_blitz_london"], "mission_families": ["mission_family_evacuation", "mission_family_medical"], "objectives": [], "allowed_outcomes": ["success", "partial_success", "failure"], "strategic_effects": {}, "campaign_time_cost_turns": 0, "editorial_note": "No enemy soldier appears in this district. The antagonist is fire, debris, darkness and time." },
+    { "id": "chapter_nyc_01",  "label_key": "chapter.nyc_01.title",  "status": "registered", "theater": "theater_home_front",     "location": "loc_new_york", "district": "district_newyork_lower", "date_window": { "from": "1940-06-01", "to": "1945-05-08" }, "prerequisites": { "events": ["event_campaign_open"], "chapters": [], "min_intelligence": 0 }, "perspective": { "role": "relief_organiser", "is_fictional": true, "faction": "us_home_front_organisations" }, "history_refs": ["hist_nyc_home_front_relief"], "mission_families": ["mission_family_courier", "mission_family_supply_run"], "objectives": [], "allowed_outcomes": ["success", "partial_success", "failure"], "strategic_effects": {}, "campaign_time_cost_turns": 0, "editorial_note": "Home front. No Axis occupation is invented to fit a combat template." }
+  ],
+  "timeline_events": [
+    { "id": "event_campaign_open",            "date": "1939-09-01", "label_key": "event.campaign_open",            "history_ref": "hist_1939_invasion_poland",       "effects": { "opens_theaters": ["theater_western_europe", "theater_eastern_europe", "theater_home_front"] } },
+    { "id": "event_blitz_begins",             "date": "1940-09-07", "label_key": "event.blitz_begins",             "history_ref": "hist_1940_blitz_london",          "effects": { "city_state": { "loc_london": "under_air_attack" }, "unlock_mission_families": ["mission_family_evacuation"] } },
+    { "id": "event_warsaw_ghetto_sealed",     "date": "1940-11-16", "label_key": "event.warsaw_ghetto_sealed",     "history_ref": "hist_1940_warsaw_ghetto_sealed",  "effects": { "district_state": { "district_warsaw_north": "restricted_1940" }, "civilian_restriction_level": { "loc_warsaw": 3 } }, "sensitivity": "high" },
+    { "id": "event_north_africa_open",        "date": "1942-11-08", "label_key": "event.north_africa_open",        "history_ref": "hist_1942_operation_torch",       "effects": { "opens_theaters": ["theater_north_africa"] } },
+    { "id": "event_salonica_deportations",    "date": "1943-03-15", "label_key": "event.salonica_deportations",    "history_ref": "hist_1943_salonica_deportations", "effects": { "civilian_restriction_level": { "loc_salonica": 4 } }, "sensitivity": "high" },
+    { "id": "event_warsaw_ghetto_uprising",   "date": "1943-04-19", "label_key": "event.warsaw_ghetto_uprising",   "history_ref": "hist_1943_warsaw_ghetto_uprising","effects": { "district_state": { "district_warsaw_north": "uprising_1943" } }, "sensitivity": "high" },
+    { "id": "event_tunisia_campaign_end",     "date": "1943-05-13", "label_key": "event.tunisia_campaign_end",     "history_ref": "hist_1943_tunisia_campaign_end",  "effects": { "theater_control": { "theater_north_africa": "allied" }, "district_state": { "district_tunis_medina": "liberated_1943" } } },
+    { "id": "event_normandy_open",            "date": "1944-06-06", "label_key": "event.normandy_open",            "history_ref": "hist_1944_normandy_landings",     "effects": { "supply_source_activate": [{ "theater": "theater_western_europe", "q": 3, "r": 0, "throughput": 11 }], "unlock_equipment": ["wpn_semi_rifle_us"] } },
+    { "id": "event_warsaw_uprising_1944",     "date": "1944-08-01", "label_key": "event.warsaw_uprising_1944",     "history_ref": "hist_1944_warsaw_uprising",       "effects": { "district_state": { "district_warsaw_north": "uprising_1944" } } },
+    { "id": "event_campaign_close_europe",    "date": "1945-05-08", "label_key": "event.campaign_close_europe",    "history_ref": null,                              "effects": { "campaign_phase": "epilogue" } }
+  ]
+}

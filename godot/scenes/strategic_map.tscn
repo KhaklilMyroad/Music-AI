@@ -1,0 +1,59 @@
+[gd_scene load_steps=3 format=3 uid="uid://wbtmmap01"]
+
+[ext_resource type="Script" path="res://ui/map/strategic_map.gd" id="1_map"]
+[ext_resource type="Script" path="res://scenes/strategic_map_screen.gd" id="2_screen"]
+
+[node name="StrategicMapScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("2_screen")
+
+[node name="Map" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_map")
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 8.0
+offset_bottom = 56.0
+theme_override_constants/separation = 12
+
+[node name="Date" type="Label" parent="TopBar"]
+layout_mode = 2
+
+[node name="Theaters" type="HBoxContainer" parent="TopBar"]
+layout_mode = 2
+
+[node name="Resources" type="HBoxContainer" parent="TopBar"]
+layout_mode = 2
+
+[node name="BottomBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -64.0
+offset_bottom = -12.0
+theme_override_constants/separation = 8
+
+[node name="Sheet" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -420.0
+offset_right = 432.0
+offset_bottom = -12.0
+
+[node name="Body" type="VBoxContainer" parent="Sheet"]
+layout_mode = 2

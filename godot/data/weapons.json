@@ -1,0 +1,186 @@
+{
+  "schema": "wbtm.weapon_registry",
+  "schema_version": 3,
+  "notes": [
+    "Availability windows are gameplay-facing approximations of service introduction, not exact procurement records.",
+    "Every entry needs an audio_registry row before it may ship (see docs/07-AUDIO-BIBLE.md).",
+    "model_status records whether production art exists. 'blockout' means the shipped quality bar is NOT met."
+  ],
+  "ammunition": {
+    "amm_792x57": { "id": "amm_792x57", "label_key": "ammo.792x57", "family": "rifle" },
+    "amm_3006":   { "id": "amm_3006",   "label_key": "ammo.3006",   "family": "rifle" },
+    "amm_9x19":   { "id": "amm_9x19",   "label_key": "ammo.9x19",   "family": "pistol_smg" },
+    "amm_45acp":  { "id": "amm_45acp",  "label_key": "ammo.45acp",  "family": "pistol_smg" },
+    "amm_762x25": { "id": "amm_762x25", "label_key": "ammo.762x25", "family": "pistol_smg" },
+    "amm_303":    { "id": "amm_303",    "label_key": "ammo.303",    "family": "rifle" }
+  },
+  "weapons": [
+    {
+      "id": "wpn_bolt_rifle_de",
+      "label_key": "weapon.bolt_rifle_de",
+      "class": "bolt_action_rifle",
+      "ammunition": "amm_792x57",
+      "magazine": { "capacity": 5, "feed": "internal_charger", "chamber_extra": true },
+      "available_from": "1939-09-01",
+      "available_until": null,
+      "factions": ["axis_army", "axis_police"],
+      "handling": {
+        "rpm_cyclic": 0,
+        "cycle_seconds": 1.05,
+        "ads_time": 0.34,
+        "recoil_vertical": 2.6,
+        "recoil_horizontal": 0.55,
+        "recoil_recovery": 0.28,
+        "sway_idle": 0.9,
+        "effective_range_m": 420
+      },
+      "reload": {
+        "supports_single_round": true,
+        "supports_partial": true,
+        "charger_seconds": 3.1,
+        "single_round_seconds": 1.15,
+        "empty_penalty_seconds": 0.45,
+        "insert_point_fraction": 0.52,
+        "cancel_policy": "revert_to_pre_reload_count"
+      },
+      "damage": { "base": 78, "falloff_start_m": 120, "falloff_end_m": 400, "falloff_min_factor": 0.55, "penetration_class": "rifle" },
+      "audio_events": ["fire", "fire_distant", "bolt_open", "bolt_close", "charger_insert", "charger_strip", "single_insert", "dry", "sling_shift"],
+      "model_status": "blockout",
+      "provenance_ref": null
+    },
+    {
+      "id": "wpn_semi_rifle_us",
+      "label_key": "weapon.semi_rifle_us",
+      "class": "semi_auto_rifle",
+      "ammunition": "amm_3006",
+      "magazine": { "capacity": 8, "feed": "en_bloc_clip", "chamber_extra": false },
+      "available_from": "1941-06-01",
+      "available_until": null,
+      "factions": ["allied_us_army"],
+      "handling": {
+        "rpm_cyclic": 0,
+        "cycle_seconds": 0.17,
+        "ads_time": 0.31,
+        "recoil_vertical": 1.9,
+        "recoil_horizontal": 0.42,
+        "recoil_recovery": 0.22,
+        "sway_idle": 0.85,
+        "effective_range_m": 400
+      },
+      "reload": {
+        "supports_single_round": false,
+        "supports_partial": false,
+        "charger_seconds": 2.6,
+        "single_round_seconds": 0,
+        "empty_penalty_seconds": 0.0,
+        "insert_point_fraction": 0.48,
+        "cancel_policy": "revert_to_pre_reload_count",
+        "notes": "Clip-fed: a partial reload is not modelled. Clearing a partial clip is a distinct authored action, not a reload."
+      },
+      "damage": { "base": 71, "falloff_start_m": 110, "falloff_end_m": 380, "falloff_min_factor": 0.58, "penetration_class": "rifle" },
+      "audio_events": ["fire", "fire_distant", "clip_insert", "bolt_return", "clip_eject_ping", "dry", "sling_shift"],
+      "model_status": "blockout",
+      "provenance_ref": null
+    },
+    {
+      "id": "wpn_smg_resistance",
+      "label_key": "weapon.smg_resistance",
+      "class": "submachine_gun",
+      "ammunition": "amm_9x19",
+      "magazine": { "capacity": 32, "feed": "detachable_box", "chamber_extra": true },
+      "available_from": "1941-01-01",
+      "available_until": null,
+      "factions": ["allied_uk_army", "resistance_cell"],
+      "handling": {
+        "rpm_cyclic": 540,
+        "cycle_seconds": 0,
+        "ads_time": 0.25,
+        "recoil_vertical": 0.95,
+        "recoil_horizontal": 0.62,
+        "recoil_recovery": 0.13,
+        "sway_idle": 1.1,
+        "effective_range_m": 110
+      },
+      "reload": {
+        "supports_single_round": false,
+        "supports_partial": true,
+        "charger_seconds": 2.35,
+        "single_round_seconds": 0,
+        "empty_penalty_seconds": 0.5,
+        "insert_point_fraction": 0.55,
+        "cancel_policy": "revert_to_pre_reload_count"
+      },
+      "damage": { "base": 34, "falloff_start_m": 25, "falloff_end_m": 120, "falloff_min_factor": 0.42, "penetration_class": "pistol" },
+      "audio_events": ["fire", "fire_distant", "mag_release", "mag_insert", "bolt_pull", "dry", "sling_shift"],
+      "model_status": "blockout",
+      "provenance_ref": null
+    },
+    {
+      "id": "wpn_pistol_civ",
+      "label_key": "weapon.pistol_civ",
+      "class": "pistol",
+      "ammunition": "amm_9x19",
+      "magazine": { "capacity": 8, "feed": "detachable_box", "chamber_extra": true },
+      "available_from": "1939-09-01",
+      "available_until": null,
+      "factions": ["resistance_cell", "axis_police", "allied_uk_army"],
+      "handling": {
+        "rpm_cyclic": 0,
+        "cycle_seconds": 0.21,
+        "ads_time": 0.18,
+        "recoil_vertical": 1.2,
+        "recoil_horizontal": 0.5,
+        "recoil_recovery": 0.16,
+        "sway_idle": 0.7,
+        "effective_range_m": 45
+      },
+      "reload": {
+        "supports_single_round": false,
+        "supports_partial": true,
+        "charger_seconds": 1.75,
+        "single_round_seconds": 0,
+        "empty_penalty_seconds": 0.4,
+        "insert_point_fraction": 0.5,
+        "cancel_policy": "revert_to_pre_reload_count"
+      },
+      "damage": { "base": 31, "falloff_start_m": 18, "falloff_end_m": 70, "falloff_min_factor": 0.4, "penetration_class": "pistol" },
+      "audio_events": ["fire", "fire_distant", "mag_release", "mag_insert", "slide_release", "dry", "holster"],
+      "model_status": "blockout",
+      "provenance_ref": null
+    },
+    {
+      "id": "tool_wire_cutters",
+      "label_key": "weapon.wire_cutters",
+      "class": "tool",
+      "ammunition": null,
+      "magazine": null,
+      "available_from": "1939-09-01",
+      "available_until": null,
+      "factions": ["resistance_cell", "civilian", "allied_uk_army", "allied_us_army"],
+      "handling": { "ads_time": 0, "sway_idle": 0.4, "effective_range_m": 1.2 },
+      "reload": null,
+      "damage": null,
+      "audio_events": ["cut_stage_1", "cut_stage_2", "cut_complete", "stow"],
+      "model_status": "blockout",
+      "provenance_ref": null,
+      "notes": "Non-lethal objective tool. Required so that sabotage chapters are completable without a firefight."
+    },
+    {
+      "id": "tool_medical_kit",
+      "label_key": "weapon.medical_kit",
+      "class": "tool",
+      "ammunition": null,
+      "magazine": { "capacity": 3, "feed": "charges", "chamber_extra": false },
+      "available_from": "1939-09-01",
+      "available_until": null,
+      "factions": ["resistance_cell", "civilian", "allied_uk_army", "allied_us_army", "axis_army"],
+      "handling": { "ads_time": 0, "sway_idle": 0.35, "effective_range_m": 1.5 },
+      "reload": null,
+      "damage": null,
+      "audio_events": ["open", "apply", "close", "stow"],
+      "model_status": "blockout",
+      "provenance_ref": null,
+      "notes": "Charges are consumed on use and restocked only at an authored supply point."
+    }
+  ]
+}

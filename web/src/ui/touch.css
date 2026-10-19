@@ -1,0 +1,86 @@
+/* Touch layer. Everything is positioned from the safe area, scales with the
+   HUD and stick settings, and mirrors for a left-handed player. */
+.touch {
+  position: absolute; inset: 0; z-index: 30;
+  --stick-scale: 1;
+  touch-action: none;
+}
+.touch[hidden] { display: none; }
+
+.tc-stick {
+  position: absolute; left: var(--sx, 50%); top: var(--sy, 50%);
+  width: calc(148px * var(--stick-scale)); height: calc(148px * var(--stick-scale));
+  transform: translate(-50%, -50%); opacity: 0; transition: opacity var(--dur-fast) var(--ease);
+  pointer-events: none;
+}
+.tc-stick.is-active { opacity: 1; }
+.tc-stick-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px solid color-mix(in oklab, var(--paper-100) 45%, transparent);
+  background: radial-gradient(circle, rgba(0,0,0,.28), rgba(0,0,0,.08) 70%, transparent);
+  box-shadow: inset 0 0 18px rgba(0,0,0,.45);
+}
+.tc-stick-knob {
+  position: absolute; left: 50%; top: 50%;
+  width: calc(58px * var(--stick-scale)); height: calc(58px * var(--stick-scale));
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, color-mix(in oklab, var(--paper-100) 85%, transparent), color-mix(in oklab, var(--ink-500) 80%, transparent));
+  border: 1px solid color-mix(in oklab, var(--paper-000) 55%, transparent);
+  box-shadow: var(--shadow-1);
+}
+.tc-look { position: absolute; inset: 0; pointer-events: none; }
+
+.tc-right, .tc-left, .tc-corner { position: absolute; display: flex; pointer-events: none; }
+.tc-right > *, .tc-left > *, .tc-corner > * { pointer-events: auto; }
+
+.tc-right {
+  bottom: calc(var(--safe-b) + 18px); inset-inline-end: calc(var(--safe-r) + 16px);
+  flex-direction: column-reverse; gap: calc(12px * var(--hud)); align-items: center;
+}
+.tc-left {
+  bottom: calc(var(--safe-b) + 18px); inset-inline-start: calc(var(--safe-l) + 16px);
+  flex-direction: row; gap: calc(10px * var(--hud));
+}
+.touch[data-hand="left"] .tc-right { inset-inline-end: auto; inset-inline-start: calc(var(--safe-l) + 16px); }
+.touch[data-hand="left"] .tc-left  { inset-inline-start: auto; inset-inline-end: calc(var(--safe-r) + 16px); }
+
+.tc-corner {
+  top: calc(var(--safe-t) + 12px); inset-inline-end: calc(var(--safe-r) + 14px);
+  gap: calc(8px * var(--hud));
+}
+
+.tc-btn {
+  position: relative; display: grid; place-items: center;
+  min-width: var(--touch-min); min-height: var(--touch-min);
+  width: calc(74px * var(--hud)); height: calc(74px * var(--hud));
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--ink-700) 72%, transparent);
+  border: 1.5px solid color-mix(in oklab, var(--paper-200) 40%, transparent);
+  color: var(--text); font-size: var(--fs-xs); letter-spacing: .04em; text-transform: uppercase;
+  backdrop-filter: blur(3px); box-shadow: var(--shadow-1);
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.tc-btn > span { pointer-events: none; opacity: .92; }
+.tc-btn.is-down { transform: scale(.94); background: color-mix(in oklab, var(--accent) 34%, var(--ink-700)); }
+.tc-btn.is-on { border-color: var(--accent); color: var(--accent); }
+.tc-btn-fire { width: calc(94px * var(--hud)); height: calc(94px * var(--hud)); border-color: color-mix(in oklab, var(--rust) 70%, var(--paper-200)); }
+.tc-btn-aim  { width: calc(80px * var(--hud)); height: calc(80px * var(--hud)); }
+.tc-btn-sm   { width: calc(62px * var(--hud)); height: calc(62px * var(--hud)); font-size: var(--fs-xs); }
+.tc-btn-ctx  { border-color: var(--accent); }
+
+/* Radial progress for reload and staged interactions. */
+.tc-prog {
+  position: absolute; inset: -4px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(var(--accent) calc(var(--p, 0) * 360deg), transparent 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  opacity: calc(var(--p, 0) > 0 ? 1 : 0);
+}
+
+.tc-chip {
+  min-height: var(--touch-min); padding: 0 calc(14px * var(--hud));
+  border-radius: 999px; font-size: var(--fs-sm);
+  background: color-mix(in oklab, var(--ink-800) 76%, transparent);
+  border: 1px solid color-mix(in oklab, var(--paper-200) 34%, transparent);
+  backdrop-filter: blur(3px);
+}

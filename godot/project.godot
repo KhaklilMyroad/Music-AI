@@ -1,0 +1,66 @@
+; Engine configuration file.
+; Pinned engine: Godot 4.3 stable. The renderer choice below is deliberate:
+; the brief requires the Mobile renderer as the primary high-quality mobile
+; path, and Mobile does not provide SSIL, SDFGI, volumetric fog or FSR2, so the
+; visual solution is built only from features this backend supports.
+
+config_version=5
+
+[application]
+
+config/name="The War Beneath the Map"
+config/description="Hybrid WWII strategy and first-person survival. Mobile edition."
+config/version="0.1.0"
+run/main_scene="res://scenes/boot.tscn"
+config/features=PackedStringArray("4.3", "Mobile")
+config/icon="res://icon.svg"
+boot_splash/show_image=false
+
+[autoload]
+
+ContentDB="*res://core/services/content_db.gd"
+Campaign="*res://core/services/campaign_service.gd"
+Transition="*res://core/services/transition_controller.gd"
+Saves="*res://core/services/save_service.gd"
+Settings="*res://core/services/settings_service.gd"
+Loc="*res://core/services/localisation.gd"
+AudioDirector="*res://core/services/audio_director.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/handheld/orientation=1
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/vsync/vsync_mode=1
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[internationalization]
+
+locale/translations_pot_files=PackedStringArray()
+locale/test=""
+rendering/text_driver="TextServerAdvanced"
+
+[physics]
+
+common/physics_ticks_per_second=60
+3d/default_gravity=16.5
+3d/physics_engine="GodotPhysics3D"
+
+[rendering]
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=1
+lights_and_shadows/directional_shadow/size=2048
+lights_and_shadows/directional_shadow/size.mobile=1024
+lights_and_shadows/positional_shadow/atlas_size=2048
+lights_and_shadows/positional_shadow/atlas_size.mobile=1024
+environment/defaults/default_clear_color=Color(0.055, 0.063, 0.071, 1)
+occlusion_culling/use_occlusion_culling=true
+limits/opengl/max_lights_per_object=4

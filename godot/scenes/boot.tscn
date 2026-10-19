@@ -1,0 +1,52 @@
+[gd_scene load_steps=2 format=3 uid="uid://wbtmboot01"]
+
+[ext_resource type="Script" path="res://scenes/boot.gd" id="1_boot"]
+
+[node name="Boot" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_boot")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.039, 0.043, 0.047, 1)
+
+[node name="Centre" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -140.0
+offset_right = 260.0
+offset_bottom = 140.0
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Centre"]
+layout_mode = 2
+text = "The War Beneath the Map"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Centre"]
+layout_mode = 2
+text = "Verifying content"
+horizontal_alignment = 1
+
+[node name="Steps" type="VBoxContainer" parent="Centre"]
+layout_mode = 2
+
+[node name="Progress" type="ProgressBar" parent="Centre"]
+layout_mode = 2
+max_value = 1.0
+show_percentage = false
+
+[node name="Actions" type="VBoxContainer" parent="Centre"]
+layout_mode = 2
+theme_override_constants/separation = 8
