@@ -17,6 +17,11 @@ const EYE := {"stand": 1.62, "crouch": 1.05, "prone": 0.42}
 const SPEED := {"stand": 3.1, "crouch": 1.55, "prone": 0.62}
 const SPRINT_MULT := 1.78
 const GRAVITY := 16.5
+## Leaning is a PC-native verb: it needs a free second hand on the keyboard,
+## so it was absent from the touch build and is present here.
+const LEAN_ANGLE := 0.26
+const LEAN_OFFSET := 0.32
+const LEAN_SPEED := 7.0
 
 @export var head_path: NodePath = ^"Head"
 @export var camera_path: NodePath = ^"Head/Camera3D"
@@ -26,6 +31,9 @@ var posture: String = "stand"
 var posture_blend: float = EYE["stand"]
 var sprinting: bool = false
 var stamina: float = 1.0
+var lean: float = 0.0            ## -1 left .. +1 right, blended
+var holding_breath: bool = false
+var breath: float = 1.0          ## 0..1; holding steadies the aim and drains it
 var health: float = 100.0
 var condition := {"fatigue": 0.0, "warmth": 1.0, "hunger": 0.0, "thirst": 0.0}
 var inventory: Dictionary = {}
@@ -162,11 +170,22 @@ func _attach_hands(reload_swing: float) -> void:
 	else:
 		left.visible = false
 
-func look(delta_pixels: Vector2, aiming: bool) -> void:
-	var sens: float = float(Settings.get_value("aim_sensitivity" if aiming else "sensitivity")) * 0.0028
+## Mouse motion is a delta and gamepad motion is a rate, so they are applied
+## differently and never summed into double sensitivity. The mouse delta
+## arrives already scaled by mouse_sensitivity from InputService; only the
+## aiming multiplier and inversion are applied here.
+func look(mouse_delta: Vector2, pad_rate: Vector2, dt: float, aiming: bool) -> void:
+	var mult: float = float(Settings.get_value("aim_sensitivity_mult")) if aiming else 1.0
 	var inv: float = -1.0 if bool(Settings.get_value("invert_y")) else 1.0
-	yaw -= delta_pixels.x * sens
-	pitch = clampf(pitch - delta_pixels.y * sens * inv, -1.42, 1.42)
+	# Zoom-independent aiming: a narrower field of view must not change how far
+	# the crosshair travels per centimetre of mouse movement.
+	var zoom_comp: float = 1.0
+	var cam := get_camera()
+	if cam and aiming:
+		zoom_comp = tan(deg_to_rad(cam.fov) * 0.5) / tan(deg_to_rad(float(Settings.get_value("fov"))) * 0.5)
+	var delta := mouse_delta * mult * zoom_comp + pad_rate * mult * dt
+	yaw -= delta.x * 0.0022
+	pitch = clampf(pitch - delta.y * 0.0022 * inv, -1.42, 1.42)
 
 func _physics_process(delta: float) -> void:
 	pass   # driven by MissionScene.update so the order of systems is explicit
@@ -174,15 +193,34 @@ func _physics_process(delta: float) -> void:
 ## Per-frame update, called by the mission scene with a sampled input snapshot.
 func update(dt: float, input: Dictionary, world: Dictionary) -> Dictionary:
 	_elapsed += dt
-	look(input.get("look", Vector2.ZERO), bool(input.get("aim", false)))
+	var aiming := bool(input.get("aim", false))
+	look(input.get("look", Vector2.ZERO), input.get("look_rate", Vector2.ZERO), dt, aiming)
 
-	var want_crouch: bool = bool(input.get("crouch", false))
-	posture = "crouch" if want_crouch else "stand"
+	# Three postures on PC: prone is reachable because a keyboard has the keys
+	# for it. Prone cannot be entered where there is no headroom to lie down.
+	if bool(input.get("prone", false)):
+		posture = "prone"
+	elif bool(input.get("crouch", false)):
+		posture = "crouch"
+	else:
+		posture = "stand" if _can_stand() else "crouch"
 	posture_blend = lerpf(posture_blend, EYE[posture], minf(1.0, dt * 11.0))
 
-	sprinting = (bool(input.get("sprint", false)) or bool(input.get("sprint_from_stick", false))) and posture == "stand" and not bool(input.get("aim", false)) and stamina > 0.05
-	var base: float = SPEED[posture] * (0.55 if bool(input.get("aim", false)) else 1.0)
-	var speed: float = base * (SPRINT_MULT if sprinting else 1.0)
+	# Leaning: the camera rolls and shifts laterally, and the shift is collision
+	# tested, so a player cannot lean their head through a wall to see around it.
+	var lean_target: float = clampf(float(input.get("lean", 0.0)), -1.0, 1.0)
+	if lean_target != 0.0 and not _lean_clear(lean_target):
+		lean_target = 0.0
+	lean = move_toward(lean, lean_target, dt * LEAN_SPEED)
+
+	# Holding the breath steadies the aim and drains a reserve that only
+	# recovers while not held. It is a trade, not a free upgrade.
+	holding_breath = bool(input.get("hold_breath", false)) and aiming and breath > 0.02
+	breath = clampf(breath + (-dt * 0.33 if holding_breath else dt * 0.22), 0.0, 1.0)
+
+	sprinting = (bool(input.get("sprint", false)) or bool(input.get("sprint_from_stick", false))) and posture == "stand" and not aiming and stamina > 0.05
+	var base: float = SPEED[posture] * (0.55 if aiming else 1.0)
+	var speed: float = base * (SPRINT_MULT if sprinting else 1.0) * (1.0 - 0.45 * absf(lean))
 	stamina = clampf(stamina + (-dt * 0.22 if sprinting else dt * 0.14), 0.0, 1.0)
 
 	var move: Vector2 = input.get("move", Vector2.ZERO)
@@ -227,19 +265,34 @@ func update(dt: float, input: Dictionary, world: Dictionary) -> Dictionary:
 	# camera: posture, bob, recoil and shake, each scaled by its own setting
 	var shake_setting: float = float(Settings.get_value("camera_shake"))
 	_shake = maxf(0.0, _shake - dt * 2.4)
-	var bob_amp: float = 0.0 if bool(Settings.get_value("motion_reduction")) else (0.022 if sprinting else 0.012) * minf(1.0, horiz_speed / 2.4)
+	# Head bob is its own 0..1 slider on PC, where it is a common comfort
+	# complaint; reduced motion still forces it to zero.
+	var bob_scale: float = 0.0 if bool(Settings.get_value("motion_reduction")) else float(Settings.get_value("head_bob"))
+	var bob_amp: float = (0.022 if sprinting else 0.012) * minf(1.0, horiz_speed / 2.4) * bob_scale
 	var bob: float = sin(_elapsed * (13.0 if sprinting else 8.5)) * bob_amp
 	if _head:
 		_head.position.y = posture_blend + bob
+		_head.position.x = lean * LEAN_OFFSET
 	if _camera:
 		var rec := Vector2.ZERO
+		var sway: float = 1.0
 		if not equipped.is_empty():
-			rec = (equipped["runtime"] as WeaponRuntime).recoil
+			var rt: WeaponRuntime = equipped["runtime"]
+			rec = rt.recoil
+			# Aiming down the sights narrows the field of view. The look()
+			# function compensates so sensitivity does not change with zoom.
+			var base_fov: float = float(Settings.get_value("fov"))
+			_camera.fov = lerpf(base_fov, base_fov * 0.72, rt.ads)
+			sway = 1.0 - (0.75 if holding_breath else 0.0)
+		else:
+			_camera.fov = float(Settings.get_value("fov"))
 		var rec_scale: float = float(Settings.get_value("recoil_presentation")) * 0.0075
 		var sh: float = _shake * shake_setting * 0.01
+		var idle_sway: float = sin(_elapsed * 1.3) * 0.0016 * sway
 		_camera.rotation = Vector3(
-			pitch - rec.y * rec_scale + randf_range(-sh, sh),
-			0.0, 0.0)
+			pitch - rec.y * rec_scale + randf_range(-sh, sh) + idle_sway,
+			0.0,
+			-lean * LEAN_ANGLE)
 	rotation.y = yaw
 
 	# view model: sway, ADS blend and the reload pose
@@ -256,6 +309,25 @@ func update(dt: float, input: Dictionary, world: Dictionary) -> Dictionary:
 		rt.step(dt, bool(input.get("aim", false)))
 
 	return {"moved": moved, "speed": horiz_speed, "grounded": is_on_floor()}
+
+## Is there headroom to stand up? Prevents standing inside a crawlspace.
+func _can_stand() -> bool:
+	if posture == "stand":
+		return true
+	var space := get_world_3d().direct_space_state
+	var q := PhysicsRayQueryParameters3D.create(global_position + Vector3(0, 0.3, 0), global_position + Vector3(0, 1.85, 0))
+	q.exclude = [get_rid()]
+	return space.intersect_ray(q).is_empty()
+
+## Is the lean offset clear of geometry? A player may not lean their head
+## through a wall to see what is behind it.
+func _lean_clear(dir: float) -> bool:
+	var space := get_world_3d().direct_space_state
+	var from := global_position + Vector3(0, posture_blend, 0)
+	var side := global_transform.basis.x * signf(dir) * (LEAN_OFFSET + 0.25)
+	var q := PhysicsRayQueryParameters3D.create(from, from + side)
+	q.exclude = [get_rid()]
+	return space.intersect_ray(q).is_empty()
 
 func try_fire(rng: DetRng) -> Dictionary:
 	if equipped.is_empty() or (equipped["profile"] as Dictionary)["class"] == "tool":

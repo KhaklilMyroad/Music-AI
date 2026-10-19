@@ -87,8 +87,13 @@ export class District {
     this.colliders.push({ min: [-t, -t], max: [0, H + t], y0: 0, y1: 8, kind: 'boundary', id: 'bound_w' });
     this.colliders.push({ min: [W, -t], max: [W + t, H + t], y0: 0, y1: 8, kind: 'boundary', id: 'bound_e' });
 
-    // The spawn is the lane at the south edge: the player arrives by the track.
-    this.spawn = { pos: [cell * 5.5, 0, H - cell * 1.5], yaw: Math.PI };
+    // The spawn comes from the district data, where the authoring tool placed
+    // it on the lane and proved by flood fill that every objective is
+    // reachable from it. The fallback only covers a district authored before
+    // that check existed.
+    this.spawn = d.spawn
+      ? { pos: [d.spawn.p[0], 0, d.spawn.p[1]], yaw: (d.spawn.yaw_deg ?? 0) * Math.PI / 180 }
+      : { pos: [cell * 5.5, 0, H - cell * 1.5], yaw: Math.PI };
   }
 
   buildHedge(h, cell) {

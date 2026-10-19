@@ -1,24 +1,29 @@
 ; Engine configuration file.
-; Pinned engine: Godot 4.3 stable. The renderer choice below is deliberate:
-; the brief requires the Mobile renderer as the primary high-quality mobile
-; path, and Mobile does not provide SSIL, SDFGI, volumetric fog or FSR2, so the
-; visual solution is built only from features this backend supports.
+; Pinned engine: Godot 4.3 stable. Target platform: PC (Windows primary, Linux
+; and macOS secondary).
+;
+; Renderer: Forward+. This is the deliberate opposite of the earlier mobile
+; configuration. Forward+ provides SSIL, SDFGI, volumetric fog, screen-space
+; reflections and FSR2 — the features the mobile path lacks and the ones the
+; brief's art bar actually needs. Every one of them is exposed as a quality
+; setting rather than hard-coded, because the floor GPU must still hold 60 FPS.
 
 config_version=5
 
 [application]
 
 config/name="The War Beneath the Map"
-config/description="Hybrid WWII strategy and first-person survival. Mobile edition."
+config/description="Hybrid WWII strategy and first-person survival. PC edition."
 config/version="0.1.0"
 run/main_scene="res://scenes/boot.tscn"
-config/features=PackedStringArray("4.3", "Mobile")
+config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 boot_splash/show_image=false
 
 [autoload]
 
 ContentDB="*res://core/services/content_db.gd"
+InputService="*res://core/services/input_service.gd"
 Campaign="*res://core/services/campaign_service.gd"
 Transition="*res://core/services/transition_controller.gd"
 Saves="*res://core/services/save_service.gd"
@@ -28,16 +33,31 @@ AudioDirector="*res://core/services/audio_director.gd"
 
 [display]
 
-window/size/viewport_width=1280
-window/size/viewport_height=720
-window/handheld/orientation=1
+; A desktop game opens in a window the player can resize, and remembers what
+; they chose. Display mode, resolution and refresh behaviour are settings, not
+; constants, so none of them is forced here.
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/window_width_override=1600
+window/size/window_height_override=900
+window/size/mode=0
+window/size/resizable=true
+window/size/borderless=false
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/vsync/vsync_mode=1
+; Ultrawide and 4:3 both have to work, so the UI anchors rather than scaling to
+; a fixed aspect. There is no safe-area inset to honour on a desktop window and
+; no orientation to force; see docs/05-INPUT-AND-INTERFACE.md.
+window/stretch/scale_mode="fractional"
+mouse_cursor/custom_image=""
 
 [input_devices]
 
-pointing/emulate_touch_from_mouse=true
+; Raw motion gives 1:1 mouse aiming without OS acceleration or smoothing,
+; which is the single most important feel decision on PC.
+pointing/emulate_touch_from_mouse=false
+pointing/emulate_mouse_from_touch=true
 
 [internationalization]
 
@@ -48,19 +68,36 @@ rendering/text_driver="TextServerAdvanced"
 [physics]
 
 common/physics_ticks_per_second=60
+common/max_physics_steps_per_frame=8
 3d/default_gravity=16.5
 3d/physics_engine="GodotPhysics3D"
 
 [rendering]
 
-renderer/rendering_method="mobile"
-renderer/rendering_method.mobile="mobile"
-textures/vram_compression/import_etc2_astc=true
-anti_aliasing/quality/msaa_3d=1
-lights_and_shadows/directional_shadow/size=2048
-lights_and_shadows/directional_shadow/size.mobile=1024
-lights_and_shadows/positional_shadow/atlas_size=2048
-lights_and_shadows/positional_shadow/atlas_size.mobile=1024
+renderer/rendering_method="forward_plus"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/anisotropic_filtering_level=3
+textures/default_filters/texture_mipmap_bias=-0.25
+anti_aliasing/quality/msaa_3d=2
+anti_aliasing/quality/screen_space_aa=1
+anti_aliasing/quality/use_taa=false
+lights_and_shadows/directional_shadow/size=4096
+lights_and_shadows/directional_shadow/soft_shadow_filter_quality=3
+lights_and_shadows/positional_shadow/atlas_size=4096
+lights_and_shadows/positional_shadow/soft_shadow_filter_quality=3
+global_illumination/sdfgi/probe_ray_count=2
+global_illumination/sdfgi/frames_to_converge=3
+global_illumination/gi/use_half_resolution=false
+environment/ssao/quality=2
+environment/ssil/quality=2
+environment/screen_space_reflection/roughness_quality=1
+environment/volumetric_fog/volume_size=64
+environment/volumetric_fog/volume_depth=128
 environment/defaults/default_clear_color=Color(0.055, 0.063, 0.071, 1)
 occlusion_culling/use_occlusion_culling=true
-limits/opengl/max_lights_per_object=4
+limits/opengl/max_lights_per_object=8
+camera/depth_of_field/depth_of_field_bokeh_quality=2
+
+; [input] is deliberately absent. InputService owns the default binding table
+; and registers it into InputMap at startup, so "reset to defaults" has exactly
+; one source of truth and no keycode literal is written twice.

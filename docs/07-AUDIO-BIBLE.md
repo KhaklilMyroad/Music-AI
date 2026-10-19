@@ -32,8 +32,9 @@ interchangeable ambience track.
 
 ## Priority and the voice budget
 
-A hard voice budget per device tier (16 / 24 / 32). Over budget, a request only
-plays if it can displace a **strictly lower**-priority voice; the eviction is
+A hard voice budget per quality preset (32 / 48 / 64 / 96 — roughly triple the
+mobile budget, which is where some of the PC headroom went). Over budget, a
+request only plays if it can displace a **strictly lower**-priority voice; the eviction is
 recorded with what displaced what, so a QA log can show which cue lost.
 
 ```
@@ -87,17 +88,23 @@ unclaimed.
 
 ## Interruption and lifecycle
 
-A phone call stops every positional voice and resumes ambience and music only.
-Focus loss stops them and resumes positional audio. Neither leaves an orphan
-voice. An interrupted weapon action issues `mechanism_audio_stop`, so a
-cancelled reload cannot keep clicking.
+Losing window focus stops every positional voice and resumes positional audio
+on return; pausing stops them and resumes ambience and music only. Neither
+leaves an orphan voice. An interrupted weapon action issues
+`mechanism_audio_stop`, so a cancelled reload cannot keep clicking.
+
+The interruption *causes* changed with the platform — alt-tab and sleep instead
+of an incoming call — but the policy and its tests did not.
 
 ## Mix validation
 
-Required on phone speakers, ordinary wired headphones, Bluetooth output and
-mono. In mono, direction is gone, so an **essential** cue is converted into a
-directional caption rather than lost. Masking, repetition, clipping, delayed
-events, interruption and return from background all need checking.
+Required on desktop speakers, laptop speakers, wired headphones, a USB or
+Bluetooth headset, and mono. In mono, direction is gone, so an **essential** cue
+is converted into a directional caption rather than lost. A headphone mode is
+now a separate option, because a PC player on headphones is the common case and
+wants a different spatial treatment from someone on desk speakers. Masking,
+repetition, clipping, delayed events, interruption and return from focus loss
+all need checking.
 
 Waveform and level measurement support this work — the implementation exposes a
 measurable mix peak so a dense-mix fixture can fail a test before anyone

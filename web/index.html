@@ -2,10 +2,8 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0b0c">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>The War Beneath the Map</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +19,7 @@
   <section class="screen is-active" id="screen-boot">
     <div class="boot">
       <h1>The War Beneath the Map</h1>
-      <div class="sub">Hybrid strategy and first-person survival · mobile design prototype</div>
+      <div class="sub">Hybrid strategy and first-person survival · PC design prototype</div>
       <div class="boot-steps" id="boot-steps"></div>
       <div class="bar" id="boot-bar"><i></i></div>
     </div>
@@ -100,7 +98,27 @@
         <div class="hitmark" id="hitmark"><i></i><i></i></div>
       </div>
       <div class="prompt" id="hud-prompt"></div>
+      <div class="interact-prompt" id="hud-interact" hidden></div>
+      <div class="hud-state" id="hud-state"></div>
       <div class="hud-sub" id="hud-sub"></div>
+    </div>
+    <div class="capture-hint" id="capture-hint">
+      <div>
+        <div class="ch-title">Click to capture the mouse</div>
+        <div class="ch-keys">
+          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span>
+          <span><kbd>Mouse</kbd> look</span>
+          <span><kbd>Shift</kbd> run</span>
+          <span><kbd>Ctrl</kbd> crouch</span>
+          <span><kbd>Z</kbd> prone</span>
+          <span><kbd>Q</kbd><kbd>X</kbd> lean</span>
+          <span><kbd>E</kbd> interact</span>
+          <span><kbd>R</kbd> reload</span>
+          <span><kbd>RMB</kbd> aim</span>
+          <span><kbd>Alt</kbd> hold breath</span>
+          <span><kbd>Esc</kbd> pause</span>
+        </div>
+      </div>
     </div>
     <div class="touch" id="touch" hidden></div>
     <div class="prototype-mark">Blockout geometry and placeholder materials — not the commercial art bar</div>
@@ -130,9 +148,9 @@
 
   <div class="rotate-hint" id="rotate-hint">
     <div>
-      <div style="font-size:var(--fs-lg);margin-bottom:10px">Turn your phone sideways</div>
-      <div class="note" style="margin-bottom:18px">Ordinary gameplay is designed for landscape, as the brief specifies.</div>
-      <button class="btn btn-ghost" id="rotate-continue">Continue in portrait anyway</button>
+      <div style="font-size:var(--fs-lg);margin-bottom:10px">This is a PC game</div>
+      <div class="note" style="margin-bottom:18px">It wants a keyboard and mouse and a landscape window. A narrow window still works, but the controls assume a keyboard.</div>
+      <button class="btn btn-ghost" id="rotate-continue">Continue anyway</button>
     </div>
   </div>
 </div>
@@ -140,6 +158,11 @@
 <script type="module">
   document.getElementById('sheet-close').addEventListener('click', () => document.getElementById('sheet').classList.remove('is-open'));
   document.getElementById('modal-close').addEventListener('click', () => document.getElementById('modal').classList.remove('is-open'));
+  // Pointer lock is only granted inside a user gesture, so the overlay itself
+  // is the gesture. The app wires the actual capture once a mission is live.
+  document.getElementById('capture-hint').addEventListener('click', () => {
+    window.__wbtm?.input?.capture();
+  });
 </script>
 <script type="module" src="src/app.js"></script>
 </body>

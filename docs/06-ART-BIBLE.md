@@ -16,8 +16,10 @@ that place were built, and then lived in.
 
 Brief §12 requires judging the result through continuous native gameplay and
 fixed camera comparisons. These are the eight, to be captured in the same order
-every time, on the **lower** supported device, with the device, quality preset,
-resolution and build id recorded on every frame:
+every time, **twice**: once on the minimum GPU at `medium` and once on the
+recommended GPU at `high`, with the machine, GPU, driver, preset, resolution and
+build id recorded on every frame. Two passes, because the whole risk on PC is a
+scene authored on a good card that falls apart on the floor card:
 
 1. **Spawn view** — the first thing the player sees on entering the district.
 2. **Ordinary street or lane** — mid-distance, no favourable framing.
@@ -87,10 +89,16 @@ exterior exposure. Contact with the ground. Depth across near, middle and
 distant scenery. Weather affects surfaces, visibility and sound coherently.
 
 Expensive fog, reflections and particles may not hide weak geometry or
-destabilise ordinary play. The Mobile renderer does not provide SSIL, SDFGI,
-volumetric fog or FSR2 (brief T1), so the solution is built from what the
-backend supports: baked lighting where appropriate, restrained dynamic lights,
-reflection probes, authored ambient shading, coherent material response.
+destabilise ordinary play.
+
+The renderer is **Forward+**, which is the technical reason this bar is
+reachable: SDFGI for bounced interior light, SSIL for a barn lit by one lamp,
+SSAO for contact where geometry meets geometry, volumetric fog so a dawn lane
+reads as air, and screen-space reflections for wet cobble. Each is a setting,
+and the **minimum-specification tier has all of them off** — so the lighting
+has to read correctly from baked light, restrained dynamic lights, reflection
+probes and material response alone. A scene that only looks right with global
+illumination on is not finished.
 
 ## Animation
 

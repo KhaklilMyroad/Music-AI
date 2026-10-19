@@ -43,8 +43,15 @@ func build(district_data: Dictionary, quality: Dictionary) -> void:
 	_build_boundary()
 	streaming_cells = data["streaming_cells"]
 
-	var cols: int = int((data["grid"] as Dictionary)["cols"])
-	spawn = {"pos": Vector3(cell_m * 5.5, 0.0, float((data["grid"] as Dictionary)["rows"]) * cell_m - cell_m * 1.5), "yaw": PI}
+	# The spawn comes from the district data, where the authoring tool placed it
+	# on the lane and proved by flood fill that every objective is reachable
+	# from it. The fallback only exists for a district authored before that.
+	var sp = data.get("spawn", null)
+	if sp != null:
+		var p: Array = (sp as Dictionary)["p"]
+		spawn = {"pos": Vector3(float(p[0]), 0.0, float(p[1])), "yaw": deg_to_rad(float((sp as Dictionary).get("yaw_deg", 0)))}
+	else:
+		spawn = {"pos": Vector3(cell_m * 5.5, 0.0, float((data["grid"] as Dictionary)["rows"]) * cell_m - cell_m * 1.5), "yaw": PI}
 	ready_state_changed.emit(readiness())
 
 ## Readiness for Transition.mark_ready: the mission is not playable until each

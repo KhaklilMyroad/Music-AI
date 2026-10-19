@@ -166,6 +166,12 @@ Migrations are an explicit ordered list. A save from a schema with no path is
 | 2 → 3 | removes the illegal `strength` field from civilian groups; fills `needs` |
 | 3 → 4 | adds `supply_penalty` to tiles and `unlocked_equipment` |
 
-Desktop-to-mobile save compatibility is **not** a current requirement. If it
-becomes one, it needs its own migration entries and its own tests; it is not
-established by both sides emitting JSON.
+Cross-platform save compatibility is **not** a current requirement. If it
+becomes one — a PC save opened on a future mobile build, or the reverse — it
+needs its own migration entries and its own tests. It is not established by both
+sides emitting JSON.
+
+Nothing in these contracts is platform-specific, which is why the move from
+mobile to PC changed none of them and left all of their tests passing. The
+platform lives in the renderer, the input layer and the display settings; the
+campaign does not know what it is running on.

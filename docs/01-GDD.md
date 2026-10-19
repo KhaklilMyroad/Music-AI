@@ -1,9 +1,9 @@
-# 01 — Mobile game design document
+# 01 — Game design document (PC)
 
 ## The game in one paragraph
 
 An original, historically grounded World War II strategy and survival game for
-phones and tablets. You command formations or underground networks on a
+PC. You command formations or underground networks on a
 turn-based strategic map, enter the particular place where an operation happens,
 live through it in first person, and return to a world that changed because of
 what you did. The emotional centre is the distance between the scale of the war
@@ -37,12 +37,14 @@ same connected world.
 
 Strategic time freezes while a mission is active. An operation consumes campaign
 time only if its chapter says so. The war does not advance because the player
-took a phone call.
+alt-tabbed away.
 
 ## Modes
 
 **Campaign** follows authored chronology and consequence, 1939-09-01 to
-1945-05-08, one week per turn. **Sandbox** offers persistent exploration and
+1945-05-08, one week per turn. Sessions are as long as the player wants: the
+mobile pacing constraint of meaningful progress in five to fifteen minutes is
+gone, so missions can breathe. **Sandbox** offers persistent exploration and
 more freedom inside eligible historical settings, in its own save slot with its
 own campaign id, so it can never overwrite the chronological campaign. Returning
 to an earlier period is an explicit separate replay, not a rewind.
@@ -55,7 +57,9 @@ outcomes stay separate from the historical record the journal presents.
 Four theatres (Western Europe, Eastern Europe, North Africa, Home Front), 124
 tiles on a pointy-top hex grid, connected across theatres by three sea links
 with transit times and capacity. A readable theatre selector sits above a
-zoomable regional grid; both describe the same state.
+zoomable regional grid; both describe the same state. Tap became click, drag to
+pan became middle-mouse drag, and pinch became the wheel; the state underneath
+did not change.
 
 Military formations depend on routes, frontlines, control, supply and readiness.
 Underground movement depends on access, exposure, contacts and safe routes. The
@@ -69,10 +73,12 @@ A radio produces intelligence and raises exposure. That tension is the point.
 
 ## The first-person layer
 
-**Fundamentals:** move, look, aim, fire, reload, interact, crouch, run, and
-navigate the obstacles the level actually supports. Climbing and mantling appear
-only where geometry and animation support them, and the traversal button is
-hidden otherwise.
+**Fundamentals:** move, look, aim, fire, reload, interact, crouch, **go prone,
+lean around cover, hold your breath**, run, and navigate the obstacles the level
+actually supports. The last three are PC verbs: they need a free hand on a
+keyboard, and the touch build had nowhere to put them. Climbing and mantling
+appear only where geometry and animation support them, and the traversal prompt
+is hidden otherwise.
 
 **Weapons** are data-driven profiles with their own handling, reload rules and
 audio event list. Ammunition changes only at the declared insert point. Single
@@ -98,9 +104,11 @@ no lethal action at all, and the Warsaw courier chapter issues no firearm.
 
 ## Persistent exploration
 
-Authored districts stream in 32 m chunks. Continuity is preserved inside the
-playable area; the strategic map or a deliberate travel transition carries the
-player between distant places. Each district has a navigation structure,
+Authored districts stream in 32 m chunks. The shipped district is
+**256 × 224 m** — four times the area of the mobile one, which a 400 m draw
+distance and up to 40 active characters make readable. Continuity is preserved
+inside the playable area; the strategic map or a deliberate travel transition
+carries the player between distant places. Each district has a navigation structure,
 landmarks, useful interiors, a local mission network and ambient life
 appropriate to its date and restrictions. Every building in the shipped
 district has an interior, because a street of decorative doors that imply
@@ -123,12 +131,17 @@ what the network retains. A game may not offer to win it.
 
 ## Accessibility (defaults on)
 
-Scalable text (0.85–1.6×), adjustable HUD (0.8–1.5×), high contrast,
-colour-independent indicators (a word and a shape as well as a colour),
-subtitles with speaker identity, directional sound captions, motion reduction,
-camera-shake control, separate recoil presentation, five separate audio buses, a
-mono mode that converts essential directional cues into captions, left-handed
-layout, hold-or-toggle for aim and crouch, and ≥48 dp touch targets throughout.
+Scalable text (0.85–1.6×), interface scale (0.8–1.6×), adjustable HUD
+(0.8–1.5×), high contrast, colour-independent indicators (a word and a shape as
+well as a colour), subtitles with speaker identity, directional sound captions,
+motion reduction, a separate head-bob slider, camera-shake control, separate
+recoil presentation, five separate audio buses, a mono mode that converts
+essential directional cues into captions, **every action rebindable**, and
+hold-or-toggle for aim, crouch and prone.
+
+Rebinding is the accessibility feature the platform change added: a player who
+cannot reach `Ctrl` can put crouch anywhere, and the interaction prompt reads
+the live binding so it still names the right key.
 
 Reduced-intensity presentation preserves historical meaning. It never conceals
 or denies a documented event.
@@ -136,6 +149,6 @@ or denies a documented event.
 ## What is deliberately absent
 
 No multiplayer, no live-service economy, no advertising, no subscription, no
-in-app purchase, no telemetry requirement, no microphone, camera or contacts
-permission. The brief did not specify any of them, so none was assumed. The
-core campaign works offline once the required content is installed.
+in-app purchase, no telemetry requirement, no always-online check, no
+anti-cheat. The brief did not specify any of them, so none was assumed. The
+game works offline, permanently.

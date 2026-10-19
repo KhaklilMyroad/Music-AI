@@ -10,6 +10,7 @@ import { UNIT_CAPABILITIES } from './sim/contracts.js';
 import { i18n } from './ui/i18n.js';
 import { Settings, SCHEMA } from './ui/settings.js';
 import { TouchControls } from './ui/touch.js';
+import { DesktopInput, DEFAULT_BINDINGS } from './ui/desktop-input.js';
 import { MapView } from './strategic/map-view.js';
 import { MissionScene } from './fps/mission.js';
 
@@ -110,8 +111,10 @@ class App {
 
   bindChrome() {
     addEventListener('resize', () => { this.map?.resize(); this.mission?.resize(); });
-    // Mobile interruption: pause safely and checkpoint. Never rely on a final
-    // shutdown callback.
+    // Interruption: pause safely and checkpoint. On PC the causes are alt-tab,
+    // the pause key, sleep and a crash, and the durable-write order in docs/04
+    // is what makes any of them safe. A final shutdown callback is never
+    // relied on, because a crash does not send one.
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.onInterrupted('focus_lost');
     });
@@ -123,8 +126,10 @@ class App {
 
   onInterrupted(kind) {
     if (this.screen === 'mission' && this.mission && !this.mission.finished) {
+      if (this.mission.paused) return;
       this.mission.paused = true;
-      this.mission.audio.onInterruption(kind === 'focus_lost' ? 'focus_lost' : 'phone_call');
+      this.input?.release();
+      this.mission.audio.onInterruption(kind === 'focus_lost' ? 'focus_lost' : 'paused');
       try { this.svc.checkpointDistrict(this.mission.checkpoint()); } catch (e) { /* already resolved */ }
       this.openPause();
     } else if (this.svc) {
@@ -151,15 +156,14 @@ class App {
   onSetting(id, v) {
     if (id === 'language') { i18n.set(v); try { localStorage.setItem('wbtm.locale', v); } catch {} location.reload(); return; }
     this.settings.applyTheme();
-    if (['quality', 'render_scale'].includes(id) && this.mission) {
+    if (['preset', 'render_scale', 'draw_distance', 'anti_aliasing'].includes(id) && this.mission) {
       const o = this.settings.rendererOptions();
       this.mission.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, o.pixelRatioCap) * o.renderScale);
       this.mission.resize();
     }
-    if (id === 'mono' || id.startsWith('vol_') || id === 'sound_captions') {
+    if (id === 'output_mode' || id.startsWith('vol_') || id === 'sound_captions') {
       if (this.mission) Object.assign(this.mission.audio, this.settings.audioOptions());
     }
-    if (id === 'gyro' && this.touch) this.touch.enableGyro(v).then((ok) => { if (!ok) { this.settings.set('gyro', false); this.toast('Gyroscope permission denied'); } });
     if (this.map) this.map.draw();
   }
 
@@ -185,8 +189,8 @@ class App {
     add('menu.history', `${history.records.length} ${i18n.locale === 'he' ? 'רשומות' : 'records'}`, () => this.openHistory());
     add('menu.settings', null, () => this.openSettings());
     $('#menu-note').textContent = i18n.locale === 'he'
-      ? 'אב טיפוס עיצובי. הגאומטריה, הדמויות והצליל הם בלוקאאוט — לא הרף האמנותי המסחרי שבמסמך. הלולאה, החוזים והשמירות הם אמיתיים.'
-      : 'Design prototype. Geometry, characters and sound are blockout — not the commercial art bar in the brief. The loop, the data contracts and the saves are real.';
+      ? 'אב טיפוס עיצובי למשחק PC. מקלדת ועכבר. הגאומטריה, הדמויות והצליל הם בלוקאאוט — לא הרף האמנותי המסחרי. הלולאה, החוזים והשמירות הם אמיתיים.'
+      : 'PC design prototype. Keyboard and mouse. Geometry, characters and sound are blockout — not the commercial art bar. The loop, the data contracts and the saves are real.';
   }
 
   paintMenuArt() {
@@ -741,9 +745,21 @@ class App {
       });
       stage(0.65, i18n.locale === 'he' ? 'מציב סיורים ותושבים' : 'Placing patrols and residents');
       await frame();
-      if (!this.touch) {
+      if (!this.input) {
+        this.input = new DesktopInput(this.settings, i18n, { surface: $('#mission-canvas') });
+        this.input.onPointerLockChange = (locked) => {
+          $('#capture-hint').hidden = locked;
+          if (!locked && this.mission && !this.mission.finished && !this.mission.paused) {
+            // Losing the cursor is the PC equivalent of losing focus: pause and
+            // checkpoint rather than letting the player's hands leave the game.
+            this.onInterrupted('pointer_unlock');
+          }
+        };
+      }
+      // Touch still works through the same snapshot shape, for a touchscreen
+      // laptop or a Steam Deck, but nothing requires it.
+      if (!this.touch && matchMedia('(pointer: coarse)').matches) {
         this.touch = new TouchControls($('#touch'), this.settings, i18n);
-        if (this.settings.get('gyro')) this.touch.enableGyro(true);
       }
       this.mission.markUiReady();
       stage(0.9, i18n.locale === 'he' ? 'מאמת מוכנות' : 'Verifying readiness');
@@ -780,7 +796,17 @@ class App {
     if (kind === 'hit_marker') { const m = $('#hitmark'); m.classList.remove('show'); void m.offsetWidth; m.classList.add('show'); }
     if (kind === 'player_hit') {
       const v = $('#vignette'); v.classList.add('hit'); setTimeout(() => v.classList.remove('hit'), 260);
-      if (this.settings.get('haptics') && navigator.vibrate) { try { navigator.vibrate(24); } catch {} }
+      // Gamepad rumble, not phone vibration. `vibrationActuator` is not
+      // universally supported, so a missing one is simply no rumble.
+      const strength = this.settings.get('rumble');
+      const pad = this.input?.pad?.();
+      if (strength > 0 && pad?.vibrationActuator) {
+        try {
+          pad.vibrationActuator.playEffect('dual-rumble', {
+            duration: 180, weakMagnitude: 0.35 * strength, strongMagnitude: 0.7 * strength,
+          });
+        } catch { /* unsupported actuator type */ }
+      }
     }
     if (kind === 'resolved') this.finishMission(data);
   }
@@ -799,10 +825,19 @@ class App {
       acc += dt;
       if (target === 30 && acc < minDt) return;
       const step = acc; acc = 0;
-      const input = this.touch.sample();
-      this.mission.update(step, input);
+      const input = this.input.sample(step);
+      // A mission only advances while the mouse is captured. Otherwise the
+      // player is looking at the pause screen or has alt-tabbed away.
+      if (input.locked || this.mission.paused) {
+        this.mission.update(step, input);
+      }
       this.mission.render();
       this.renderHud(input);
+      if (input.pressed.has('pause')) this.onInterrupted('pause');
+      if (input.pressed.has('quick_save') && this.mission && !this.mission.finished) {
+        try { this.svc.checkpointDistrict(this.mission.checkpoint()); this.toast(i18n.t('input.quick_save')); }
+        catch (e) { this.onSaveError(e); }
+      }
     };
     this.raf = requestAnimationFrame(tick);
   }
@@ -847,9 +882,38 @@ class App {
     $('#hud-cond-bar').parentElement.className = `meter${h.health < 35 ? ' bad' : h.health > 70 ? ' good' : ''}`;
     $('#hud-stam-bar').style.width = `${h.stamina * 100}%`;
 
-    this.touch.setReloadProgress(h.weapon?.reloading ? h.weapon.reloadProgress : 0);
-    this.touch.setContext(h.interact?.label_key ?? null, h.interact?.progress ?? 0);
-    this.touch.setAvailable({ fire: !!h.weapon && !h.weapon.isTool, aim: !!h.weapon && !h.weapon.isTool, reload: !!h.weapon && !h.weapon.isTool, interact: !!h.interact, traverse: false });
+    // The touch layer is optional on PC, so every call into it is guarded.
+    if (this.touch) {
+      this.touch.setReloadProgress(h.weapon?.reloading ? h.weapon.reloadProgress : 0);
+      this.touch.setContext(h.interact?.label_key ?? null, h.interact?.progress ?? 0);
+      this.touch.setAvailable({ fire: !!h.weapon && !h.weapon.isTool, aim: !!h.weapon && !h.weapon.isTool, reload: !!h.weapon && !h.weapon.isTool, interact: !!h.interact, traverse: false });
+    }
+
+    // Posture, lean and breath: PC verbs the touch build had no room for.
+    const stateRow = $('#hud-state');
+    stateRow.innerHTML = '';
+    if (h.posture !== 'stand') stateRow.append(el('span', 'tag', t(h.posture === 'prone' ? 'hud.prone' : 'hud.crouch')));
+    if (Math.abs(h.lean ?? 0) > 0.1) stateRow.append(el('span', 'tag', `${t('hud.lean')} ${h.lean < 0 ? '◀' : '▶'}`));
+    if ((h.breath ?? 1) < 0.999) {
+      const b = el('span', `tag${h.holdingBreath ? ' on' : ''}`);
+      b.append(document.createTextNode(`${t('hud.breath')} `));
+      const bar = el('span', 'tagbar');
+      const i = el('i'); i.style.width = `${(h.breath ?? 1) * 100}%`; bar.append(i);
+      b.append(bar);
+      stateRow.append(b);
+    }
+
+    // The interaction prompt names the actual key, read from the live bindings,
+    // so it stays correct after the player rebinds.
+    const ip = $('#hud-interact');
+    if (h.interact) {
+      ip.hidden = false;
+      ip.innerHTML = '';
+      ip.append(el('kbd', null, this.input.bindingText('interact')), el('span', null, t(h.interact.label_key)));
+      const prog = el('i', 'ip-prog');
+      prog.style.width = `${(h.interact.progress ?? 0) * 100}%`;
+      ip.append(prog);
+    } else ip.hidden = true;
 
     const sub = $('#hud-sub');
     sub.innerHTML = '';
@@ -875,7 +939,14 @@ class App {
       body.append(el('div', 'note', i18n.locale === 'he' ? 'המבצע מושהה. ההתקדמות נשמרה בגבול פעולה בטוח.' : 'The operation is paused. Progress was saved at a safe action boundary.'));
       const list = el('div', 'list');
       const resume = el('button', 'row'); resume.append(el('span', 't', i18n.t('menu.continue')));
-      resume.addEventListener('click', () => { this.closeModal(); if (this.mission) this.mission.paused = false; });
+      resume.addEventListener('click', async () => {
+        this.closeModal();
+        // Pointer lock needs a user gesture, so it is requested from the click
+        // that resumes rather than silently on a timer.
+        const ok = await this.input?.capture();
+        if (!ok) this.toast(i18n.t('error.pointer_lock'), true);
+        if (this.mission) this.mission.paused = false;
+      });
       const settings = el('button', 'row'); settings.append(el('span', 't', i18n.t('menu.settings')));
       settings.addEventListener('click', () => this.openSettings());
       const withdraw = el('button', 'row'); withdraw.append(el('span', 't', i18n.t('mission.withdraw')));
@@ -991,15 +1062,86 @@ class App {
           ? 'כל פס קול משפיע רק על עצמו. במצב מונו, רמזים חיוניים מוצגים ככתובית כיוון.'
           : 'Each bus affects only its own output. In mono, essential directional cues appear as a caption instead.'));
       };
-      for (const g of groups) {
-        const b = el('button', null, g);
-        b.setAttribute('aria-selected', String(g === groups[0]));
-        b.addEventListener('click', () => { for (const x of $$('button', tabs)) x.setAttribute('aria-selected', 'false'); b.setAttribute('aria-selected', 'true'); paint(g); });
+      // A synthetic tab: rebinding is not a list of settings, it is a list of
+      // actions, so it renders itself rather than going through the schema.
+      const allTabs = [...groups, 'controls'];
+      for (const g of allTabs) {
+        const b = el('button', null, g === 'controls' ? i18n.t('settings.rebind') : g);
+        b.setAttribute('aria-selected', String(g === allTabs[0]));
+        b.addEventListener('click', () => {
+          for (const x of $$('button', tabs)) x.setAttribute('aria-selected', 'false');
+          b.setAttribute('aria-selected', 'true');
+          if (g === 'controls') this.paintBindings(pane); else paint(g);
+        });
         tabs.append(b);
       }
       body.append(tabs, pane);
-      paint(groups[0]);
+      paint(allTabs[0]);
     });
+  }
+
+  /** The rebinding screen. Grouped by context, with conflicts surfaced. */
+  paintBindings(pane) {
+    pane.innerHTML = '';
+    if (!this.input) {
+      pane.append(el('div', 'note', i18n.locale === 'he'
+        ? 'המקשים נטענים כשמתחיל מבצע.'
+        : 'Controls load when an operation starts.'));
+      return;
+    }
+    const byContext = {};
+    for (const [action, b] of Object.entries(this.input.bindings)) {
+      (byContext[b.context] ??= []).push(action);
+    }
+    for (const [context, actions] of Object.entries(byContext)) {
+      pane.append(el('div', 'note', context));
+      for (const action of actions) {
+        const row = el('div', 'bind-row');
+        row.append(el('span', 'name', i18n.t(this.input.bindings[action].label)));
+        const key = el('button', 'key', this.input.bindingText(action));
+        let pending = null;
+        key.addEventListener('click', () => {
+          key.classList.add('is-listening');
+          key.textContent = i18n.t('settings.press_a_key');
+          const onKey = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            cleanup();
+            // A clash is shown, not silently resolved. Pressing the same key
+            // again confirms taking it from the other action.
+            const out = this.input.rebind(action, e.code, { allowConflict: pending === e.code });
+            if (!out.ok && out.reason === 'conflict') {
+              pending = e.code;
+              key.classList.add('is-conflict');
+              key.textContent = i18n.t('settings.binding_conflict', {
+                other: i18n.t(this.input.bindings[out.conflicts[0]].label),
+              });
+              return;
+            }
+            pending = null;
+            this.paintBindings(pane);
+          };
+          const cleanup = () => {
+            key.classList.remove('is-listening');
+            removeEventListener('keydown', onKey, true);
+          };
+          addEventListener('keydown', onKey, true);
+        });
+        row.append(key);
+        const reset = el('button', 'reset', '↺');
+        reset.title = i18n.t('settings.reset_bindings');
+        reset.addEventListener('click', () => {
+          this.input.bindings[action] = structuredClone(DEFAULT_BINDINGS[action]);
+          this.input.saveOverrides();
+          this.paintBindings(pane);
+        });
+        row.append(reset);
+        pane.append(row);
+      }
+    }
+    const resetAll = el('button', 'btn btn-ghost', i18n.t('settings.reset_bindings'));
+    resetAll.addEventListener('click', () => { this.input.resetBindings(); this.paintBindings(pane); });
+    pane.append(resetAll);
   }
 
   openHistory() {

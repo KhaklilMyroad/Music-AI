@@ -7,6 +7,15 @@
 
 export const ACTIONS = ['fire', 'aim', 'reload', 'interact', 'crouch', 'sprint', 'traverse', 'journal', 'pause'];
 
+// Touch is the optional input path on PC: a touchscreen laptop, or a handheld.
+// The PC settings menu deliberately does not carry stick size, stick mode or a
+// left-handed layout, because adding a touch-layout group to a keyboard-and-
+// mouse game's options is clutter for a path almost nobody will use. These are
+// the defaults that layout used to read from settings. If a handheld-focused
+// build is ever a target (see the Steam Deck row in docs/10), they become
+// settings again.
+const TOUCH_LAYOUT = { leftHanded: false, stickSize: 1.0, stickMode: 'floating' };
+
 export class TouchControls {
   constructor(root, settings, i18n) {
     this.root = root;
@@ -23,7 +32,7 @@ export class TouchControls {
     this.build();
     this.bind();
     this.applyLayout();
-    settings.subscribe((id) => { if (['left_handed', 'stick_size', 'stick_mode', 'hud_scale'].includes(id)) this.applyLayout(); });
+    settings.subscribe((id) => { if (id === 'hud_scale') this.applyLayout(); });
   }
 
   build() {
@@ -53,17 +62,24 @@ export class TouchControls {
   }
 
   applyLayout() {
-    const lh = this.s.get('left_handed');
-    this.root.setAttribute('data-hand', lh ? 'left' : 'right');
-    this.root.style.setProperty('--stick-scale', this.s.get('stick_size'));
-    this.root.setAttribute('data-stick', this.s.get('stick_mode'));
+    this.root.setAttribute('data-hand', TOUCH_LAYOUT.leftHanded ? 'left' : 'right');
+    this.root.style.setProperty('--stick-scale', TOUCH_LAYOUT.stickSize);
+    this.root.setAttribute('data-stick', TOUCH_LAYOUT.stickMode);
   }
 
-  haptic(ms = 8) { if (this.s.get('haptics') && navigator.vibrate) { try { navigator.vibrate(ms); } catch {} } }
+  // Touch is the optional path on PC (a touchscreen laptop, a handheld). It
+  // honours the same `rumble` strength as a gamepad rather than a setting of
+  // its own, so there is one control for "give me physical feedback".
+  haptic(ms = 8) {
+    const strength = this.s.get('rumble');
+    if (strength > 0 && navigator.vibrate) {
+      try { navigator.vibrate(Math.round(ms * strength)); } catch { /* unsupported */ }
+    }
+  }
 
   bind() {
     const stickZone = () => {
-      const lh = this.s.get('left_handed');
+      const lh = TOUCH_LAYOUT.leftHanded;
       const r = this.root.getBoundingClientRect();
       return lh ? { x0: r.width * 0.55, x1: r.width } : { x0: 0, x1: r.width * 0.45 };
     };
@@ -74,7 +90,7 @@ export class TouchControls {
       const inStick = e.clientX >= z.x0 && e.clientX <= z.x1;
       if (inStick && !this.move.active) {
         this.move.active = true; this.move.id = e.pointerId;
-        const fixed = this.s.get('stick_mode') === 'fixed';
+        const fixed = TOUCH_LAYOUT.stickMode === 'fixed';
         const base = fixed ? this.fixedStickCentre() : [e.clientX, e.clientY];
         this.move.origin = base; this.move.cur = [e.clientX, e.clientY];
         this.el.stick.style.setProperty('--sx', `${base[0]}px`);
@@ -141,13 +157,13 @@ export class TouchControls {
 
   fixedStickCentre() {
     const r = this.root.getBoundingClientRect();
-    const lh = this.s.get('left_handed');
-    const pad = 110 * this.s.get('stick_size');
+    const lh = TOUCH_LAYOUT.leftHanded;
+    const pad = 110 * TOUCH_LAYOUT.stickSize;
     return [lh ? r.width - pad : pad, r.height - pad * 0.85];
   }
 
   updateStick() {
-    const radius = 62 * this.s.get('stick_size');
+    const radius = 62 * TOUCH_LAYOUT.stickSize;
     let dx = this.move.cur[0] - this.move.origin[0];
     let dy = this.move.cur[1] - this.move.origin[1];
     const len = Math.hypot(dx, dy);

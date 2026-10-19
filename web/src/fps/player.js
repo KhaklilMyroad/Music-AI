@@ -19,6 +19,11 @@ const SPEED = { stand: 3.1, crouch: 1.55, prone: 0.62 };
 const RADIUS = 0.32;
 const GRAVITY = -16.5;
 const STEP_UP = 0.42;
+// Leaning is a PC-native verb: it needs a free hand on the keyboard, so it was
+// absent from the touch build and is present here.
+const LEAN_ANGLE = 0.26;
+const LEAN_OFFSET = 0.32;
+const LEAN_SPEED = 7.0;
 
 export class Player {
   constructor(district, settings, opts = {}) {
@@ -36,11 +41,16 @@ export class Player {
     this.condition = { fatigue: 0, warmth: 1, hunger: 0, thirst: 0 };
     this.sprinting = false;
     this.stamina = 1;
+    this.lean = 0;              // -1 left .. +1 right, blended
+    this.holdingBreath = false;
+    this.breath = 1;            // 0..1; holding steadies the aim and drains it
     this.stepAccum = 0;
     this.lastPos = this.pos.clone();
     this.noiseEvents = [];
     this.shotEvents = [];
-    this.camera = new THREE.PerspectiveCamera(72, 1, 0.06, 600);
+    // Field of view and far plane are both settings on PC; the mission scene
+    // applies the player's choices once the district is known.
+    this.camera = new THREE.PerspectiveCamera(settings.get('fov'), 1, 0.06, 600);
     this.recoilOffset = { pitch: 0, yaw: 0 };
     this.shakeTime = 0;
     this.viewRoot = new THREE.Group();
@@ -277,20 +287,42 @@ export class Player {
   }
 
   update(dt, input, world) {
-    const sens = (input.aim ? this.s.get('aim_sensitivity') : this.s.get('sensitivity')) * 0.0028;
-    this.yaw -= input.look[0] * sens;
-    this.pitch = Math.max(-1.42, Math.min(1.42, this.pitch - input.look[1] * sens));
+    // Mouse motion is a delta and controller motion is a rate: they are applied
+    // differently so touching both in one frame cannot double the sensitivity.
+    // The mouse delta arrives already scaled by mouse_sensitivity.
+    const mult = input.aim ? this.s.get('aim_sensitivity_mult') : 1;
+    const inv = this.s.get('invert_y') ? -1 : 1;
+    // Zoom-independent aiming: a narrower field of view must not change how far
+    // the crosshair travels per centimetre of mouse movement.
+    const baseFov = this.s.get('fov');
+    const zoomComp = input.aim ? Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(baseFov * Math.PI / 360) : 1;
+    const lookRate = input.lookRate ?? [0, 0];
+    const dx = input.look[0] * mult * zoomComp + lookRate[0] * mult;
+    const dy = input.look[1] * mult * zoomComp + lookRate[1] * mult;
+    this.yaw -= dx * 0.0022;
+    this.pitch = Math.max(-1.42, Math.min(1.42, this.pitch - dy * 0.0022 * inv));
 
-    // posture
-    const wantCrouch = input.crouch;
-    const target = wantCrouch ? 'crouch' : 'stand';
-    if (this.posture !== target) this.posture = target;
+    // Three postures on PC. Standing is refused where there is no headroom.
+    if (input.prone) this.posture = 'prone';
+    else if (input.crouch) this.posture = 'crouch';
+    else this.posture = this.canStand() ? 'stand' : 'crouch';
     this.postureBlend += (EYE[this.posture] - this.postureBlend) * Math.min(1, dt * 11);
+
+    // Leaning shifts the camera laterally, and the shift is collision tested:
+    // a player may not lean their head through a wall to see behind it.
+    let leanTarget = Math.max(-1, Math.min(1, input.lean ?? 0));
+    if (leanTarget !== 0 && !this.leanClear(leanTarget)) leanTarget = 0;
+    this.lean += Math.sign(leanTarget - this.lean) * Math.min(Math.abs(leanTarget - this.lean), dt * LEAN_SPEED);
+
+    // Holding the breath steadies the aim and drains a reserve that only
+    // recovers while not held. It is a trade, not a free upgrade.
+    this.holdingBreath = !!input.holdBreath && input.aim && this.breath > 0.02;
+    this.breath = Math.max(0, Math.min(1, this.breath + (this.holdingBreath ? -dt * 0.33 : dt * 0.22)));
 
     // speed
     this.sprinting = (input.sprint || input.sprintFromStick) && this.posture === 'stand' && !input.aim && this.stamina > 0.05;
     const base = SPEED[this.posture] * (input.aim ? 0.55 : 1);
-    const speed = base * (this.sprinting ? 1.78 : 1);
+    const speed = base * (this.sprinting ? 1.78 : 1) * (1 - 0.45 * Math.abs(this.lean));
     this.stamina = Math.max(0, Math.min(1, this.stamina + (this.sprinting ? -dt * 0.22 : dt * 0.14)));
 
     const fwd = new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
@@ -332,16 +364,26 @@ export class Player {
     // camera
     const shake = this.s.get('camera_shake');
     this.shakeTime = Math.max(0, this.shakeTime - dt * 2.4);
-    const bobAmp = this.s.get('motion_reduction') ? 0 : (this.sprinting ? 0.022 : 0.012) * Math.min(1, horizSpeed / 2.4);
+    // Head bob is its own 0..1 slider on PC, where it is a common comfort
+    // complaint; reduced motion still forces it to zero.
+    const bobScale = this.s.get('motion_reduction') ? 0 : this.s.get('head_bob');
+    const bobAmp = (this.sprinting ? 0.022 : 0.012) * Math.min(1, horizSpeed / 2.4) * bobScale;
     const bob = Math.sin(world.elapsed * (this.sprinting ? 13 : 8.5)) * bobAmp;
-    this.camera.position.set(this.pos.x, this.pos.y + this.postureBlend + bob, this.pos.z);
+    const leanShift = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw)).multiplyScalar(this.lean * LEAN_OFFSET);
+    this.camera.position.set(this.pos.x + leanShift.x, this.pos.y + this.postureBlend + bob, this.pos.z + leanShift.z);
     const rec = this.equipped?.runtime.recoil ?? { pitch: 0, yaw: 0 };
     const recScale = this.s.get('recoil_presentation') * 0.0075;
     const sh = this.shakeTime * shake * 0.01;
+    const ads = this.equipped?.runtime.ads ?? 0;
+    // Aiming down the sights narrows the field of view; look() compensates so
+    // sensitivity does not change with zoom.
+    const wantFov = baseFov * (1 - 0.28 * ads);
+    if (Math.abs(this.camera.fov - wantFov) > 0.01) { this.camera.fov = wantFov; this.camera.updateProjectionMatrix(); }
+    const idleSway = Math.sin(world.elapsed * 1.3) * 0.0016 * (this.holdingBreath ? 0.25 : 1);
     this.camera.rotation.set(
-      this.pitch - rec.pitch * recScale + (Math.random() - 0.5) * sh,
+      this.pitch - rec.pitch * recScale + (Math.random() - 0.5) * sh + idleSway,
       this.yaw - rec.yaw * recScale + (Math.random() - 0.5) * sh,
-      0, 'YXZ',
+      -this.lean * LEAN_ANGLE, 'YXZ',
     );
 
     // view model sway / bob / ADS
@@ -392,6 +434,19 @@ export class Player {
     }
 
     return { blocked: solved.blocked, moved, speed: horizSpeed };
+  }
+
+  /** Is there headroom to stand up? Prevents standing inside a crawlspace. */
+  canStand() {
+    if (this.posture === 'stand') return true;
+    return !this.d.segmentBlocked(this.pos.x, this.pos.y + 0.3, this.pos.z, this.pos.x, this.pos.y + 1.85, this.pos.z, false);
+  }
+
+  /** Is the lean offset clear of geometry? */
+  leanClear(dir) {
+    const side = new THREE.Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw)).multiplyScalar(Math.sign(dir) * (LEAN_OFFSET + 0.25));
+    const y = this.pos.y + this.postureBlend;
+    return !this.d.segmentBlocked(this.pos.x, y, this.pos.z, this.pos.x + side.x, y, this.pos.z + side.z, false);
   }
 
   carriedKg() {

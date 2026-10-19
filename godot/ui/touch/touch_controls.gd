@@ -15,6 +15,15 @@ signal action_pressed(action: String)
 signal action_released(action: String)
 
 const ACTIONS := ["fire", "aim", "reload", "interact", "crouch", "sprint", "traverse", "journal", "pause"]
+
+## Touch is the optional input path on PC: a touchscreen laptop, or a handheld.
+## The PC settings menu deliberately does not carry stick size, stick mode or a
+## left-handed layout, because a touch-layout group in a keyboard-and-mouse
+## game's options is clutter for a path almost nobody will use. These are the
+## defaults that layout used to read from settings. If a handheld-focused build
+## is ever a target (see the Steam Deck row in docs/10), they become settings
+## again.
+const LAYOUT := {"left_handed": false, "stick_size": 1.0, "stick_mode": "floating"}
 const STICK_RADIUS := 62.0
 const MIN_TOUCH := 48.0      # Android accessibility guidance, brief T4
 
@@ -38,12 +47,9 @@ var _buttons: Dictionary = {}
 
 func _ready() -> void:
 	set_process_unhandled_input(true)
-	_gyro_enabled = bool(Settings.get_value("gyro"))
 	Settings.changed.connect(func(id, _v):
-		if id in ["left_handed", "stick_size", "stick_mode", "hud_scale"]:
-			apply_layout()
-		if id == "gyro":
-			_gyro_enabled = bool(Settings.get_value("gyro")))
+		if id == "hud_scale":
+			apply_layout())
 	_collect_buttons(self)
 	apply_layout()
 
@@ -84,13 +90,17 @@ func _on_button_up(action: String, _btn: BaseButton) -> void:
 		held.erase(action)
 	action_released.emit(action)
 
+## Touch is the optional path on PC (a touchscreen laptop, a handheld). It
+## honours the same `rumble` strength as a gamepad rather than a setting of its
+## own, so there is one control for "give me physical feedback".
 func _haptic(ms: int) -> void:
-	if bool(Settings.get_value("haptics")):
-		Input.vibrate_handheld(ms)
+	var strength: float = float(Settings.get_value("rumble"))
+	if strength > 0.0:
+		Input.vibrate_handheld(int(float(ms) * strength))
 
 func apply_layout() -> void:
-	var left_handed := bool(Settings.get_value("left_handed"))
-	var scale_f := float(Settings.get_value("stick_size"))
+	var left_handed: bool = LAYOUT["left_handed"]
+	var scale_f: float = LAYOUT["stick_size"]
 	if _stick:
 		_stick.scale = Vector2(scale_f, scale_f)
 	# The whole control layer mirrors for a left-handed player, including the
@@ -120,7 +130,7 @@ func _apply_safe_area() -> void:
 
 func _stick_zone_contains(pos: Vector2) -> bool:
 	var w := size.x
-	var left_handed := bool(Settings.get_value("left_handed"))
+	var left_handed: bool = LAYOUT["left_handed"]
 	return pos.x >= w * 0.55 if left_handed else pos.x <= w * 0.45
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -129,7 +139,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if e.pressed:
 			if _move_index < 0 and _stick_zone_contains(e.position):
 				_move_index = e.index
-				var fixed := str(Settings.get_value("stick_mode")) == "fixed"
+				var fixed: bool = str(LAYOUT["stick_mode"]) == "fixed"
 				_move_origin = _fixed_stick_centre() if fixed else e.position
 				if _stick:
 					_stick.position = _move_origin - _stick.size * 0.5
@@ -157,12 +167,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_look_last = e.position
 
 func _fixed_stick_centre() -> Vector2:
-	var pad := 110.0 * float(Settings.get_value("stick_size"))
-	var left_handed := bool(Settings.get_value("left_handed"))
+	var pad: float = 110.0 * float(LAYOUT["stick_size"])
+	var left_handed: bool = LAYOUT["left_handed"]
 	return Vector2(size.x - pad if left_handed else pad, size.y - pad * 0.85)
 
 func _update_stick(pos: Vector2) -> void:
-	var radius := STICK_RADIUS * float(Settings.get_value("stick_size"))
+	var radius: float = STICK_RADIUS * float(LAYOUT["stick_size"])
 	var d := pos - _move_origin
 	if d.length() > radius:
 		d = d.normalized() * radius

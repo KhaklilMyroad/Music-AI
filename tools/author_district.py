@@ -109,79 +109,116 @@ DISTRICTS = {
     "ambience_default": "amb_bocage_day",
     "weather_profiles": ["clear_morning", "overcast", "light_rain", "night_clear"],
     "default_weather": "clear_morning",
-    # 16 x 14 cells of 8 m = 128 x 112 m
+    # 32 x 28 cells of 8 m = 256 x 224 m. Four times the area of the earlier
+    # mobile-scale district: a PC draw distance of 400 m and 28-40 active
+    # characters make a district this size readable, where a phone did not.
+    # Composed as a bocage grid of twelve hedgerow-bounded fields with punched
+    # gates, a north-south farm track and an east-west cobbled road meeting at
+    # a crossroad. tools/author_district.py asserts every row is the declared
+    # width and that every point of interest is reachable on foot from spawn.
     "layout": [
-        "HHHHHHHHHHHHHHHH",
-        "H..o o..H,,,,..H",
-        "H.oFo...H,SS,..H",
-        "H..o,,,,,,,,,..H",
-        "HHHH,HHHHH,HHH.H",
-        "H...,...j.,....H",
-        "H.BB,....,..oo.H",
-        "H.BB,RRRRc RR,.H",
-        "H...,....,...,.H",
-        "HHH.,HHH.,HHH,.H",
-        "H..x,..C.,....#H",
-        "H...,...., ...##H"[:16],
-        "H,,,,,,,,,,,,,,H",
-        "HHHHHHHHHHHHHHHH",
+        "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
+        "H.......H...,...H.......H......H",
+        "H.FF.SS.H...,...H.......H......H",
+        "H.FF.SS.H...,...H.......H......H",
+        "H.FF.o..H...,...H.......H......H",
+        "H.o.o.o.H...,...H.......H......H",
+        "HHHH,HHHHHHH,HHHHHHH,HHHHHHH,HHH",
+        "H.......H...,...H.......H......H",
+        "H.BBB.o.H...,.j.H.......H......H",
+        "H.BBB.SSH...,...H.......H.CC...H",
+        "H.BBB.SS,...,...,.......,.CC...H",
+        "H..o.o..H...,...H.......H.CC...H",
+        "H.......H...,...H.......H.CC...H",
+        "HHHH,HHHHHHH,HHHHHHH,HHHHHHH,HHH",
+        "H.......H...,...H.......H......H",
+        "H.......H...,...H.......H......H",
+        "HRRRRRRRRRRRcRRRRRRRRRRRRRRRRRRH",
+        "H.......H...,...H.......H......H",
+        "H.......H...,...H.GGG...H......H",
+        "H.......H...,...H.GGG...H......H",
+        "HHHH,HHHHHHH,HHHHHGGGHHHHHHH,HHH",
+        "H.......H...,...H.......H......H",
+        "H.......H...,...H....o..H.o....H",
+        "H.......,...,...,...o.o.,o.o...H",
+        "H.......H...,...H.......H....##H",
+        "H.x.....H...,...H.......H....##H",
+        "H.......H...,...H.......H....##H",
+        "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH",
     ],
     "pois": [
         {"id": "poi_field_telephone_junction", "label_key": "poi.field_telephone_junction", "glyph": "j",
          "kind": "interactable", "interaction": "wire_cut", "stages": 3, "stage_seconds": 1.4, "tool": "tool_wire_cutters",
          "noise_radius_m": 6.0, "persists": True, "objective": "obj_cut_field_line"},
         {"id": "poi_gun_position", "label_key": "poi.gun_position", "glyph": "#",
-         "kind": "observation_target", "interaction": "observe", "required_seconds": 3.0, "required_distance_m": 45.0,
+         "kind": "observation_target", "interaction": "observe", "required_seconds": 3.0, "required_distance_m": 120.0,
          "requires_line_of_sight": True, "persists": True, "objective": "obj_mark_battery"},
         {"id": "poi_safe_barn", "label_key": "poi.safe_barn", "glyph": "B",
-         "kind": "zone", "interaction": "reach", "radius_m": 6.0, "persists": True, "objective": "obj_reach_barn",
+         "kind": "zone", "interaction": "reach", "radius_m": 7.0, "persists": True, "objective": "obj_reach_barn",
          "is_extraction": True},
         {"id": "poi_arms_cache", "label_key": "poi.arms_cache", "glyph": "x",
          "kind": "container", "interaction": "open", "contents": [{"item": "amm_9x19", "count": 64}, {"item": "tool_medical_kit", "count": 1}],
          "hidden_until_intel": 1, "persists": True, "objective": "obj_recover_cache"},
         {"id": "poi_crossroad", "label_key": "poi.crossroad", "glyph": "c",
-         "kind": "zone", "interaction": "hold", "radius_m": 10.0, "persists": False, "objective": "obj_hold_crossroad"},
+         "kind": "zone", "interaction": "hold", "radius_m": 12.0, "persists": False, "objective": "obj_hold_crossroad"},
         {"id": "poi_chapel", "label_key": "poi.chapel", "glyph": "C",
          "kind": "landmark", "interaction": "enter", "persists": True, "objective": None},
     ],
-    "glyph_buildings": {"F": "farmhouse", "B": "barn", "S": "shed", "C": "chapel"},
+    "glyph_buildings": {"F": "farmhouse", "B": "barn", "G": "barn", "S": "shed", "C": "chapel"},
     "patrols": [
         {"id": "pat_road_pair", "faction": "axis_army", "count": 2, "weapon": "wpn_bolt_rifle_de", "alertness": 0.35,
-         "route": [[5, 7], [9, 7], [9, 10], [5, 10]], "pause_s": [4.0, 9.0], "gait": "walk",
-         "states": {"patrol": {}, "investigate": {"sprint_to_last_known": True, "search_seconds": 22.0, "search_radius_m": 14.0},
+         "route": [[2, 16], [12, 16], [22, 16], [29, 16], [22, 16], [12, 16]], "pause_s": [4.0, 9.0], "gait": "walk",
+         "states": {"patrol": {}, "investigate": {"sprint_to_last_known": True, "search_seconds": 22.0, "search_radius_m": 18.0},
                     "combat": {"use_cover": True, "reposition_s": [3.5, 7.0], "suppress": True},
                     "lost_contact": {"hold_seconds": 18.0, "then": "sweep"}, "recover": {"return_to_route": True, "decay_seconds": 45.0}}},
-        {"id": "pat_battery_static", "faction": "axis_army", "count": 2, "weapon": "wpn_bolt_rifle_de", "alertness": 0.5,
-         "route": [[14, 10], [14, 11]], "pause_s": [10.0, 20.0], "gait": "walk",
-         "states": {"patrol": {}, "investigate": {"sprint_to_last_known": False, "search_seconds": 15.0, "search_radius_m": 9.0},
+        {"id": "pat_track_pair", "faction": "axis_army", "count": 2, "weapon": "wpn_bolt_rifle_de", "alertness": 0.3,
+         "route": [[12, 3], [12, 10], [12, 16], [12, 23], [12, 16], [12, 10]], "pause_s": [5.0, 11.0], "gait": "walk",
+         "states": {"patrol": {}, "investigate": {"sprint_to_last_known": True, "search_seconds": 20.0, "search_radius_m": 15.0},
+                    "combat": {"use_cover": True, "reposition_s": [3.5, 7.0], "suppress": True},
+                    "lost_contact": {"hold_seconds": 16.0, "then": "sweep"}, "recover": {"return_to_route": True, "decay_seconds": 45.0}}},
+        {"id": "pat_battery_static", "faction": "axis_army", "count": 3, "weapon": "wpn_bolt_rifle_de", "alertness": 0.5,
+         "route": [[28, 24], [28, 26], [26, 25]], "pause_s": [10.0, 20.0], "gait": "walk",
+         "states": {"patrol": {}, "investigate": {"sprint_to_last_known": False, "search_seconds": 15.0, "search_radius_m": 12.0},
                     "combat": {"use_cover": True, "reposition_s": [5.0, 9.0], "suppress": True},
                     "lost_contact": {"hold_seconds": 25.0, "then": "return"}, "recover": {"return_to_route": True, "decay_seconds": 60.0}}},
         {"id": "pat_farm_sentry", "faction": "axis_army", "count": 1, "weapon": "wpn_pistol_civ", "alertness": 0.2,
-         "route": [[3, 3], [8, 3], [8, 5], [3, 5]], "pause_s": [6.0, 14.0], "gait": "walk",
-         "states": {"patrol": {}, "investigate": {"sprint_to_last_known": True, "search_seconds": 20.0, "search_radius_m": 12.0},
+         "route": [[4, 7], [4, 11], [7, 11], [7, 7]], "pause_s": [6.0, 14.0], "gait": "walk",
+         "states": {"patrol": {}, "investigate": {"sprint_to_last_known": True, "search_seconds": 20.0, "search_radius_m": 14.0},
                     "combat": {"use_cover": True, "reposition_s": [3.0, 6.0], "suppress": False},
                     "lost_contact": {"hold_seconds": 14.0, "then": "sweep"}, "recover": {"return_to_route": True, "decay_seconds": 40.0}}},
+        {"id": "pat_chapel_watch", "faction": "axis_army", "count": 1, "weapon": "wpn_bolt_rifle_de", "alertness": 0.4,
+         "route": [[26, 14], [29, 14], [29, 11], [26, 11]], "pause_s": [8.0, 16.0], "gait": "walk",
+         "states": {"patrol": {}, "investigate": {"sprint_to_last_known": True, "search_seconds": 18.0, "search_radius_m": 13.0},
+                    "combat": {"use_cover": True, "reposition_s": [4.0, 8.0], "suppress": True},
+                    "lost_contact": {"hold_seconds": 20.0, "then": "sweep"}, "recover": {"return_to_route": True, "decay_seconds": 50.0}}},
     ],
     "civilians": [
-        {"id": "civ_farm_woman", "label_key": "npc.farm_woman", "is_fictional": True, "home": [3, 2], "schedule": [
-            {"from_h": 5.5, "to_h": 8.0, "at": [3, 3], "activity": "yard_work"},
-            {"from_h": 8.0, "to_h": 12.0, "at": [2, 6], "activity": "barn_work"},
-            {"from_h": 12.0, "to_h": 14.0, "at": [3, 2], "activity": "indoors"},
-            {"from_h": 14.0, "to_h": 20.5, "at": [4, 3], "activity": "field_work"},
-            {"from_h": 20.5, "to_h": 5.5, "at": [3, 2], "activity": "indoors"}],
+        {"id": "civ_farm_woman", "label_key": "npc.farm_woman", "is_fictional": True, "home": [2, 3], "schedule": [
+            {"from_h": 5.5, "to_h": 8.0, "at": [4, 5], "activity": "yard_work"},
+            {"from_h": 8.0, "to_h": 12.0, "at": [3, 9], "activity": "barn_work"},
+            {"from_h": 12.0, "to_h": 14.0, "at": [2, 3], "activity": "indoors"},
+            {"from_h": 14.0, "to_h": 20.5, "at": [6, 4], "activity": "field_work"},
+            {"from_h": 20.5, "to_h": 5.5, "at": [2, 3], "activity": "indoors"}],
          "dialogue_mode": "subtitled", "language": "fr", "priority": "self_preservation",
          "narrative_flags": ["knows_cache_location"], "persists_when_unloaded": True},
-        {"id": "civ_boy_runner", "label_key": "npc.boy_runner", "is_fictional": True, "home": [2, 2], "schedule": [
-            {"from_h": 6.0, "to_h": 11.0, "at": [5, 5], "activity": "errand"},
-            {"from_h": 11.0, "to_h": 18.0, "at": [10, 8], "activity": "errand"},
-            {"from_h": 18.0, "to_h": 6.0, "at": [2, 2], "activity": "indoors"}],
+        {"id": "civ_boy_runner", "label_key": "npc.boy_runner", "is_fictional": True, "home": [5, 2], "schedule": [
+            {"from_h": 6.0, "to_h": 11.0, "at": [12, 10], "activity": "errand"},
+            {"from_h": 11.0, "to_h": 18.0, "at": [20, 22], "activity": "errand"},
+            {"from_h": 18.0, "to_h": 6.0, "at": [5, 2], "activity": "indoors"}],
          "dialogue_mode": "subtitled", "language": "fr", "priority": "flee_from_danger",
          "narrative_flags": [], "persists_when_unloaded": True},
-        {"id": "civ_priest", "label_key": "npc.priest", "is_fictional": True, "home": [7, 10], "schedule": [
-            {"from_h": 6.0, "to_h": 19.0, "at": [7, 10], "activity": "chapel_duty"},
-            {"from_h": 19.0, "to_h": 6.0, "at": [7, 10], "activity": "indoors"}],
+        {"id": "civ_priest", "label_key": "npc.priest", "is_fictional": True, "home": [26, 11], "schedule": [
+            {"from_h": 6.0, "to_h": 19.0, "at": [26, 11], "activity": "chapel_duty"},
+            {"from_h": 19.0, "to_h": 6.0, "at": [26, 11], "activity": "indoors"}],
          "dialogue_mode": "subtitled", "language": "fr", "priority": "shelter_others",
          "narrative_flags": ["can_shelter_player"], "persists_when_unloaded": True},
+        {"id": "civ_carter", "label_key": "npc.carter", "is_fictional": True, "home": [19, 19], "schedule": [
+            {"from_h": 6.5, "to_h": 12.0, "at": [19, 19], "activity": "barn_work"},
+            {"from_h": 12.0, "to_h": 17.0, "at": [12, 16], "activity": "hauling"},
+            {"from_h": 17.0, "to_h": 21.0, "at": [21, 22], "activity": "field_work"},
+            {"from_h": 21.0, "to_h": 6.5, "at": [19, 19], "activity": "indoors"}],
+         "dialogue_mode": "subtitled", "language": "fr", "priority": "self_preservation",
+         "narrative_flags": [], "persists_when_unloaded": True},
     ],
     "ambience_zones": [
         {"id": "az_open_field", "match_surface": ["surf_grass", "surf_crop"], "soundscape": "amb_bocage_field", "reverb": "rv_open"},
@@ -205,8 +242,13 @@ SURFACE_BY_GLYPH = {
 def build(did):
     d = DISTRICTS[did]
     rows = d["layout"]
-    h = len(rows); w = max(len(r) for r in rows)
-    rows = [r.ljust(w, ".") for r in rows]
+    h = len(rows)
+    w = max(len(r) for r in rows)
+    # Strict, not padded. A short row used to be silently filled with open
+    # ground, which quietly moved every building east of the mistake.
+    for i, r in enumerate(rows):
+        if len(r) != w:
+            raise SystemExit(f"layout row {i} is {len(r)} cells wide, expected {w}:\n  {r}")
 
     tiles, structures, vegetation, hedges, poi_out = [], [], [], [], []
     poi_by_glyph = {}
@@ -305,8 +347,16 @@ def build(did):
         q["schedule"] = [{**s, "at_m": world(s["at"])} for s in cv["schedule"]]
         civs.append(q)
 
+    spawn_cell = _spawn_cell(rows, w, h)
+    unreachable = _unreachable_pois(rows, w, h, poi_out, spawn_cell, CELL)
+    if unreachable:
+        raise SystemExit(
+            "these points of interest cannot be reached on foot from the spawn:\n  "
+            + "\n  ".join(unreachable)
+            + "\n(a hedgerow bank with no punched gate is the usual cause)")
+
     return {
-        "schema": "wbtm.district", "schema_version": 3, "content_version": "0.9.0-blockout",
+        "schema": "wbtm.district", "schema_version": 4, "content_version": "1.0.0-blockout-pc",
         "id": did, "label_key": d["label_key"], "location": d["location"], "theater": d["theater"],
         "history_refs": d["history_refs"], "season": d["season"], "latitude": d["latitude"],
         "default_date": d["default_date"], "states": d["states"], "default_state": d["default_state"],
@@ -318,11 +368,60 @@ def build(did):
         "patrols": patrols, "civilians": civs,
         "ambience_zones": d["ambience_zones"], "streaming_cells": sc,
         "persistence_rules": d["persistence_rules"],
+        "spawn": {"cell": list(spawn_cell), "p": [round(spawn_cell[0] * CELL + CELL / 2, 2), round(spawn_cell[1] * CELL + CELL / 2, 2)], "yaw_deg": 0},
+        "navigation": {"reachable_cells": len(_flood(rows, w, h, spawn_cell)), "total_cells": w * h},
         "art_status": {
             "level": "blockout",
             "statement": "Geometry, openings, interiors, navigation, patrol routes and audio zones are authored. Production meshes, materials, characters and recorded audio are NOT present. This district does not meet the commercial art bar in the brief and must not be presented as if it does.",
         },
     }
+
+PASSABLE = set(".,Ro#cjxFBGSC ")   # a building glyph is enterable; H is a hedgerow bank
+
+
+def _spawn_cell(rows, w, h):
+    """The player arrives by the lane at the south edge of the road."""
+    road_y = next((y for y in range(h - 1, -1, -1) if "R" in rows[y]), h - 2)
+    x = rows[road_y].index("R") + 1
+    return (x, road_y)
+
+
+def _flood(rows, w, h, start):
+    """Cells walkable from `start`, four-connected over PASSABLE glyphs."""
+    seen = {start}
+    stack = [start]
+    while stack:
+        x, y = stack.pop()
+        for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if not (0 <= nx < w and 0 <= ny < h) or (nx, ny) in seen:
+                continue
+            if rows[ny][nx] not in PASSABLE:
+                continue
+            seen.add((nx, ny))
+            stack.append((nx, ny))
+    return seen
+
+
+def _unreachable_pois(rows, w, h, pois, spawn, cell_m):
+    """A point of interest must be standable-next-to, not merely present.
+
+    An observation target is exempt from standing on it: it is looked at from a
+    distance, so only a cell within its required distance has to be reachable.
+    """
+    reach = _flood(rows, w, h, spawn)
+    bad = []
+    for p in pois:
+        cx, cy = p["cell"]
+        if p["kind"] == "observation_target":
+            radius = int(float(p.get("required_distance_m", 60.0)) / cell_m)
+            if not any(abs(rx - cx) + abs(ry - cy) <= radius for rx, ry in reach):
+                bad.append(f'{p["id"]} at {cx},{cy} (nothing reachable within {radius} cells)')
+            continue
+        neighbourhood = [(cx, cy), (cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)]
+        if not any(n in reach for n in neighbourhood):
+            bad.append(f'{p["id"]} at {cx},{cy}')
+    return bad
+
 
 if __name__ == "__main__":
     did = sys.argv[1] if len(sys.argv) > 1 else "district_normandy_bocage"

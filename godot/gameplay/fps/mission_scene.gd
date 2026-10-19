@@ -97,8 +97,11 @@ func setup(ctx: Dictionary) -> Dictionary:
 
 	var ready_map := builder.readiness()
 	ready_map["player"] = player != null
-	ready_map["ui"] = touch != null and hud != null
+	ready_map["ui"] = hud != null
 	ready_map["audio"] = AudioDirector != null
+	# The cursor is captured for the duration of the mission and released by
+	# the pause menu and by losing window focus (InputService handles alt-tab).
+	InputService.capture_mouse(true)
 	return ready_map
 
 func _apply_weather(name: String, quality: Dictionary) -> void:
@@ -116,13 +119,60 @@ func _apply_weather(name: String, quality: Dictionary) -> void:
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	env.ambient_light_sky_contribution = 0.75
-	env.fog_enabled = true
-	env.fog_density = float(quality.get("fog_density", 0.008)) * float(w["fog_mul"])
-	env.fog_light_color = w["fog"]
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
 	env.tonemap_exposure = 1.05
-	# Features the Mobile renderer does not provide (SSIL, SDFGI, volumetric
-	# fog) are deliberately absent rather than configured and silently ignored.
+
+	# Forward+ features. Each one is a setting, not a constant: the floor GPU
+	# has to hold 60 FPS with all of them off, and the art direction has to read
+	# correctly either way (see docs/06).
+	env.ssao_enabled = bool(quality.get("ssao", true))
+	env.ssao_intensity = 1.6
+	env.ssil_enabled = bool(quality.get("ssil", true))
+	env.ssil_intensity = 0.8
+	env.sdfgi_enabled = bool(quality.get("sdfgi", true))
+	if env.sdfgi_enabled:
+		# Bocage is a corridor world of hedgerows and small rooms, so the
+		# cascades are short and dense rather than long and coarse.
+		env.sdfgi_cascades = 4
+		env.sdfgi_min_cell_size = 0.2
+		env.sdfgi_use_occlusion = true
+		env.sdfgi_bounce_feedback = 0.5
+	env.ssr_enabled = str(quality.get("reflections", "screen_space")) == "screen_space"
+	env.ssr_max_steps = 32
+
+	# Distance fog always; volumetric fog only where it is affordable, because
+	# it is what makes a dawn lane and a shelled street read as air rather than
+	# as a flat grey curtain.
+	env.fog_enabled = true
+	env.fog_density = 0.004 * float(w["fog_mul"])
+	env.fog_light_color = w["fog"]
+	env.fog_sky_affect = 0.4
+	env.volumetric_fog_enabled = bool(quality.get("volumetric_fog", true))
+	if env.volumetric_fog_enabled:
+		env.volumetric_fog_density = 0.012 * float(w["fog_mul"])
+		env.volumetric_fog_albedo = w["fog"]
+		env.volumetric_fog_gi_inject = 0.6
+		env.volumetric_fog_length = minf(128.0, float(quality.get("draw_distance", 400.0)) * 0.3)
+
+	var bloom: float = float(quality.get("bloom", 0.15))
+	env.glow_enabled = bloom > 0.0
+	env.glow_intensity = bloom
+	env.glow_bloom = bloom * 0.5
+	env.glow_hdr_threshold = 1.1
+
+	if bool(quality.get("depth_of_field", true)):
+		# Shallow, and only at close focus: the aim is to let the view model
+		# read against the world, not to blur the gameplay.
+		env.dof_blur_far_enabled = false
+		env.dof_blur_near_enabled = true
+		env.dof_blur_near_distance = 0.6
+		env.dof_blur_near_transition = 0.5
+		env.dof_blur_amount = 0.04
+
+	env.adjustment_enabled = true
+	env.adjustment_contrast = 1.03
+	env.adjustment_saturation = 0.95
+
 	_env.environment = env
 	add_child(_env)
 
@@ -132,10 +182,20 @@ func _apply_weather(name: String, quality: Dictionary) -> void:
 	_sun.rotation = Vector3(-float(w["elev"]), float(w["azim"]), 0.0)
 	_sun.shadow_enabled = bool(quality.get("shadows", true))
 	if _sun.shadow_enabled:
-		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
-		_sun.directional_shadow_max_distance = 90.0
-		_sun.shadow_normal_bias = 0.03
+		# Four splits and a long range, because a PC district is large enough
+		# that a 90 m shadow distance would pop in the middle of a field.
+		_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+		_sun.directional_shadow_max_distance = minf(300.0, float(quality.get("draw_distance", 400.0)) * 0.75)
+		_sun.directional_shadow_split_1 = 0.05
+		_sun.directional_shadow_split_2 = 0.15
+		_sun.directional_shadow_split_3 = 0.45
+		_sun.directional_shadow_blend_splits = true
+		_sun.shadow_normal_bias = 0.02
+		_sun.shadow_blur = 1.0
 	add_child(_sun)
+	if player and player.get_camera():
+		player.get_camera().far = float(quality.get("draw_distance", 400.0))
+		player.get_camera().fov = float(quality.get("fov", 90.0))
 
 func sun_intensity() -> float:
 	return float((WEATHER.get(str(district_data.get("default_weather", "clear_morning")), WEATHER["clear_morning"]) as Dictionary)["sun"])
@@ -224,8 +284,11 @@ func hostile_fire(h: Node, target: Vector3, dist: float) -> void:
 	var dmg: float = maxf(4.0, round(float(WeaponRuntime.damage_at(h.weapon_profile, dist, "torso")) * 0.42))
 	player.health = maxf(0.0, player.health - dmg)
 	player_hit.emit(dmg, atan2(h.pos.y - player.global_position.z, h.pos.x - player.global_position.x))
-	if bool(Settings.get_value("haptics")):
-		Input.vibrate_handheld(24)
+	# Gamepad rumble, not handheld vibration: there is no phone to buzz, and a
+	# player on keyboard and mouse gets nothing from this at all.
+	var rumble: float = float(Settings.get_value("rumble"))
+	if rumble > 0.0 and Input.get_connected_joypads().size() > 0:
+		Input.start_joy_vibration(int(Input.get_connected_joypads()[0]), 0.35 * rumble, 0.7 * rumble, 0.18)
 	if player.health <= 0.0:
 		resolve("failure", "player_down")
 
@@ -243,8 +306,17 @@ func _process(dt: float) -> void:
 	_door_cooldown = maxf(0.0, _door_cooldown - dt)
 	_dialogue_cooldown = maxf(0.0, _dialogue_cooldown - dt)
 
-	var input := touch.sample() if touch else {}
+	var input := InputService.sample()
 	player.update(dt, input, {"elapsed": elapsed})
+
+	var pressed: Dictionary = input.get("pressed", {})
+	if pressed.has("pause"):
+		on_interrupted("pause")
+		return
+	if pressed.has("quick_save"):
+		Campaign.checkpoint_district(checkpoint())
+	if pressed.has("weapon_next") or pressed.has("weapon_prev"):
+		_cycle_weapon(1 if pressed.has("weapon_next") else -1)
 
 	# Stealth inputs, shared with the AI: the HUD and the patrols read the same
 	# numbers, so what the player is told matches what is being decided.
@@ -253,7 +325,7 @@ func _process(dt: float) -> void:
 
 	interact_target = _nearest_interaction()
 	var held := bool(input.get("interact_held", false))
-	var tapped := (input.get("pressed", {}) as Dictionary).has("interact")
+	var tapped := pressed.has("interact")
 	if not interact_target.is_empty() and str(interact_target["kind"]) == "poi":
 		_interact(interact_target, dt, held or tapped)
 	elif tapped:
@@ -261,7 +333,7 @@ func _process(dt: float) -> void:
 	else:
 		interact_progress = 0.0
 
-	if (input.get("pressed", {}) as Dictionary).has("reload"):
+	if pressed.has("reload"):
 		player.reload()
 	if bool(input.get("fire", false)):
 		player.try_fire(rng)
@@ -569,12 +641,33 @@ func restore(cp: Dictionary) -> void:
 				h.state = str(ed["state"])
 	local_hour = float(cp.get("local_time_hours", local_hour))
 
-## Pause safely when focus is lost, the screen locks or a call interrupts.
+## Pause safely. On PC the interruptions are alt-tab, the pause key, sleep and
+## a crash; the durable-write order in docs/04 is what makes any of them safe.
 func on_interrupted(kind: String) -> void:
 	paused = true
-	AudioDirector.on_interruption("phone_call" if kind == "call" else "focus_lost")
+	InputService.capture_mouse(false)
+	AudioDirector.on_interruption("focus_lost" if kind == "focus_lost" else "paused")
 	if finished.is_empty():
 		Campaign.checkpoint_district(checkpoint())
+
+func resume() -> void:
+	paused = false
+	InputService.capture_mouse(true)
+
+func _cycle_weapon(dir: int) -> void:
+	var loadout: Array = context.get("loadout", [])
+	if loadout.size() < 2 or player.equipped.is_empty():
+		return
+	var current: String = str((player.equipped["profile"] as Dictionary)["id"])
+	var i: int = loadout.find(current)
+	var next: String = str(loadout[posmod(i + dir, loadout.size())])
+	var p := ContentDB.weapon(next)
+	if not p.is_empty():
+		player.equip(p)
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and not paused and finished.is_empty():
+		on_interrupted("focus_lost")
 
 func hud_state() -> Dictionary:
 	var w = null

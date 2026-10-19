@@ -308,3 +308,92 @@
   position: absolute; inset: 0; z-index: 90; display: none; place-items: center;
   background: var(--bg); text-align: center; padding: var(--sp-5);
 }
+
+/* ------------------------------------------------- PC: capture and prompts */
+/* Pointer lock needs a user gesture, so the view asks for the click rather
+   than grabbing the cursor on load. The key list doubles as the control hint
+   a PC player expects before they start. */
+.capture-hint {
+  position: absolute; inset: 0; z-index: 40; display: grid; place-items: center;
+  background: rgba(6, 7, 8, .55); backdrop-filter: blur(2px); cursor: pointer;
+  text-align: center; padding: var(--sp-5);
+}
+.capture-hint[hidden] { display: none; }
+.ch-title { font-size: var(--fs-lg); margin-bottom: var(--sp-4); }
+.ch-keys {
+  display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4);
+  justify-content: center; max-width: 620px;
+  font-size: var(--fs-xs); color: var(--text-dim);
+}
+.ch-keys span { display: inline-flex; align-items: center; gap: 5px; }
+
+kbd {
+  display: inline-block; min-width: 1.6em; padding: 2px 6px;
+  font-family: var(--font); font-size: calc(var(--fs-xs) * 0.95); line-height: 1.3;
+  color: var(--text); background: var(--surface-3);
+  border: 1px solid var(--line-soft); border-bottom-width: 2px;
+  border-radius: var(--r-sm); text-align: center;
+}
+
+/* The interaction prompt names the actual key, read from the live bindings. */
+.interact-prompt {
+  position: absolute; inset-inline: 0; top: 56%;
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  font-size: calc(var(--fs-sm) * var(--hud));
+  pointer-events: none;
+}
+.interact-prompt[hidden] { display: none; }
+.interact-prompt .ip-prog {
+  position: absolute; bottom: -6px; inset-inline-start: 50%; transform: translateX(-50%);
+  height: 2px; background: var(--accent); width: 0; max-width: 160px;
+}
+
+/* Posture, lean and breath: PC verbs the touch build had no room for. */
+.hud-state {
+  position: absolute; bottom: calc(var(--safe-b) + 16px); inset-inline-start: 50%;
+  transform: translateX(-50%); display: flex; gap: var(--sp-2);
+  font-size: calc(var(--fs-xs) * var(--hud)); pointer-events: none;
+}
+.hud-state .tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 999px;
+  background: rgba(12, 14, 16, .72); border: 1px solid color-mix(in oklab, var(--paper-200) 24%, transparent);
+  color: var(--text-dim);
+}
+.hud-state .tag.on { border-color: var(--accent); color: var(--accent); }
+.hud-state .tagbar { display: inline-block; width: 34px; height: 3px; border-radius: 99px; background: var(--ink-600); overflow: hidden; }
+.hud-state .tagbar > i { display: block; height: 100%; background: currentColor; }
+
+/* Desktop affordances the touch build had no use for: hover and focus states,
+   and a cursor that says what is clickable. */
+@media (hover: hover) and (pointer: fine) {
+  .btn, .row, .chip, .tc-chip { cursor: pointer; }
+  .row:hover { background: var(--surface-3); }
+  .seg button:hover:not([aria-pressed="true"]) { color: var(--text); }
+  .theater-tabs button:hover:not([aria-pressed="true"]) { color: var(--text); }
+  #map-canvas { cursor: crosshair; }
+}
+
+/* The rebinding rows: action, current key, and a reset. */
+.bind-row {
+  display: grid; grid-template-columns: 1fr auto auto; gap: var(--sp-2) var(--sp-3);
+  align-items: center; min-height: var(--touch-min);
+  padding: var(--sp-1) 0; border-bottom: 1px solid var(--line-soft);
+}
+.bind-row:last-child { border-bottom: 0; }
+.bind-row > .name { font-size: var(--fs-sm); }
+.bind-row > .key {
+  min-width: 7.5em; min-height: 34px; padding: 0 var(--sp-3);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: var(--fs-xs); background: var(--surface-3);
+  border: 1px solid var(--line-soft); border-radius: var(--r-sm);
+}
+.bind-row > .key.is-listening { border-color: var(--accent); color: var(--accent); }
+.bind-row > .key.is-conflict { border-color: var(--danger); color: color-mix(in oklab, var(--danger) 85%, var(--text)); }
+.bind-row > .reset { font-size: var(--fs-xs); color: var(--text-faint); padding: 0 var(--sp-2); min-height: 34px; }
+.bind-row > .reset:hover { color: var(--text-dim); }
+
+/* A desktop window has no orientation, so the hint is only for a very narrow
+   window and is always dismissible. */
+@media (orientation: portrait) { .rotate-hint { display: none !important; } }
+@media (max-width: 520px) { .rotate-hint { display: grid !important; } }

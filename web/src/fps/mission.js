@@ -48,7 +48,9 @@ export class MissionScene {
     this.interactProgress = 0;
 
     const opts = this.s.rendererOptions();
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: opts.quality !== 'low', powerPreference: 'high-performance' });
+    // On PC the render scale is the player's budget, not the device pixel
+    // ratio, so it is applied directly and may exceed 1 for supersampling.
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: opts.msaa !== 'off', powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.pixelRatioCap) * opts.renderScale);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -105,6 +107,13 @@ export class MissionScene {
     this.sunIntensity = w.sun;
     this.scene.background = new THREE.Color(w.sky);
     this.scene.fog = new THREE.FogExp2(w.fog, opts.fogDensity * w.fogMul);
+    // A PC draw distance is long enough that the camera far plane and the sun's
+    // shadow volume both have to follow it, or geometry pops mid-field.
+    if (this.player) {
+      this.player.camera.far = opts.drawDistance;
+      this.player.camera.fov = opts.fov;
+      this.player.camera.updateProjectionMatrix();
+    }
     const hemi = new THREE.HemisphereLight(w.sky, w.ground, 0.55 + w.sun * 0.35);
     this.scene.add(hemi);
     const sun = new THREE.DirectionalLight(w.sunColour, 1.5 * w.sun + 0.15);
@@ -116,7 +125,8 @@ export class MissionScene {
       sun.castShadow = true;
       sun.shadow.mapSize.set(opts.shadowMapSize, opts.shadowMapSize);
       const c = sun.shadow.camera;
-      c.left = -70; c.right = 70; c.top = 70; c.bottom = -70; c.near = 1; c.far = 260;
+      const half = Math.max(70, opts.drawDistance * 0.35);
+      c.left = -half; c.right = half; c.top = half; c.bottom = -half; c.near = 1; c.far = opts.drawDistance;
       sun.shadow.bias = -0.0008;
       sun.shadow.normalBias = 0.03;
     }
@@ -366,6 +376,8 @@ export class MissionScene {
     else this.interactProgress = 0;
 
     if (input.pressed.has('reload')) this.player.reload();
+    if (input.pressed.has('weapon_next')) this.cycleWeapon(1);
+    if (input.pressed.has('weapon_prev')) this.cycleWeapon(-1);
     if (input.fire) this.playerShoot();
 
     // observation objective: look at the target from far enough, with sight
@@ -455,10 +467,21 @@ export class MissionScene {
       observeProgress: this.observeProgress ?? 0,
       subtitles: this.subtitles,
       posture: this.player.posture,
+      lean: this.player.lean,
+      breath: this.player.breath,
+      holdingBreath: this.player.holdingBreath,
       captions: this.audio.captions.slice(-3),
       hour: this.localHour,
       extractionBlocked: this.extractionBlocked,
     };
+  }
+
+  /** Cycle the loadout: mouse wheel, or 1 and 2. */
+  cycleWeapon(dir) {
+    if (this.loadout.length < 2) return;
+    this.loadoutIndex = (this.loadoutIndex + dir + this.loadout.length) % this.loadout.length;
+    this.player.equip(this.loadout[this.loadoutIndex]);
+    this.playSound({ id: 'weapon_switch', family: 'weapon_mechanism', dist: 0, essential: false });
   }
 
   deriveOutcome() {

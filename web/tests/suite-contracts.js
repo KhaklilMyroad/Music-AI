@@ -300,6 +300,46 @@ describe('District content (brief §9, §13)', () => {
     ok(p.permanent.length >= 5 && p.resets_on_reentry.length >= 3);
     ok(p.permanent.includes('objective_flags'), 'objective flags must persist to prevent duplicate rewards');
   });
+  it('every label key the district references exists in both locales', () => {
+    const keys = new Set();
+    const walk = (v) => {
+      if (Array.isArray(v)) return v.forEach(walk);
+      if (v && typeof v === 'object') {
+        for (const [k, x] of Object.entries(v)) {
+          if (k === 'label_key' && typeof x === 'string') keys.add(x);
+          else walk(x);
+        }
+      }
+    };
+    walk(districtNormandy);
+    ok(keys.size > 0, 'the district references no label keys at all');
+    for (const k of keys) {
+      ok(locales.en[k], `en is missing the district key ${k}`);
+      ok(locales.he[k], `he is missing the district key ${k}`);
+    }
+  });
+
+  it('the authored spawn is inside the district and on reachable ground', () => {
+    const sp = districtNormandy.spawn;
+    ok(sp, 'the district has no authored spawn');
+    const [w, h] = districtNormandy.grid.size_m;
+    ok(sp.p[0] > 0 && sp.p[0] < w && sp.p[1] > 0 && sp.p[1] < h, `spawn ${sp.p} is outside ${w}x${h}`);
+    const cell = districtNormandy.grid.cell_m;
+    const tile = districtNormandy.tiles.find((t) => t.c === sp.cell[0] && t.r === sp.cell[1]);
+    ok(tile, 'the spawn cell is not a tile');
+    ok(tile.passable, 'the spawn is inside a hedgerow bank');
+  });
+
+  it('the authoring tool recorded how much of the district is walkable', () => {
+    const n = districtNormandy.navigation;
+    ok(n && n.total_cells > 0, 'no navigation record');
+    eq(n.total_cells, districtNormandy.grid.cols * districtNormandy.grid.rows);
+    const hedges = districtNormandy.hedgerows.length;
+    // Every cell is either walkable or a hedgerow bank; nothing is unaccounted.
+    eq(n.reachable_cells + hedges, n.total_cells,
+      `${n.reachable_cells} reachable + ${hedges} hedgerow != ${n.total_cells} total: some ground is walled off`);
+  });
+
   it('the district honestly declares that its art is a blockout', () => {
     eq(districtNormandy.art_status.level, 'blockout');
     ok(districtNormandy.art_status.statement.includes('does not meet the commercial art bar'));
