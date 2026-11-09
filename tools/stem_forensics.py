@@ -78,7 +78,16 @@ def analyse(path: str, kick_times: np.ndarray, a: argparse.Namespace) -> dict:
     bar_s = 240.0 / a.bpm
     first = a.anchor_sec - (a.anchor_beat / 4.0) * bar_s
     bar_times = np.arange(max(first, 0.0), au.duration, bar_s)
-    sweeps, _ = mx.filter_sweeps(m, sr, bar_times, lambda t: a.anchor_beat + (np.asarray(t) - a.anchor_sec) * a.bpm / 60.0)
+    # Entries/exits and loudness jumps also move the spectral edges. Treat every half-bar where the level
+    # jumps by more than 6 dB as a boundary, and keep only long (4+ bars), large (1.5+ octave) moves.
+    half = bar_s / 2
+    t_half = np.arange(max(first, 0.0), au.duration - half, half)
+    lv = np.array([20 * np.log10(np.sqrt(np.mean(m[int(t * sr): int((t + half) * sr)].astype(np.float64) ** 2)) + 1e-9)
+                   for t in t_half])
+    bounds = [float(t_half[i + 1]) for i in np.where(np.abs(np.diff(lv)) > 6)[0]]
+    sweeps, _ = mx.filter_sweeps(m, sr, bar_times, lambda t: a.anchor_beat + (np.asarray(t) - a.anchor_sec) * a.bpm / 60.0,
+                                 min_bars=4, boundaries_s=bounds)
+    sweeps = [s for s in sweeps if abs(np.log2(s.to_hz / s.from_hz)) >= 1.5]
     png, _axis = mixmaster.spectrogram_png(au, width=1000, height=220)
     return {"name": name, "lufs": mx.integrated_lufs(au), "tp": mx.true_peak_db(au), "spec": spec, "dyn": dyn,
             "ster": ster, "rv": rv, "ec": ec, "dist": dist, "pump": pump, "sweeps": sweeps,
