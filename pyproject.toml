@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "track2ableton"
+version = "0.1.0"
+description = "Reverse-engineer a mixed track into an Ableton Live 12 rebuild package (stems, MIDI, devices, .als)"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "scipy>=1.10", "soundfile>=0.12"]
+
+[project.optional-dependencies]
+demucs = ["demucs>=4.0"]
+transcription = ["basic-pitch>=0.3"]
+test = ["pytest>=7", "mido>=1.3"]
+
+[project.scripts]
+track2ableton = "track2ableton.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["track2ableton*"]
+
+[tool.setuptools.package-data]
+"track2ableton.ableton" = ["templates/*.gz", "templates/*.md"]
