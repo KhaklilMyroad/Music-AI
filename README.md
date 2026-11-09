@@ -57,7 +57,7 @@ track2ableton song.wav --template "Empty.als"  # מומלץ: Set ריק שנשמ
 
 ### אמינות: מה נבדק ומה לא
 
-הבדיקות האוטומטיות (`pytest`, 27 בדיקות) מריצות כל מעריך על אות שהתשובה עליו ידועה:
+הבדיקות האוטומטיות של הניתוח (`pytest`) מריצות כל מעריך על אות שהתשובה עליו ידועה:
 - טמפו 92–174 BPM בדיוק של ±0.3 ודאונביט בטווח של 30ms.
 - זיהוי A minor ואקורדי Am–F–C–G.
 - RT60 של 1.5 שניות, שנמדד כ-1.51.
@@ -73,6 +73,72 @@ track2ableton song.wav --template "Empty.als"  # מומלץ: Set ריק שנשמ
 - הפרמטרים הם **שחזור מתוך הסאונד**, לא קריאה של הפרויקט המקורי. אי אפשר לדעת איזה פריסט או פלאגין צד-שלישי שימש את המפיק. אפשר להגיע לטון, למבנה, לגרוב ולמיקס דומים.
 
 מסמך התכנון ושאלות-התשובות של "צוות המחקר": [docs/RESEARCH-QA.md](docs/RESEARCH-QA.md).
+
+### שליטה ב-Live תוך כדי עבודה: מבקשים תוצאה, והכלי מתרגם אותה לפעולות ב-Ableton
+
+**לפני:** קליקים בתפריטים, ניתוב, קליפים, מכשירים והגדרת הסשן, הכל ידנית.
+**אחרי:** כותבים ל-Claude מה רוצים, למשל "תוסיף לבס קומפרסור עם sidechain מהקיק ותוריד אותו ב-3dB", והוא מבצע את זה ב-Live הפתוח.
+**מתאים ל:** מפיקים שרוצים להישאר בזרימה היצירתית ולא לעצור כדי להגדיר כלים.
+
+**איך זה בנוי:**
+
+```
+Claude (Desktop / Code)  --MCP-->  track2ableton-mcp  --TCP 127.0.0.1:9877-->  T2A_Bridge (Remote Script בתוך Live)  -->  Live Object Model
+```
+
+**מה אפשר לשלוט בו (39 כלים):**
+
+| תחום | יכולות |
+|---|---|
+| Transport | play / stop / continue, טמפו, playhead, לופ, מטרונום, הקלטה, משקל, סולם (root/scale), undo/redo, Locators |
+| Tracks ו-Mixer | יצירה, מחיקה ושכפול של ערוצי MIDI, Audio ו-Return. שם, צבע, mute, solo, arm. ווליום ב-dB, פאן, sends ב-dB |
+| Routing | הצגה ושינוי של input/output type ו-channel ושל monitoring, למשל Resampling. **Sidechain של Compressor** (Live 12.4 ומעלה) |
+| Clips ו-MIDI | יצירת קליפ MIDI או אודיו, Session או Arrangement. כתיבה, קריאה ומחיקה של תווים, quantize. fire, stop, שכפול, העברה ל-Arrangement. לופ, מרקרים, gain, pitch, warp |
+| Scenes | יצירה, מחיקה, שכפול, fire, capture, שם, טמפו וצבע |
+| Devices | הוספת מכשיר לפי שם (Live 12.3 ומעלה, אחרת דרך ה-Browser), כל הפרמטרים, כולל בתוך Racks. **קביעת ערך ביחידות שמוצגות ב-Live** (dB, Hz, ms). on, off, delete |
+| Browser | דפדוף בקטגוריות, חיפוש, וטעינת מכשיר, פריסט, סמפל או פלאגין לערוץ |
+| Samples | נתיבי הקבצים שמאחורי קליפי אודיו ו-Simpler, ומטרים |
+| Mix ו-Master | צורת גל ו-**ספקטרוגרמה** (תמונות), LUFS, True Peak, LRA, crest. הכלי מזהה התנגשויות תדרים (masking) בין ערוצים ובעיות פאזה ו-DC, בודק את המאסטר מול יעד עוצמה, ו**משווה לטראק רפרנס** כדי להציע מהלכי EQ Eight |
+| Rebuild | `rebuild_in_live` לוקח את תיקיית הניתוח של `track2ableton`, ובונה אותה ב-Set הפתוח: טמפו, ערוצים, כלים, אפקטים, תווים וסטמים |
+
+**התקנה:**
+
+```bash
+pip install -e ".[live]"                  # שרת ה-MCP
+python tools/install_bridge.py            # מעתיק את T2A_Bridge ל-User Library/Remote Scripts
+```
+
+1. מפעילים את Live מחדש.
+2. ב-*Settings → Link, Tempo & MIDI → Control Surface* בוחרים `T2A_Bridge`. ב-Input וב-Output משאירים None.
+3. מחברים את Claude.
+
+Claude Code:
+```bash
+claude mcp add ableton -- track2ableton-mcp
+```
+
+Claude Desktop, בקובץ `claude_desktop_config.json`:
+```json
+{ "mcpServers": { "ableton": { "command": "track2ableton-mcp" } } }
+```
+
+אם `track2ableton-mcp` לא נמצא ב-PATH, צריך לכתוב בקובץ את הנתיב המלא שלו.
+
+**דוגמאות לבקשות:**
+- "תבנה לי ביט האוס ב-124: קיק על כל רבע, הייהאט על האוף-ביט, ובס בלה מינור."
+- "תעשה ל-Pad sidechain מהקיק, release בערך 150ms."
+- "תנתח את הסטמים ב-Set ותגיד לי איפה הבס והקיק מתנגשים, ואז תתקן עם EQ."
+- "הנה הבאונס של המאסטר ושל רפרנס, תביא אותי ל-14- LUFS ו-1- dBTP ותתאים את הטונאליות."
+
+**מה נבדק ומה לא:**
+- **נבדק:**
+  - הלוגיקה של ה-Bridge מול מודל מדומה של Live, דרך socket אמיתי ודרך כלי ה-MCP.
+  - שרת ה-MCP מעל stdio אמיתי: רשימת הכלים, תמונת ספקטרוגרמה, והודעת שגיאה ברורה כש-Live לא מחובר.
+  - ניתוח המיקס והמאסטר על אותות ידועים.
+  - בסך הכל 46 בדיקות.
+- **אומת מול מקורות:** כל שם של פונקציה ב-API של Live נבדק מול dump של ה-API של Live 12.4.0 ומול הסקריפטים של Ableton עצמה. הפירוט ב-[docs/LIVE-API-VERIFIED.md](docs/LIVE-API-VERIFIED.md). פונקציות שקיימות רק בגרסאות מסוימות של Live 12 נבדקות לפני השימוש ומחזירות שגיאה ברורה.
+- **לא נבדק:** ריצה בתוך Live אמיתי. אין Live בסביבת הפיתוח. בהפעלה הראשונה כדאי לבדוק עם `live_session`. אם משהו לא עובד, הלוג של Live (`Log.txt`) יכיל שורות שמתחילות ב-`T2A`.
+- **אבטחה:** ה-Bridge מאזין רק ל-127.0.0.1, בלי אימות. כל תהליך במחשב יכול לשלוט ב-Live בזמן שהוא פועל.
 
 ### פיתוח
 
