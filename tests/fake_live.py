@@ -160,6 +160,11 @@ class Track:
         d = known[name]()
         self.devices.insert(len(self.devices) if index in (None, -1) else index, d)
 
+    def create_midi_clip(self, start, length):
+        c = Clip(length)
+        c.start_time = start
+        self.arrangement_clips.append(c)
+
     def duplicate_clip_to_arrangement(self, clip, time):
         import copy
         c = copy.deepcopy(clip)
