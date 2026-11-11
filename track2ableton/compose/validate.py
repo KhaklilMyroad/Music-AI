@@ -73,22 +73,26 @@ def validate(comp: Composition) -> list:
            for n in t.notes if n.pitch % 12 not in comp.bars[_bar(n.grid)].chord.allowed]
     add("harmony: every pitched note belongs to the scale or chord of its bar", bad, "all in key")
 
-    rng = {"Sub": (pt.SUB_LO, pt.SUB_HI + 4), "Mid Bass": (pt.SUB_LO + 12, pt.SUB_HI + 16), "Pad": (pt.PAD_LO, 84), "Hook": (57, 96)}
+    rng = {"Sub": (pt.SUB_LO, pt.SUB_HI + 4), "Mid Bass": (pt.SUB_LO + 12, pt.SUB_HI + 16), "Pad": (pt.PAD_LO, pt.PAD_HI + 6),
+           "Hook": (pt.HOOK_TONIC_LO - 9, pt.HOOK_HI)}
     bad = [f"{nm} {n.pitch}" for nm, (lo, hi) in rng.items() if nm in T for n in T[nm].notes if not lo <= n.pitch <= hi]
     add("registers: sub 41-98 Hz, pad above 165 Hz, hook in the lead range", bad, "all in range")
 
     bad = []
-    if "Hook" in T and "Sub" in T:
-        by_bar = defaultdict(list)
-        for n in T["Sub"].notes:
-            by_bar[_bar(n.grid)].append(n)
+    if "Hook" in T:
+        by_bar, seen = defaultdict(list), set()
+        for nm in ("Sub", "Mid Bass"):              # the mid bass doubles the sub: count each moment once
+            for n in (T[nm].notes if nm in T else []):
+                if (n.grid, n.pitch % 12) not in seen:
+                    seen.add((n.grid, n.pitch % 12))
+                    by_bar[_bar(n.grid)].append(n)
         for h in T["Hook"].notes:
             b = _bar(h.grid)
             ov = sum(max(0.0, min(h.grid + h.duration, s.grid + s.duration) - max(h.grid, s.grid))
                      for s in by_bar.get(b, []) + by_bar.get(b - 1, []) if (h.pitch - s.pitch) % 12 in CLASH_PCS)
             if ov > CLASH_MIN:
                 bad.append(f"bar {b} hook {h.pitch}")
-    add("hook never holds a minor 2nd / tritone / major 7th against the bass for longer than a 16th", bad, "no clashes")
+    add("hook never holds a tritone / major 7th against the bass for longer than a 16th", bad, "no clashes")
 
     bad = [f"{s.name} starts on bar {s.start}" for s in comp.sections if (s.start - 1) % 8]
     add("every section starts on a bar of the form 8n+1", bad, f"{len(comp.sections)} sections")

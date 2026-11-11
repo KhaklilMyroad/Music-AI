@@ -13,13 +13,15 @@ from . import parts as pt
 from .model import BEATS_PER_BAR, Note, Track, bar_start, feel_offset
 from .theory import Chord, build_progression, parse_key
 
-CLASH_PCS = (1, 6, 11)     # minor second, tritone, major seventh against the bass
+# Hook against the bass: a tritone or a major seventh above the bass note is a clash. A semitone above it is not
+# listed: on these scales it can only be the b2 over a Phrygian-type root (the b9 of V7(b9)), which is the colour.
+CLASH_PCS = (6, 11)
 CLASH_MIN = 0.25           # sounding together for longer than this (one 16th) counts as a clash; passing 16ths are allowed
 TRACK_ORDER = ["Kick", "Clap", "Wood", "Hat", "Roll", "Shaker", "Conga Hi", "Conga Low", "Bongo", "Djembe", "Low Drum",
                "Clave", "Cowbell", "Sub", "Mid Bass", "Pad", "Hook", "Chant"]
 PITCHED = {"Sub": ("bass", "BASS", "Operator: one sine oscillator, no FM, LFO off, Voices = 1, low-pass 110 Hz, sidechain from the kick"),
            "Mid Bass": ("bass", "BASS", "Drift / analog saw+pulse, low-pass ~900 Hz, high-pass 120 Hz, sidechain from the kick"),
-           "Pad": ("harmony", "MUSIC", "warm string / analog pad, high-pass 150-180 Hz, wide"),
+           "Pad": ("harmony", "MUSIC", "warm string / analog pad, high-pass ~120 Hz (its lowest notes are around 165 Hz), wide"),
            "Hook": ("hook", "MUSIC", "nylon guitar, marimba or pluck; answers the vocal on beats 3-4"),
            "Chant": ("trigger", "VOCALS", "vocal chops in a Drum Rack / Sampler: C3 (60) = chant on beats 1-2, D3 (62) = shout before a drop")}
 
@@ -197,9 +199,9 @@ def compose(spec: Spec | None = None) -> Composition:
             ci, bic = ((i - 1) // 2) % len(prog), (i - 1) % 2
             chord = prog[ci]
             if i < sec.bars:
-                next_chord = prog[(ci + 1) % len(prog)]
+                next_chord, nxt_sec, nxt_i = prog[(ci + 1) % len(prog)], sec, i + 1
             else:
-                next_chord = nxt_first or chord
+                next_chord, nxt_sec, nxt_i = nxt_first, (sections[si + 1] if si + 1 < len(sections) else None), 1
             tail = i - (sec.bars - 8) if sec.kind == "build" and sec.bars >= 8 and i > sec.bars - 8 else 0
             roles = set()
             plan = dict(sec.drums)
@@ -220,7 +222,10 @@ def compose(spec: Spec | None = None) -> Composition:
                 pat = _mode_at(v, i, sec.bars)
                 if pat:
                     roles.add(name)
-                    for pos, p, d, vel in pt.bass_bar(pat, chord, next_chord, bic, ci, spec.variant):
+                    # an approach note only leads somewhere if this bass plays in the next bar
+                    nv = None if nxt_sec is None else (nxt_sec.sub if name == "Sub" else nxt_sec.mid)
+                    goes_on = nxt_sec is not None and _mode_at(nv, nxt_i, nxt_sec.bars) and not (tail == 7)
+                    for pos, p, d, vel in pt.bass_bar(pat, chord, next_chord if goes_on else None, bic, spec.variant):
                         events[name].append((t0 + pos, p + shift, min(d, sec_end - (t0 + pos)), vel))
             if bic == 0 or voicing is None:
                 voicing = pt.voice_chord(chord, voicing)
@@ -265,19 +270,31 @@ def _clash_overlap(g: float, p: int, d: float, bass: list) -> float:
 
 
 def _resolve_hook_clashes(events: dict, bars: dict) -> None:
-    """Move a hook note that sounds a minor 2nd / tritone / major 7th against the bass to the nearest chord tone."""
+    """Move a hook note that holds a tritone / major 7th against the sub or mid bass to the nearest chord tone
+    that is neither the note before nor the note after it. An octave double moves with its lower note."""
     by_bar = defaultdict(list)
-    for ev in events.get("Sub", []):
-        by_bar[int(ev[0] // BEATS_PER_BAR) + 1].append(ev)
-    hook = sorted(events.get("Hook", []))
-    out, prev = [], None
-    for g, p, d, vel in hook:
+    seen = set()
+    for name in ("Sub", "Mid Bass"):                 # the mid bass doubles the sub an octave up: count each moment once
+        for g, p, d, vel in events.get(name, []):
+            if (g, p % 12) not in seen:
+                seen.add((g, p % 12))
+                by_bar[int(g // BEATS_PER_BAR) + 1].append((g, p, d, vel))
+    groups = defaultdict(list)                       # grid -> the notes that start there (1, or 2 with the octave double)
+    for ev in events.get("Hook", []):
+        groups[ev[0]].append(ev)
+    grids = sorted(groups)
+    low = [min(p for _, p, _, _ in groups[g]) for g in grids]
+    out = []
+    for k, g in enumerate(grids):
         b = int(g // BEATS_PER_BAR) + 1
         near = by_bar.get(b, []) + by_bar.get(b - 1, [])
-        if _clash_overlap(g, p, d, near) > CLASH_MIN:
-            p = pt.nearest_chord_tone(p, bars[b].chord, avoid=prev)
-        out.append((g, p, d, vel))
-        prev = p
+        d = max(x[2] for x in groups[g])
+        shift = 0
+        if _clash_overlap(g, low[k], d, near) > CLASH_MIN:
+            avoid = {low[k - 1] if k else None, low[k + 1] if k + 1 < len(low) else None}
+            shift = pt.nearest_chord_tone(low[k], bars[b].chord, avoid) - low[k]
+            low[k] += shift
+        out += [(gg, p + shift, dd, vel) for gg, p, dd, vel in groups[g]]
     if out:
         events["Hook"] = out
 

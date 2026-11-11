@@ -50,7 +50,7 @@ Create with distinct names, inside the right group, each with one Arrangement cl
 | 05 Roll | Roll (DRUMS) | a snare or clap one-shot from the Core Library (it plays only in bars 73-80 and 137-144) |
 | 12 Clave | Clave (PERC) | Clave Bright Wide |
 | 13 Cowbell | Cowbell (PERC) | Cowbell Latin Ting, quiet, behind the kick |
-| 16 Pad | Pad (MUSIC) | a warm string / analog pad, EQ high-pass 150-180 Hz |
+| 16 Pad | Pad (MUSIC) | a warm string / analog pad, EQ high-pass about 120 Hz (its lowest notes are around 165 Hz) |
 | 17 Hook | Hook (MUSIC) | Nylon Flamenco Guitar (or Nylon Mute Guitar); EQ high-pass 150 Hz |
 | 18 Chant | Chant (VOCALS) | none yet: C3 = chant on beats 1-2, D3 = shout before the drop. Leave it muted until the user picks vocal chops |
 

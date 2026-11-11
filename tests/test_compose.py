@@ -7,7 +7,7 @@ import sys
 import pytest
 
 from track2ableton import midi
-from track2ableton.compose import Spec, all_ok, compose, validate, write
+from track2ableton.compose import Spec, all_ok, compose, summary, validate, write
 from track2ableton.compose.__main__ import main
 from track2ableton.compose.live import push
 from track2ableton.compose.model import Note, swing_shift
@@ -147,6 +147,25 @@ def test_harmony(song):
     assert g_sharp and all(song.bars[int(n.grid // 4) + 1].chord.label == "E7(b9)" for n in g_sharp)  # leading tone only over V
 
 
+def test_harmony_review_regressions(song):
+    def pcs(c, name, b):
+        return [n.pitch % 12 for n in c.track(name).notes if (b - 1) * 4 <= n.grid < b * 4]
+    v1 = compose(Spec(variant=1))
+    assert pcs(v1, "Hook", 87) == [11, 9, 8, 5]                # B A G# F over E7(b9): the Phrygian b2 is kept, not "fixed"
+    assert set(pcs(song, "Sub", 48)) == {4} and set(pcs(song, "Sub", 184)) == {4}   # no approach note into a bar without bass
+    assert pcs(song, "Sub", 88)[-1] == 8                      # ... but the leading tone stays where the bass goes on to the tonic
+    for key, name, chords in (("Bb minor", "Bb minor", ["Bbm", "Ab", "Gb", "F7(b9)"]), ("F minor", "F minor", ["Fm", "Eb", "Db", "C7(b9)"]),
+                              ("D hijaz", "D phrygian_dominant", ["D", "Eb", "Cm", "D"]), ("C# minor", "C# minor", ["C#m", "B", "A", "G#7(b9)"])):
+        c = compose(Spec(key=key))
+        info = summary(c)
+        assert info["key"] == name and info["chords"]["main"] == chords
+        pad, hook = c.track("Pad").notes, c.track("Hook").notes
+        assert 52 <= min(n.pitch for n in pad) and max(n.pitch for n in pad) <= 64       # the pad stays under the hook
+        assert min(n.pitch for n in hook) >= 58 and max(n.pitch for n in hook) <= 96
+    f = compose(Spec(key="F minor"))
+    assert [n.pitch for n in f.track("Sub").notes if 81 * 4 <= n.grid < 82 * 4][:5] == [29, 32, 29, 29, 39]  # third, then the seventh above
+
+
 def _with(comp, name, notes):
     tracks = [dataclasses.replace(t, notes=notes) if t.name == name else t for t in comp.tracks]
     return dataclasses.replace(comp, tracks=tracks)
@@ -162,8 +181,8 @@ def test_validator_catches_planted_errors(song):
             _with(song, "Sub", [dataclasses.replace(n, duration=0.6) if n is n0 else n for n in sub.notes]),
         "harmony: every pitched note belongs to the scale or chord of its bar":
             _with(song, "Hook", hook.notes + [Note(70, 322.0, 0.2, 90, 322.0)]),          # A# over A minor
-        "hook never holds a minor 2nd / tritone / major 7th against the bass for longer than a 16th":
-            _with(song, "Hook", hook.notes + [Note(70, 320.5, 1.5, 90, 320.5)]),
+        "hook never holds a tritone / major 7th against the bass for longer than a 16th":
+            _with(song, "Hook", hook.notes + [Note(75, 320.5, 1.5, 90, 320.5)]),             # D# over the bass's A
         "kick and clap exactly on the straight grid":
             _with(song, "Kick", [dataclasses.replace(n, start=n.start + 0.01) if n.grid == 320.0 else n for n in kick.notes]),
         "timing: every note on the grid plus its planned swing / laid-back offset":

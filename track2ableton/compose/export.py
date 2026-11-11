@@ -9,7 +9,8 @@ from types import SimpleNamespace
 from .. import midi
 from .arrange import Composition
 from .model import bar_start
-from .theory import NOTE_NAMES, PROGRESSIONS, DEFAULT_PROGRESSION, build_progression, note_name
+from .parts import sub_pitch
+from .theory import PROGRESSIONS, DEFAULT_PROGRESSION, build_progression, key_name, note_name
 from .validate import all_ok, validate
 
 
@@ -21,9 +22,13 @@ def summary(comp: Composition, checks: list | None = None) -> dict:
     sp = comp.spec
     checks = checks if checks is not None else validate(comp)
     prog = sp.progression or DEFAULT_PROGRESSION[comp.mode]
-    labels = {k: [c.label for c in build_progression(comp.tonic, comp.mode, sp.progression, k)] for k in ("main", "break")}
+    chords = {k: build_progression(comp.tonic, comp.mode, sp.progression, k) for k in ("main", "break")}
+    labels = {k: [c.label for c in v] for k, v in chords.items()}
+    roots = [sub_pitch(c.root_pc) for c in chords["main"]]
+    leap = max(abs(a - b) for a, b in zip(roots, roots[1:] + roots[:1]))
     return {
-        "bpm": sp.bpm, "key": f"{NOTE_NAMES[comp.tonic]} {comp.mode}", "progression": prog, "chords": labels,
+        "bpm": sp.bpm, "key": key_name(comp.tonic, comp.mode), "progression": prog, "chords": labels,
+        "sub_roots": [note_name(p) for p in roots], "sub_largest_root_leap_semitones": leap,
         "bars_per_chord": 2, "structure": sp.structure, "variant": sp.variant,
         "swing_percent": sp.swing, "skins_late_ms": sp.late_ms, "feel_baked_into_midi": sp.bake_feel,
         "total_bars": comp.total_bars, "length": _clock(comp.seconds(comp.total_bars + 1)),
@@ -74,6 +79,9 @@ def report(comp: Composition, info: dict) -> str:
          f"- מהלך: **{info['progression']}** – {' → '.join(info['chords']['main'])} (אקורד לכל 2 תיבות)",
          f"- בברייק: {' → '.join(info['chords']['break'])}",
          f"- מבנה: {info['structure']}, וריאנט {info['variant']}",
+         f"- שורשי הסאב: {' → '.join(info['sub_roots'])}"
+         + (f" (קפיצה של {info['sub_largest_root_leap_semitones']} חצאי טונים: טווח הסאב הוא אוקטבה אחת, ולכן בסולם הזה הליין קופץ. "
+            "בסולמות A, Bb ו-B הירידה חלקה)" if info["sub_largest_root_leap_semitones"] > 7 else ""),
          f"- סווינג לפרקשן: {info['swing_percent']:g}%, העורות מאחרים ב-{info['skins_late_ms']:g}ms"
          + (" (כתוב בתוך ה-MIDI, לכן Groove = None בכל הקליפים)" if info["feel_baked_into_midi"] else " (ה-MIDI ישר, להחיל גרוב ב-Live)"),
          "", "הבדיקות למטה בודקות את התווים: תזמון, הרמוניה ומבנה. הן לא יכולות לקבוע אם זה נשמע טוב. את זה קובעת האוזן.", "",

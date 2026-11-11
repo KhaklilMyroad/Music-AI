@@ -8,7 +8,7 @@ from .model import STEP
 from .theory import Chord, QUALITIES
 
 SUB_LO, SUB_HI = 28, 39          # E0..D#1 in Ableton names: 41-78 Hz, the range a club sub reproduces cleanly
-PAD_LO = 52                      # nothing in the pad below ~165 Hz
+PAD_LO, PAD_HI = 52, 64          # the pad stays in 165-330 Hz, under the hook
 HOOK_LO = 60
 KICK_STEPS = (0, 4, 8, 12)
 BASS_DUR = 0.2125                # 85 % of a 16th
@@ -30,11 +30,11 @@ def _approach(cur: int, nxt: int, chord: Chord) -> int | None:
     return None
 
 
-def bass_bar(pattern: str, chord: Chord, next_chord: Chord, bar_in_chord: int, chord_idx: int, variant: int = 0) -> list:
-    """One bar of sub bass. Never plays on a kick step (0, 4, 8, 12) except the 'drone' used in breaks."""
+def bass_bar(pattern: str, chord: Chord, next_chord: Chord | None, bar_in_chord: int, variant: int = 0) -> list:
+    """One bar of sub bass. Never plays on a kick step (0, 4, 8, 12) except the 'drone' used in breaks.
+    next_chord is None when the bass does not play in the next bar: then there is no approach note to leave hanging."""
     r = sub_pitch(chord.root_pc)
-    nxt = sub_pitch(next_chord.root_pc)
-    app = _approach(r, nxt, chord) if bar_in_chord == 1 else None
+    app = _approach(r, sub_pitch(next_chord.root_pc), chord) if next_chord is not None and bar_in_chord == 1 else None
     v = variant % 3
     if pattern == "drone":
         return [(0.0, r, 2 * 4 - 0.1, 100)] if bar_in_chord == 0 else []
@@ -50,10 +50,10 @@ def bass_bar(pattern: str, chord: Chord, next_chord: Chord, bar_in_chord: int, c
             ev = [(3, r, BASS_DUR, 104), (6, r, 0.375, 112), (11, r, BASS_DUR, 104), (14, r, 0.375, 112)]
         else:           # pairs between the kicks
             ev = [(s, r, BASS_DUR, 112 if s % 2 == 0 else 92) for s in (2, 3, 6, 7, 10, 11, 14, 15)]
-            if chord_idx == 0 and bar_in_chord == 1:   # answer bar on the tonic: third above, seventh below
+            if chord.root_pc == chord.scale_pcs[0] and bar_in_chord == 1:   # answer bar on the tonic: third and seventh
+                seventh = r + chord.degree(-1)
                 ev[1] = (3, r + chord.third, BASS_DUR, 92)
-                if r + chord.degree(-1) >= SUB_LO:
-                    ev[4] = (10, r + chord.degree(-1), BASS_DUR, 112)
+                ev[4] = (10, seventh if seventh >= SUB_LO else seventh + 12, BASS_DUR, 112)
         if app is not None and ev[-1][0] == 15:
             ev[-1] = (15, app, BASS_DUR, 92)
     else:
@@ -63,7 +63,7 @@ def bass_bar(pattern: str, chord: Chord, next_chord: Chord, bar_in_chord: int, c
 
 
 def voice_chord(chord: Chord, prev: list | None) -> list:
-    """Close-position voicing with the least movement from the previous chord, lowest note >= PAD_LO."""
+    """Close-position voicing with the least movement from the previous chord, inside PAD_LO..PAD_HI when it fits."""
     pcs = [(chord.root_pc + i) % 12 for i in QUALITIES[chord.quality]]
     if chord.quality == "M7b9":
         pcs.append((chord.root_pc + 10) % 12)
@@ -74,7 +74,7 @@ def voice_chord(chord: Chord, prev: list | None) -> list:
             cost = sum(min(abs(p - q) for q in prev) for p in v) + sum(min(abs(p - q) for p in v) for q in prev)
         else:
             cost = abs(sum(v) / len(v) - 62)
-        key = (cost, sum(v))
+        key = (max(v) > PAD_HI, cost, sum(v))
         if best is None or key < best[0]:
             best = (key, v)
     return best[1]
@@ -100,8 +100,16 @@ MOTIFS = {
 }
 
 
+HOOK_TONIC_LO = 64               # the tonic's hook root sits in 64..75; other roots within a tritone of it
+HOOK_HI = 96
+
+
 def hook_root(chord: Chord) -> int:
-    return HOOK_LO + (chord.root_pc - HOOK_LO) % 12
+    """Register follows the key, not the absolute pitch class, so the line keeps its contour in every key."""
+    tonic = chord.scale_pcs[0]
+    base = HOOK_TONIC_LO + (tonic - HOOK_TONIC_LO) % 12
+    off = (chord.root_pc - tonic) % 12
+    return base + (off - 12 if off >= 6 else off)
 
 
 # last bar of the 8-bar chord loop: a run up the chord's scale (Phrygian dominant over the V of a minor key)
@@ -115,14 +123,15 @@ def hook_bar(chord: Chord, bar_in_chord: int, variant: int = 0, octave: bool = F
     for step, deg, length, vel in (TURNAROUND if turnaround else a if bar_in_chord == 0 else b):
         p = root + chord.degree(deg)
         ev.append((step * STEP, p, length * STEP * 0.8, vel))
-        if octave:
+        if octave and p + 12 <= HOOK_HI:
             ev.append((step * STEP, p + 12, length * STEP * 0.8, max(1, vel - 18)))
     return ev
 
 
-def nearest_chord_tone(pitch: int, chord: Chord, avoid: int | None = None) -> int:
+def nearest_chord_tone(pitch: int, chord: Chord, avoid=()) -> int:
+    """Nearest chord tone that is not one of `avoid` (the neighbouring notes), so a fix never repeats a note."""
     tones = set(chord.tones)
     for d in (1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6):
-        if (pitch + d) % 12 in tones and pitch + d != avoid:
+        if (pitch + d) % 12 in tones and pitch + d not in avoid:
             return pitch + d
     return pitch

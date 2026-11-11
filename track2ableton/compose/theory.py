@@ -8,6 +8,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+FLAT_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
+PARENT_MAJOR = {"minor": 3, "dorian": 10, "phrygian": 8, "phrygian_dominant": 8}   # semitones from the tonic
+FLAT_PARENTS = (5, 10, 3, 8, 1, 6)                                                    # F, Bb, Eb, Ab, Db, Gb major
+
+
+def uses_flats(tonic: int, mode: str) -> bool:
+    """True when the key is normally written with flats (e.g. F minor, Bb minor, D hijaz)."""
+    return (tonic + PARENT_MAJOR[mode]) % 12 in FLAT_PARENTS
+
+
+def key_name(tonic: int, mode: str) -> str:
+    return f"{(FLAT_NAMES if uses_flats(tonic, mode) else NOTE_NAMES)[tonic]} {mode}"
 ALIASES = {"DB": "C#", "EB": "D#", "GB": "F#", "AB": "G#", "BB": "A#", "CB": "B", "FB": "E", "E#": "F", "B#": "C"}
 
 SCALES = {
@@ -51,6 +63,7 @@ class Chord:
     root_pc: int          # absolute pitch class of the root
     quality: str          # key of QUALITIES
     scale_pcs: tuple      # absolute pitch classes of the 7-note scale used for melody over this chord (ascending from tonic)
+    flats: bool = False   # spell the chord name with flats
 
     @property
     def tones(self) -> tuple:
@@ -70,7 +83,7 @@ class Chord:
 
     @property
     def label(self) -> str:
-        return NOTE_NAMES[self.root_pc] + {"m": "m", "M": "", "M7b9": "7(b9)"}[self.quality]
+        return (FLAT_NAMES if self.flats else NOTE_NAMES)[self.root_pc] + {"m": "m", "M": "", "M7b9": "7(b9)"}[self.quality]
 
 
 def _semitones(scale_pcs: tuple, idx: int, steps: int) -> int:
@@ -107,5 +120,5 @@ def build_progression(tonic: int, mode: str, name: str | None, kind: str = "main
         root = (tonic + off) % 12
         if root not in pcs:
             raise ValueError(f"progression {name!r}: chord root is not in its melody scale")
-        out.append(Chord(root, q, pcs))
+        out.append(Chord(root, q, pcs, uses_flats(tonic, mode)))
     return out
