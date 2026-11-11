@@ -10,6 +10,16 @@ from .export import bar_table, write
 from .theory import PROGRESSIONS
 
 
+def _bar_range(text: str) -> tuple:
+    try:
+        first, last = (int(x) for x in text.split("-"))
+    except ValueError:
+        raise argparse.ArgumentTypeError("expected two bar numbers such as 81-84") from None
+    if not 1 <= first <= last:
+        raise argparse.ArgumentTypeError("bars must be positive and in order, e.g. 81-84")
+    return first, last
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="track2ableton-compose",
                                  description="Compose a full club track as MIDI (drums, bass, chords, hook, vocal triggers), checked bar by bar.")
@@ -19,14 +29,15 @@ def main(argv=None) -> int:
     ap.add_argument("--progression", choices=sorted(PROGRESSIONS), help="default: the usual one for the key's mode")
     ap.add_argument("--structure", choices=["extended", "radio", "loop16"], default="extended",
                     help="extended = 200-bar DJ mix, radio = 97 bars cut from it (96 + a closing bar), loop16 = 16 bars of the drop for auditioning")
-    ap.add_argument("--variant", type=int, default=0, help="0-2: alternative wood, bass and hook figures")
-    ap.add_argument("--variants", type=int, default=0, help="write this many variants (0..N-1) into sub-folders v0, v1, ...")
+    ap.add_argument("--variant", type=int, choices=[0, 1, 2], default=0, help="alternative wood, bass and hook figures")
+    ap.add_argument("--variants", type=int, choices=[0, 1, 2, 3], default=0,
+                    help="write this many variants into sub-folders v0, v1, ... (there are 3)")
     ap.add_argument("--swing", type=float, default=57.5, help="percussion swing in percent (50 = straight)")
     ap.add_argument("--late-ms", type=float, default=6.0, help="how far the skins sit behind the beat")
     ap.add_argument("--straight-pitched", action="store_true",
                     help="keep bass, pad and hook on the straight grid; only the percussion swings (for A/B by ear)")
     ap.add_argument("--straight", action="store_true", help="write straight MIDI and apply the groove in Live instead")
-    ap.add_argument("--show", metavar="A-B", help="print a text grid of bars A..B, e.g. 81-84")
+    ap.add_argument("--show", metavar="A-B", type=_bar_range, help="print a text grid of bars A..B, e.g. 81-84")
     a = ap.parse_args(argv)
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -37,7 +48,10 @@ def main(argv=None) -> int:
         spec = Spec(bpm=a.bpm, key=a.key, progression=a.progression, structure=a.structure, variant=v, swing=a.swing,
                     late_ms=a.late_ms, swing_hook=not a.straight_pitched, swing_bass=not a.straight_pitched,
                     swing_pad=not a.straight_pitched, bake_feel=not a.straight)
-        comp = compose(spec)
+        try:
+            comp = compose(spec)
+        except ValueError as exc:
+            ap.error(str(exc))
         out = os.path.join(a.out, f"v{v}") if a.variants else a.out
         info = write(comp, out)
         failed = [c for c in info["checks"] if not c["ok"]]
@@ -47,8 +61,7 @@ def main(argv=None) -> int:
         for c in failed:
             print(f"  FAILED: {c['check']}: {c['detail']}")
         if a.show:
-            first, last = (int(x) for x in a.show.split("-"))
-            print(bar_table(comp, first, last))
+            print(bar_table(comp, *a.show))
         ok = ok and not failed
     return 0 if ok else 1
 

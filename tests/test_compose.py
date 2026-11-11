@@ -199,13 +199,28 @@ def test_validator_catches_planted_errors(song):
             _with(song, "Roll", [n for n in song.track("Roll").notes if not 78 * 4 <= n.grid < 79 * 4]),
         "no note overlaps the next note of the same pitch":
             _with(song, "Kick", [dataclasses.replace(n, duration=1.5) if n.grid == 320.0 else n for n in kick.notes]),
+        "registers: sub 41-98 Hz, pad above 165 Hz, hook in the lead range":
+            _with(song, "Sub", [dataclasses.replace(n, pitch=57) if n is n0 else n for n in sub.notes]),
+        "every section starts on a bar of the form 8n+1":
+            dataclasses.replace(song, sections=[dataclasses.replace(s, start=s.start + 1) if s.name == "Drop 1" else s for s in song.sections]),
+        "bass: no approach note into a bar where that bass is silent":
+            _with(song, "Sub", [dataclasses.replace(n, pitch=32) if n.grid == 183 * 4 + 3.75 else n for n in sub.notes]),
     }
     for check, broken in cases.items():
         assert check in failed(broken), check
+    assert set(cases) == {c.name for c in validate(song)}                 # every check has a planted error
+    mid = song.track("Mid Bass")                                          # a note that only rings into beat 4 is caught too
+    ringing = _with(song, "Mid Bass", [dataclasses.replace(n, duration=1.4) if n.grid == 318.5 else n for n in mid.notes])
+    assert any(n.grid == 318.5 for n in mid.notes) and "drops: beat 4 before a drop is empty, the sub is out for the build's last 8 bars and back on the drop" in failed(ringing)
+    outside = _with(song, "Hook", hook.notes + [Note(69, 802.0, 0.5, 90, 802.0), Note(69, -1.0, 0.5, 90, -1.0)])
+    assert failed(outside) == ["every note is inside the song with a valid length, pitch and velocity"]   # reported, no crash
 
 
 def test_radio_edit_is_cut_from_the_extended_mix(song):
     radio = compose(Spec(structure="radio"))
+    assert failed(radio) == []
+    assert [n.pitch for n in radio.track("Sub").notes if n.grid == 87 * 4 + 3.75] == [28]     # bar 88: E, not a G# hanging into the outro
+    assert [n.pitch for n in radio.track("Mid Bass").notes if n.grid == 39 * 4 + 3.75] == [40]   # bar 40: the root (E), before the break where the mid bass rests
     assert radio.total_bars == 97 and abs(radio.seconds(98) - 179.1) < 0.1
     assert [(s.name, s.start, s.bars) for s in radio.sections] == [
         ("Groove", 1, 8), ("Break 1", 9, 8), ("Build 1", 17, 8), ("Drop 1", 25, 16), ("Break 2", 41, 8), ("Build 2", 49, 8),
@@ -238,12 +253,40 @@ def test_midi_files_round_trip(tmp_path, song):
 def test_cli_and_bad_input(tmp_path, capsys):
     assert main(["--out", str(tmp_path / "x"), "--structure", "loop16", "--variants", "2", "--key", "F minor", "--show", "1-2"]) == 0
     out = capsys.readouterr().out
-    assert "checks 14/14 passed" in out and "Kick       x...x...x...x..." in out
+    assert "checks 15/15 passed" in out and "Kick       x...x...x...x..." in out
     assert os.path.exists(tmp_path / "x" / "v1" / "MIDI" / "01 Kick.mid")
     for bad in (Spec(key="H minor"), Spec(key="A major"), Spec(swing=70), Spec(bpm=20), Spec(key="A minor", progression="hijaz"),
-                Spec(structure="nope")):
+                Spec(structure="nope"), Spec(late_ms=-250), Spec(late_ms=100)):
         with pytest.raises(ValueError):
             compose(bad)
+    for argv in (["--show", "81"], ["--show", "a-b"], ["--variants", "4"], ["--variants", "-1"], ["--key", "Am"], ["--bpm", "30"]):
+        with pytest.raises(SystemExit):                                    # a clear usage error, and nothing is written first
+            main(["--out", str(tmp_path / "bad")] + argv)
+    assert not os.path.exists(tmp_path / "bad")
+
+
+def test_export_details(tmp_path):
+    out = str(tmp_path / "same")
+    write(compose(Spec()), out)
+    info = write(compose(Spec(structure="radio")), out)                    # same folder again: no stale parts left behind
+    files = sorted(os.listdir(os.path.join(out, "MIDI")))
+    assert len(files) == len(info["tracks"]) + 1 and "12 Clave.mid" not in files
+    sub = next(t for t in info["tracks"] if t["name"] == "Sub")
+    assert sub["pitches"] == ["E0", "F0", "G0", "G#0", "A0", "C1"]         # by pitch, not by letter
+    flat = summary(compose(Spec(key="Bb minor")))
+    assert flat["sub_roots"] == ["Bb0", "Ab0", "Gb0", "F0"]
+    odd = summary(compose(Spec(bpm=128.1)))
+    assert not any(":60" in s["time"] for s in odd["sections"]) and ":60" not in odd["length"]
+    st = compose(Spec(bake_feel=False, swing=66.7))
+    info = summary(st)
+    conga = next(t for t in info["tracks"] if t["name"] == "Conga Hi")
+    assert conga["late_ms"] == 6.0 and conga["straight_bars"] == list(range(76, 81)) + list(range(140, 145))
+    assert "Track Delay" in info["ableton_notes"][1] and conga["groove_in_live"].startswith("16th swing")
+    shift = swing_shift(66.7)                                              # after the groove is applied in Live nothing overlaps
+    for name in ("Shaker", "Conga Hi", "Cowbell"):
+        ns = sorted(st.track(name).notes, key=lambda n: n.grid)
+        moved = [(n.grid + (shift if round(n.grid / 0.25) % 2 else 0), n.duration) for n in ns]
+        assert all(a + d <= b + 1e-9 for (a, d), (b, _) in zip(moved, moved[1:])), name
 
 
 def test_push_into_fake_live():
@@ -258,3 +301,27 @@ def test_push_into_fake_live():
     assert clip.start_time == 16.0 and len(clip.notes) == len(comp.track("Kick").notes)
     with pytest.raises(ValueError):
         push(comp, lambda cmd, **kw: h.handle(cmd, kw), prefix="N ")       # refuses to create duplicates
+    for kw in ({"only": ["kick"]}, {"at_bar": 0}):
+        with pytest.raises(ValueError):
+            push(comp, lambda cmd, **k: h.handle(cmd, k), prefix="Q ", **kw)
+    assert s.tempo == 126 and not any(t.name.startswith("Q ") for t in s.tracks)
+
+
+def test_push_rolls_back_when_live_fails_midway():
+    s = fl.Song()
+    h = Handlers(s, fl.Application(s))
+    comp = compose(Spec(structure="loop16"))
+    before = [t.name for t in s.tracks]
+    calls = {"add_notes": 0}
+
+    def flaky(cmd, **kw):
+        if cmd == "add_notes":
+            calls["add_notes"] += 1
+            if calls["add_notes"] == 4:
+                raise RuntimeError("bridge timeout")
+        return h.handle(cmd, kw)
+
+    with pytest.raises(RuntimeError, match="removed 4 of the 4"):
+        push(comp, flaky)
+    assert [t.name for t in s.tracks] == before                             # nothing half-written is left behind
+    assert push(comp, lambda cmd, **kw: h.handle(cmd, kw))["ok"]            # so the retry simply works

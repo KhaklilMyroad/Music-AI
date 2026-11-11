@@ -60,6 +60,18 @@ def validate(comp: Composition) -> list:
     add("bass is monophonic (no overlapping notes)", bad, "one note at a time")
 
     bad = []
+    for nm in ("Sub", "Mid Bass"):
+        by = defaultdict(list)
+        for n in (T[nm].notes if nm in T else []):
+            by[_bar(n.grid)].append(n)
+        for b, ns in by.items():
+            if b + 1 in by or b not in comp.bars:
+                continue
+            root = comp.bars[b].chord.root_pc
+            bad += [f"{nm} in bar {b}" for n in ns if abs(n.grid - (bar_start(b) + 3.75)) < EPS and n.pitch % 12 != root]
+    add("bass: no approach note into a bar where that bass is silent", bad, "every approach note leads somewhere")
+
+    bad = []
     for t in comp.tracks:
         by = defaultdict(list)
         for n in t.notes:
@@ -69,8 +81,9 @@ def validate(comp: Composition) -> list:
             bad += [f"{t.name} @ beat {a.grid}" for a, b in zip(ns, ns[1:]) if b.start < a.start + a.duration - EPS]
     add("no note overlaps the next note of the same pitch", bad, "clean note-offs")
 
+    # a note outside the song has no bar: the last check reports it, the others skip it
     bad = [f"{t.name} {n.pitch} in bar {_bar(n.grid)}" for t in comp.tracks if t.role in ("bass", "harmony", "hook")
-           for n in t.notes if n.pitch % 12 not in comp.bars[_bar(n.grid)].chord.allowed]
+           for n in t.notes if _bar(n.grid) in comp.bars and n.pitch % 12 not in comp.bars[_bar(n.grid)].chord.allowed]
     add("harmony: every pitched note belongs to the scale or chord of its bar", bad, "all in key")
 
     rng = {"Sub": (pt.SUB_LO, pt.SUB_HI + 4), "Mid Bass": (pt.SUB_LO + 12, pt.SUB_HI + 16), "Pad": (pt.PAD_LO, pt.PAD_HI + 6),
@@ -102,7 +115,7 @@ def validate(comp: Composition) -> list:
         seen = set()
         for n in t.notes:
             b = _bar(n.grid)
-            if t.name not in comp.bars[b].roles and b not in seen:
+            if b in comp.bars and t.name not in comp.bars[b].roles and b not in seen:
                 seen.add(b)
                 bad.append(f"{t.name} plays in bar {b} ({comp.bars[b].section}) where it is not planned")
     for s in comp.sections:
@@ -124,9 +137,9 @@ def validate(comp: Composition) -> list:
     bad = []
     for b in tails:
         lo = bar_start(b)
-        if comp.bars[b].tail == 8:
-            bad += [f"{t.name} on beat 4 of bar {b}" for t in comp.tracks if t.role in ("drum", "bass")
-                    and any(lo + 3.0 <= n.grid < lo + 4.0 for n in t.notes)]
+        if comp.bars[b].tail == 8:      # nothing but the vocal trigger may start or still sound on beat 4
+            bad += [f"{t.name} on beat 4 of bar {b}" for t in comp.tracks if t.role != "trigger"
+                    and any(n.start < lo + 4.0 and n.start + n.duration > lo + 3.0 + EPS for n in t.notes)]
         if "Sub" in T and any(lo <= n.grid < lo + 4 for n in T["Sub"].notes):
             bad.append(f"sub plays in build bar {b}")
     for s in comp.sections:
@@ -141,7 +154,8 @@ def validate(comp: Composition) -> list:
 
     end = comp.total_beats
     bad = [f"{t.name} @ beat {n.grid}" for t in comp.tracks for n in t.notes
-           if n.start < 0 or n.start + n.duration > end + EPS or n.duration <= 0 or not 1 <= n.velocity <= 127 or not 0 <= n.pitch <= 127]
+           if not 0 <= n.grid < end or n.start < 0 or n.start + n.duration > end + EPS or n.duration <= 0
+           or not 1 <= n.velocity <= 127 or not 0 <= n.pitch <= 127]
     add("every note is inside the song with a valid length, pitch and velocity", bad, f"{comp.total_bars} bars")
     return out
 

@@ -42,8 +42,8 @@ def pitch_class(name: str) -> int:
     return NOTE_NAMES.index(n)
 
 
-def note_name(pitch: int) -> str:
-    return f"{NOTE_NAMES[pitch % 12]}{pitch // 12 - 2}"
+def note_name(pitch: int, flats: bool = False) -> str:
+    return f"{(FLAT_NAMES if flats else NOTE_NAMES)[pitch % 12]}{pitch // 12 - 2}"
 
 
 def parse_key(key: str) -> tuple[int, str]:

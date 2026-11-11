@@ -4,18 +4,20 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from types import SimpleNamespace
 
 from .. import midi
 from .arrange import Composition
 from .model import bar_start
 from .parts import sub_pitch
-from .theory import PROGRESSIONS, DEFAULT_PROGRESSION, build_progression, key_name, note_name
+from .theory import PROGRESSIONS, DEFAULT_PROGRESSION, build_progression, key_name, note_name, uses_flats
 from .validate import all_ok, validate
 
 
 def _clock(seconds: float) -> str:
-    return f"{int(seconds // 60)}:{seconds % 60:04.1f}"
+    tenths = int(round(seconds * 10))
+    return f"{tenths // 600}:{(tenths % 600) / 10:04.1f}"
 
 
 def summary(comp: Composition, checks: list | None = None) -> dict:
@@ -26,9 +28,10 @@ def summary(comp: Composition, checks: list | None = None) -> dict:
     labels = {k: [c.label for c in v] for k, v in chords.items()}
     roots = [sub_pitch(c.root_pc) for c in chords["main"]]
     leap = max(abs(a - b) for a, b in zip(roots, roots[1:] + roots[:1]))
+    flats = uses_flats(comp.tonic, comp.mode)
     return {
         "bpm": sp.bpm, "key": key_name(comp.tonic, comp.mode), "progression": prog, "chords": labels,
-        "sub_roots": [note_name(p) for p in roots], "sub_largest_root_leap_semitones": leap,
+        "sub_roots": [note_name(p, flats) for p in roots], "sub_largest_root_leap_semitones": leap,
         "bars_per_chord": 2, "structure": sp.structure, "variant": sp.variant,
         "swing_percent": sp.swing, "skins_late_ms": sp.late_ms, "feel_baked_into_midi": sp.bake_feel,
         "total_bars": comp.total_bars, "length": _clock(comp.seconds(comp.total_bars + 1)),
@@ -38,13 +41,16 @@ def summary(comp: Composition, checks: list | None = None) -> dict:
         "tracks": [{"index": i, "name": t.name, "group": t.group, "role": t.role, "file": f"MIDI/{i:02d} {t.name}.mid",
                     "notes": len(t.notes), "swung": t.swing, "late_ms": t.late_ms,
                     "groove_in_live": "None" if (sp.bake_feel or not t.swing) else f"16th swing {sp.swing:g} %",
-                    "pitches": sorted({note_name(n.pitch) for n in t.notes}, key=lambda s: (int(s.lstrip('ABCDEFG#')), s))
-                    if t.role != "drum" else ["C3"], "instrument": t.hint}
+                    "straight_bars": sorted(t.straight_bars),
+                    "pitches": [note_name(p, flats) for p in sorted({n.pitch for n in t.notes})] if t.role != "drum" else ["C3"],
+                    "instrument": t.hint}
                    for i, t in enumerate(comp.tracks, 1)],
         "ableton_notes": [
             "Set the project tempo before importing; put every clip at bar 1 (1.1.1).",
             "Feel is baked into the MIDI: every clip must have Groove = None, otherwise percussion is swung twice."
-            if sp.bake_feel else "MIDI is straight: apply one 16th-swing groove to the tracks marked swung, none to the rest.",
+            if sp.bake_feel else
+            f"MIDI is straight: apply one 16th-swing groove ({sp.swing:g} %) to the tracks marked swung and none to the rest; set Track Delay "
+            f"+{sp.late_ms:g} ms on the tracks with late_ms; a track's 'straight_bars' should not be swung (split the clip there or accept it).",
             "Drum tracks use C3 (60): one Simpler / sample per track. 'drums_gm.mid' holds the same hits on General-MIDI notes for a Drum Rack.",
             "Sub: Operator Voices must be 1 (set by hand). Only the sub plays below ~100 Hz besides the kick.",
             "Chant track: C3 = chant on beats 1-2, D3 = shout on beat 4 before a drop. Load your own licensed vocal chops.",
@@ -58,6 +64,9 @@ def summary(comp: Composition, checks: list | None = None) -> dict:
 def write(comp: Composition, out_dir: str) -> dict:
     mdir = os.path.join(out_dir, "MIDI")
     os.makedirs(mdir, exist_ok=True)
+    for old in os.listdir(mdir):          # an earlier export into the same folder must not leave stale parts behind
+        if re.fullmatch(r"\d\d .+\.mid", old) or old == "drums_gm.mid":
+            os.remove(os.path.join(mdir, old))
     for i, t in enumerate(comp.tracks, 1):
         midi.write(os.path.join(mdir, f"{i:02d} {t.name}.mid"), t.notes, comp.spec.bpm, t.name)
     gm = sorted((SimpleNamespace(pitch=t.gm_pitch, start=n.start, duration=n.duration, velocity=n.velocity)

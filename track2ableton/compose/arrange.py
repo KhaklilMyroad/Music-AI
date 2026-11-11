@@ -173,6 +173,8 @@ def compose(spec: Spec | None = None) -> Composition:
         raise ValueError("bpm must be between 60 and 200")
     if not 50 <= spec.swing <= 66.7:
         raise ValueError("swing must be between 50 (straight) and 66.7 (triplet)")
+    if not 0 <= spec.late_ms <= 30:
+        raise ValueError("late_ms must be between 0 and 30")
     if spec.structure == "radio":
         return _with_ending(cut(compose(replace(spec, structure="extended")), RADIO_CUT, spec))
     if spec.structure not in ("extended", "loop16"):
@@ -316,9 +318,13 @@ def _tracks(events: dict, spec: Spec, straight: dict) -> list:
         notes = []
         for g, p, d, vel in sorted(set(events[name])):
             sw = swing and int(g // BEATS_PER_BAR) + 1 not in st
-            off = feel_offset(g, sw, spec.swing, late_b) if spec.bake_feel else 0.0
-            # swing delays the onset, not the release: a swung hit must not ring into the next 16th
-            notes.append(Note(p, g + off, max(0.03, d - (off - late_b)), vel, g))
+            sw_off = feel_offset(g, sw, spec.swing, 0.0)
+            off = sw_off + late_b if spec.bake_feel else 0.0
+            # swing delays the onset, not the release: a swung hit must not ring into the next 16th.
+            # In straight mode the length is shortened as well (in every bar, because a groove applied in Live
+            # swings the whole clip), so the hits cannot overlap once the groove moves them.
+            shorten = sw_off if spec.bake_feel else feel_offset(g, swing, spec.swing, 0.0)
+            notes.append(Note(p, g + off, max(0.03, d - shorten), vel, g))
         out.append(Track(name, role, group, notes, swing, spec.late_ms if name in dr.SKINS else 0.0, hint, dr.GM_PITCH.get(name), st))
     return out
 
@@ -342,6 +348,17 @@ def cut(src: Composition, segments: list, spec: Spec | None = None) -> Compositi
                     straight[t.name].add(dst + k)
         sections.append(Section(name, n, src.bars[first].kind, start=dst))
         dst += n
+    # a bass approach note was written towards the next bar of the source; at a seam where the bass does not go on,
+    # it would hang, so it goes back to the root of its bar
+    for name, shift in (("Sub", 0), ("Mid Bass", 12)):
+        ns = moved.get(name, [])
+        for s in sections:
+            last = s.start + s.bars - 1
+            nxt_lo = bar_start(last + 1)
+            if any(nxt_lo <= x.grid < nxt_lo + BEATS_PER_BAR for x in ns):
+                continue
+            root = pt.sub_pitch(bars[last].chord.root_pc) + shift
+            moved[name] = ns = [replace(x, pitch=root) if x.grid == nxt_lo - 0.25 and x.pitch != root else x for x in ns]
     tracks = [replace(t, notes=sorted(moved[t.name], key=lambda x: (x.grid, x.pitch)), straight_bars=frozenset(straight[t.name]))
               for t in src.tracks if moved[t.name]]
     return Composition(spec or src.spec, sections, _clamp(tracks, bar_start(dst)), bars, dst - 1, src.tonic, src.mode)

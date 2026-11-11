@@ -14,7 +14,7 @@ py -m track2ableton.compose --out "C:\Users\ronen\Downloads\AfroTech130\composed
 py -m track2ableton.compose --out "C:\Users\ronen\Downloads\AfroTech130\composed\radio" --bpm 130 --key "A minor" --structure radio
 ```
 
-Expected for `extended`: `200 bars (6:09.2), 18 tracks, checks 14/14 passed`. Record in PLAN.md the commit hash
+Expected for `extended`: `200 bars (6:09.2), 18 tracks, checks 15/15 passed`. Record in PLAN.md the commit hash
 (`git rev-parse origin/claude/vigilant-planck-d78nmz`) and the total note count that the command prints, so a
 later regeneration can be told apart. Read `composed\extended\REPORT.md` and `arrangement.json`: sections, tracks,
 note counts per track and the suggested instrument for each.
