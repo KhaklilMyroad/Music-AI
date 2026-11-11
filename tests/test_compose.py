@@ -46,7 +46,8 @@ def test_every_key_mode_and_variant_passes(key, prog, variant):
 
 
 def test_feel_options_pass():
-    for kw in ({"swing_hook": True, "swing_bass": True}, {"bake_feel": False}, {"swing": 50.0, "late_ms": 0.0}, {"swing": 62.0, "late_ms": 12.0}):
+    for kw in ({"swing_hook": False, "swing_bass": False, "swing_pad": False}, {"bake_feel": False}, {"swing": 50.0, "late_ms": 0.0},
+               {"swing": 62.0, "late_ms": 12.0}, {"swing": 66.7, "late_ms": 20.0}):
         assert failed(compose(Spec(**kw))) == [], kw
 
 
@@ -69,13 +70,34 @@ def test_groove_rules(song):
     assert sub.notes and not any(n.grid in kicks for n in sub.notes)
     assert not any(49 <= n.grid // 4 + 1 <= 64 for n in kick.notes)       # Break 1 has no kick
     assert not [t.name for t in song.tracks if t.role == "drum" and any(121 <= n.grid // 4 + 1 <= 128 for n in t.notes)]
-    for first in (73, 137):                                               # sub is out for the 8 bars before each drop
-        assert not any(first <= n.grid // 4 + 1 <= first + 7 for n in sub.notes)
+    for first, last in ((49, 80), (129, 144)):                            # no sub from the break / build until the drop
+        assert not any(first <= n.grid // 4 + 1 <= last for n in sub.notes)
+    hook = song.track("Hook")                                             # the hook rests in each build's last 8 bars
+    assert not any(b <= n.grid // 4 + 1 <= b + 7 for n in hook.notes for b in (73, 137))
+    played = sorted({int(n.grid // 4) + 1 for n in kick.notes})
+    no_beat4 = [b for b in played if not any(n.grid == (b - 1) * 4 + 3 for n in kick.notes)]
+    assert no_beat4 == [48, 80, 96, 112, 144, 160, 176]                   # 16-bar turnarounds + the two pre-drop gaps only
+    assert all(len([n for n in kick.notes if (b - 1) * 4 <= n.grid < b * 4]) == 4 for b in list(range(1, 33)) + list(range(177, 201)))
     assert any(n.grid // 4 + 1 == 81 for n in sub.notes) and any(n.grid // 4 + 1 == 145 for n in sub.notes)
     assert {n.pitch for n in sub.notes if 80 * 4 <= n.grid < 81 * 4} == {33}  # A = 55 Hz under A minor
     for b in (80, 144):                                                   # beat 4 before the drop: only the shout
         lo = (b - 1) * 4 + 3
         assert [t.name for t in song.tracks if any(lo <= n.grid < lo + 1 for n in t.notes)] == ["Chant"]
+
+
+def test_percussion_takes_turns(song):
+    def per_bar(name, bars):
+        return [len([n for n in song.track(name).notes if (b - 1) * 4 <= n.grid < b * 4]) for b in bars]
+    assert per_bar("Bongo", range(81, 85)) == [2, 4, 2, 4] and per_bar("Djembe", range(81, 85)) == [2, 0, 2, 0]
+    hi = [round((n.grid % 4) / 0.25) for n in song.track("Conga Hi").notes if 80 * 4 <= n.grid < 82 * 4]
+    lo = [round((n.grid % 4) / 0.25) for n in song.track("Conga Low").notes if 80 * 4 <= n.grid < 82 * 4]
+    assert max(hi) < 8 <= min(lo)                                         # high conga asks in beats 1-2, low answers in 3-4
+    roll_hi = [round((n.grid % 4) / 0.25) for n in song.track("Conga Hi").notes if 95 * 4 <= n.grid < 96 * 4]
+    roll_lo = [round((n.grid % 4) / 0.25) for n in song.track("Conga Low").notes if 95 * 4 <= n.grid < 96 * 4]
+    assert roll_hi[-4:] == [8, 9, 10, 11] and roll_lo == [12, 13, 14, 15]   # bar 96: the roll passes from high to low
+    groove = {t.name for t in song.tracks if any(32 * 4 <= n.grid < 48 * 4 for n in t.notes)}
+    drop = {t.name for t in song.tracks if any(80 * 4 <= n.grid < 96 * 4 for n in t.notes)}
+    assert {"Djembe", "Low Drum"} <= drop - groove                        # the drop adds drums the groove held back
 
 
 def test_build_rises_bar_by_bar(song):
@@ -98,7 +120,15 @@ def test_feel_is_written_into_the_midi(song):
     odd = [n for n in shaker.notes if round(n.grid / 0.25) % 2 == 1]
     even = [n for n in shaker.notes if round(n.grid / 0.25) % 2 == 0]
     assert odd and all(abs(n.start - n.grid - sh) < 1e-9 for n in odd) and all(n.start == n.grid for n in even)
-    assert all(abs(n.start - n.grid - late - (sh if round(n.grid / 0.25) % 2 else 0)) < 1e-9 for n in conga.notes)
+    assert conga.straight_bars == frozenset(list(range(76, 81)) + list(range(140, 145)))   # straight beside the roll
+    for n in conga.notes:
+        swung = round(n.grid / 0.25) % 2 == 1 and int(n.grid // 4) + 1 not in conga.straight_bars
+        assert abs(n.start - n.grid - late - (sh if swung else 0)) < 1e-9
+    for name in ("Sub", "Mid Bass", "Hook", "Pad"):                       # one swing for everything that plays off-16ths
+        off = [n for n in song.track(name).notes if round(n.grid / 0.25) % 2 == 1]
+        assert off and all(abs(n.start - n.grid - sh) < 1e-9 for n in off)
+    only_perc = compose(Spec(swing_hook=False, swing_bass=False, swing_pad=False))
+    assert all(n.start == n.grid for name in ("Sub", "Mid Bass", "Hook", "Pad") for n in only_perc.track(name).notes)
     assert abs(sh * 60 / 130 * 1000 - 17.3) < 0.1                         # 57.5 % at 130 BPM = 17.3 ms
     straight = compose(Spec(bake_feel=False))
     assert all(n.start == n.grid for t in straight.tracks for n in t.notes)
@@ -157,13 +187,16 @@ def test_validator_catches_planted_errors(song):
 
 def test_radio_edit_is_cut_from_the_extended_mix(song):
     radio = compose(Spec(structure="radio"))
-    assert radio.total_bars == 96 and abs(radio.seconds(97) - 177.2) < 0.1
+    assert radio.total_bars == 97 and abs(radio.seconds(98) - 179.1) < 0.1
     assert [(s.name, s.start, s.bars) for s in radio.sections] == [
-        ("Groove", 1, 16), ("Break 1", 17, 8), ("Build 1", 25, 8), ("Drop 1", 33, 32), ("Break 2", 65, 8), ("Build 2", 73, 8),
-        ("Drop 2", 81, 8), ("Outro", 89, 8)]
-    src = [(n.pitch, n.grid - 80 * 4, n.velocity) for n in song.track("Sub").notes if 80 * 4 <= n.grid < 112 * 4]
-    dst = [(n.pitch, n.grid - 32 * 4, n.velocity) for n in radio.track("Sub").notes if 32 * 4 <= n.grid < 64 * 4]
-    assert src == dst and src
+        ("Groove", 1, 8), ("Break 1", 9, 8), ("Build 1", 17, 8), ("Drop 1", 25, 16), ("Break 2", 41, 8), ("Build 2", 49, 8),
+        ("Drop 2", 57, 32), ("Outro", 89, 8), ("End", 97, 1)]
+    src = [(n.pitch, n.grid - 144 * 4, n.start - n.grid, n.velocity) for n in song.track("Hook").notes if 144 * 4 <= n.grid < 176 * 4]
+    dst = [(n.pitch, n.grid - 56 * 4, n.start - n.grid, n.velocity) for n in radio.track("Hook").notes if 56 * 4 <= n.grid < 88 * 4]
+    assert src == dst and max(p for p, *_ in src) - min(p for p, *_ in src) > 12       # the whole second drop, octave lift included
+    assert radio.track("Conga Hi").straight_bars == frozenset(list(range(20, 25)) + list(range(52, 57)))
+    last = {t.name: [(n.grid - 96 * 4, n.duration) for n in t.notes if n.grid >= 96 * 4] for t in radio.tracks}
+    assert {k for k, v in last.items() if v} == {"Kick", "Pad"} and all(g == 0 for v in last.values() for g, _ in v)  # ends on a downbeat
 
 
 def test_midi_files_round_trip(tmp_path, song):

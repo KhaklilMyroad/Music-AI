@@ -64,9 +64,11 @@ Groove = None, otherwise the percussion is swung twice. Live gives new clips the
 (`DefaultGrooveId = 4` in this set) and the API cannot change it, so: ask the user to save and close Live, back
 up the .als, set `GrooveId` to -1 on every MIDI clip, verify with a diff that nothing else changed, and reopen.
 
-Timing targets for your checks: kick, clap, sub, mid-bass, pad, hook exactly on the 16th grid; swung tracks have
-their odd 16ths 0.0375 beat (17.3 ms) late; Conga Hi, Conga Low, Bongo, Djembe and Low Drum a further 0.013 beat
-(6 ms) late; the Roll is straight and uses 32nds in bars 79-80 and 143-144.
+Timing targets for your checks: kick, clap and roll exactly on the straight grid (the roll uses 32nds in bars 79-80
+and 143-144). Every other track, bass, pad and hook included, has its odd 16ths 0.0375 beat (17.3 ms) late: one
+swing for everything, so the bass does not lead the percussion that doubles it. Conga Hi, Conga Low, Bongo, Djembe
+and Low Drum sit a further 0.013 beat (6 ms) late. Exception: Conga Hi is not swung in bars 76-80 and 140-144,
+where it plays 16ths beside the roll. `arrangement.json` lists which tracks are swung.
 
 ## Stage 5: export and check, then STOP
 
@@ -81,7 +83,10 @@ Then STOP: the user listens to the whole track and says what to change.
 - Stage 7 from PLAN.md: risers, a high-pass rising on the Roll, a low-pass opening on Mid-bass and Hook through
   each build. These are automation, not notes.
 - Stage 8 mix and stage 9 master as planned (club about -9 LUFS, streaming -14, true peak <= -1 dBTP).
-- Radio edit: the same procedure with `composed\radio` (96 bars) in its own copy of the set.
+- Radio edit: the same procedure with `composed\radio` (97 bars: 96 plus a closing bar) in its own copy of the set.
+
+The user can also compare the two swing options by ear: the default swings bass, pad and hook with the
+percussion; `--straight-pitched` keeps them on the straight grid.
 
 ## If the user prefers the drums they already approved
 

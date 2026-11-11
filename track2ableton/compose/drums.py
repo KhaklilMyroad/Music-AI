@@ -1,8 +1,9 @@
 """Organic afro-tech drum patterns, written note by note (no randomness).
 
 Skins and wood carry the groove, metal is sparse and soft, the shaker leaves gaps, congas answer each
-other inside the bar, and bongo / djembe answer across bars. A phrase is 16 bars (4 x 4): instruments
-enter by phrase, bar 8 has a pickup and bar 16 a conga turnaround with the last kick left out.
+other inside the bar (in a two-bar form), and bongo / djembe take turns across bars. A phrase is 16 bars
+(4 x 4): instruments enter by phrase, bar 8 has a pickup, bar 12 a low-drum pickup and bar 16 the full
+turnaround: a roll handed from the high to the low conga with the last kick left out.
 
 A hit is (position in beats inside the bar, velocity, duration in beats). `pb` is the bar of the
 16-bar phrase (1..16). `k` is the bar of an 8-bar build tail (1..8).
@@ -17,6 +18,7 @@ GROUP = {r: "PERC" for r in DRUM_ROLES}
 GROUP.update({"Kick": "DRUMS", "Clap": "DRUMS", "Wood": "DRUMS", "Hat": "DRUMS", "Roll": "DRUMS"})
 SKINS = frozenset({"Conga Hi", "Conga Low", "Bongo", "Djembe", "Low Drum"})   # played slightly behind the beat
 STRAIGHT = frozenset({"Kick", "Clap", "Roll"})                                # never swung
+TAIL_STRAIGHT = {"Conga Hi": 4}   # from this bar of a build tail the role plays straight 16ths, like the roll beside it
 GM_PITCH = {"Kick": 36, "Clap": 39, "Wood": 76, "Hat": 42, "Shaker": 70, "Conga Hi": 62, "Conga Low": 64, "Bongo": 60,
             "Djembe": 61, "Low Drum": 41, "Clave": 75, "Cowbell": 56, "Roll": 38}
 HINT = {
@@ -76,16 +78,24 @@ def bar_hits(role: str, pb: int, variant: int = 0) -> list:
             hits = [x for x in hits if x[0] < 12]
         return _h(sorted(hits))
     if role == "Conga Hi":
-        base = [(6, 92), (7, 106)] if pb <= 4 else ([(2, 60), (5, 88), (7, 104)] if v == 1 else [(2, 56), (3, 62), (6, 92), (7, 106)])
+        if pb <= 4:
+            base = [(6, 92), (7, 106)]
+        elif v == 1:
+            base = [(2, 60), (6, 88), (7, 104)]
+        else:                                 # two-bar form: the answer bar starts later and softer
+            base = [(3, 58), (6, 92), (7, 100)] if pb % 2 == 0 else [(2, 56), (3, 62), (6, 92), (7, 106)]
         if pb == 8:
             base = [x for x in base if x[0] < 13] + [(13, 70), (14, 82), (15, 98)]
-        if pb == 16:                          # turnaround roll through beats 3-4
-            base = [x for x in base if x[0] < 8] + [(8 + i, 62 + 8 * i - (6 if i in (2, 5) else 0)) for i in range(8)]
+        if pb == 16:                          # turnaround: the roll starts here on beat 3 ...
+            base = [x for x in base if x[0] < 8] + [(8, 62), (9, 70), (10, 72), (11, 86)]
         return _h(base)
     if role == "Conga Low":
-        if pb == 16:
-            return []
-        base = [(10, 96), (14, 84)] if pb <= 4 else [(10, 96), (11, 54), (14, 84), (15, 100)]
+        if pb == 16:                          # ... and the low conga finishes it on beat 4
+            return _h([(12, 94), (13, 96), (14, 110), (15, 118)])
+        if pb <= 4:
+            base = [(10, 96), (14, 84)]
+        else:
+            base = [(10, 90), (11, 60), (15, 104)] if pb % 2 == 0 and v != 1 else [(10, 96), (11, 54), (14, 84), (15, 100)]
         return _h([x for x in base if x[0] < 13] if pb == 8 else base)
     if role == "Bongo":
         if pb < 5:
@@ -95,7 +105,7 @@ def bar_hits(role: str, pb: int, variant: int = 0) -> list:
     if role == "Djembe":
         if pb < 5:
             return []
-        base = [(7, 96), (11, 60)] if pb % 2 == 0 else [(15, 84)]
+        base = [(9, 70), (11, 96)] if pb % 2 == 1 else []    # odd bars, when the bongo plays its thin bar
         if pb >= 13:
             base = [(3, 70)] + base
         return _h([x for x in base if x[0] < 8] if pb == 16 else base)
@@ -110,7 +120,7 @@ def bar_hits(role: str, pb: int, variant: int = 0) -> list:
     if role == "Clave":
         return _h([(0, 96), (3, 76), (6, 88), (10, 92), (12, 80)])
     if role == "Cowbell":
-        return _h([(0, 96), (4, 92), (7, 52), (8, 96), (12, 92), (15, 52)])
+        return _h([(0, 88), (4, 76), (7, 50), (8, 84), (12, 76), (15, 50)])   # with the kick, behind the skins
     if role == "Roll":
         return []
     raise ValueError(f"unknown drum role {role!r}")
@@ -128,9 +138,8 @@ def build_hits(role: str, k: int, variant: int = 0) -> list:
         if k < 5:
             return _h([(s, _clip(v * ramp)) for s, v in [(2, 76), (6, 70), (10, 80), (14, 70)]])
         return _h([(s, _clip((62 if s % 4 == 0 else 80) * ramp)) for s in range(0, 16, 2)])
-    if role == "Shaker":
-        acc = [60, 44, 84, 50]
-        return _h([(s, _clip(acc[s % 4] * ramp)) for s in range(16)])
+    if role == "Shaker":                      # its drop figure, getting louder; the roll and congas carry the 16ths
+        return [(p, _clip(vel * ramp), d) for p, vel, d in bar_hits("Shaker", 13, variant)]
     if role == "Conga Hi":
         if k <= 3:
             return _h([(s, _clip(v * ramp)) for s, v in [(2, 56), (3, 62), (6, 92), (7, 106)]])

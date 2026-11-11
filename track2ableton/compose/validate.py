@@ -39,7 +39,8 @@ def validate(comp: Composition) -> list:
     for t in comp.tracks:
         res = 0.125 if t.name == "Roll" else 0.25
         for n in t.notes:
-            exp = feel_offset(n.grid, t.swing, sp.swing, late if t.late_ms else 0.0) if sp.bake_feel else 0.0
+            sw = t.swing and _bar(n.grid) not in t.straight_bars
+            exp = feel_offset(n.grid, sw, sp.swing, late if t.late_ms else 0.0) if sp.bake_feel else 0.0
             if abs(n.start - n.grid - exp) > EPS or abs(n.grid / res - round(n.grid / res)) > EPS:
                 bad.append(f"{t.name} @ beat {n.grid}")
     add("timing: every note on the grid plus its planned swing / laid-back offset", bad, f"{sum(len(t.notes) for t in comp.tracks)} notes")

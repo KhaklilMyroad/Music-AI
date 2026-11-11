@@ -29,12 +29,13 @@ class Spec:
     bpm: float = 130.0
     key: str = "A minor"
     progression: str | None = None     # None = the default for the key's mode
-    structure: str = "extended"        # extended (200 bars) | radio (96 bars, cut from extended) | loop16
+    structure: str = "extended"        # extended (200 bars) | radio (96 bars cut from extended + a closing bar) | loop16
     variant: int = 0                   # 0..2 selects alternative wood / bass / hook figures
-    swing: float = 57.5                # percent, applied to percussion off-16ths
+    swing: float = 57.5                # percent; one swing for every part that plays off-16ths (not kick, clap, roll)
     late_ms: float = 6.0               # skins sit this far behind the beat
-    swing_hook: bool = False
-    swing_bass: bool = False
+    swing_hook: bool = True            # False = that part stays on the straight grid while the percussion swings
+    swing_bass: bool = True
+    swing_pad: bool = True
     bake_feel: bool = True             # write swing / laid-back timing into the MIDI (clips then need Groove = None)
 
 
@@ -94,28 +95,31 @@ def _full(*roles, **extra):
 
 def extended_sections() -> list:
     build = _full("Kick", "Clap", "Hat", "Shaker", "Conga Hi", "Conga Low", "Low Drum")
+    # "sparse" keeps the kick an unbroken four-on-the-floor where a DJ mixes; the kick only drops out at a
+    # 16-bar turnaround inside the groove and drops, and on beat 4 before each drop.
     return [
-        Section("Intro A", 16, "intro", drums={"Kick": "evolve", "Shaker": "evolve", "Hat": "evolve", "Clave": ("evolve", 9)}),
-        Section("Intro B", 16, "intro", drums={"Kick": "full", "Clap": "evolve", "Shaker": "full", "Hat": "full",
-                                               "Conga Hi": "evolve", "Conga Low": "evolve", "Wood": "evolve"},
+        Section("Intro A", 16, "intro", drums={"Kick": "sparse", "Shaker": "evolve", "Wood": "evolve", "Clave": ("evolve", 9)}),
+        Section("Intro B", 16, "intro", drums={"Kick": "sparse", "Clap": "evolve", "Shaker": "full", "Hat": "full",
+                                               "Conga Hi": "evolve", "Conga Low": "evolve", "Wood": "full"},
                 pad=("stab", 9)),
-        Section("Groove", 16, "groove", drums=_full("Kick", "Clap", "Wood", "Hat", "Shaker", "Conga Hi", "Conga Low", "Low Drum",
-                                                    Bongo="evolve", Djembe="evolve"),
+        # the groove holds back the djembe, the low drum and the shaker's 16ths so the drop has drums to add
+        Section("Groove", 16, "groove", drums=_full("Kick", "Clap", "Wood", "Hat", "Conga Hi", "Conga Low",
+                                                    Bongo="evolve", Shaker="sparse"),
                 sub="offbeat", mid="offbeat", pad="sustain", chant=("teaser", 9)),
         Section("Break 1", 16, "break", drums={"Shaker": "sparse", "Conga Hi": "evolve", "Conga Low": "evolve", "Bongo": "evolve",
                                                "Wood": "evolve", "Djembe": "evolve"},
                 pad="sustain", hook="motif", chant="call", progression="break"),
-        Section("Build 1", 16, "build", drums=dict(build), mid="offbeat", hook="motif"),
+        Section("Build 1", 16, "build", drums=dict(build), mid="offbeat", hook=("motif", 1, 8)),   # the hook rests, then returns on the drop
         Section("Drop 1", 32, "drop", drums=_full(*ALL_DRUMS, Cowbell=("full", 17)),
                 sub="rolling", mid="rolling", pad="stab", hook="motif", chant="call"),
         Section("Pre-break", 8, "prebreak", drums={"Kick": "sparse", "Shaker": "sparse", "Conga Hi": "sparse", "Conga Low": "sparse"},
                 sub="offbeat"),
         Section("Break 2", 8, "break", pad="sustain", hook="motif", sub="drone", chant="call"),
-        Section("Build 2", 16, "build", drums=dict(build), sub=("offbeat", 1, 8), mid="offbeat", hook="motif"),
+        Section("Build 2", 16, "build", drums=dict(build), mid="offbeat", hook=("motif", 1, 8)),
         Section("Drop 2", 32, "drop", drums=_full(*ALL_DRUMS, "Cowbell"),
                 sub="rolling", mid="rolling", pad="stab", hook=[("motif", 1, 16), ("octave", 17, 32)], chant="call"),
-        Section("Outro A", 16, "outro", drums=_full(*ALL_DRUMS), sub=("rolling", 1, 8), mid=("rolling", 1, 8)),
-        Section("Outro B", 8, "outro", drums=_full("Kick", "Hat", "Shaker")),
+        Section("Outro A", 16, "outro", drums=_full(*ALL_DRUMS, Kick="sparse"), sub=("rolling", 1, 8), mid=("rolling", 1, 8)),
+        Section("Outro B", 8, "outro", drums={"Kick": "sparse", "Shaker": "sparse", "Conga Hi": "sparse", "Conga Low": "sparse"}),
     ]
 
 
@@ -123,9 +127,10 @@ def loop_sections() -> list:
     return [Section("Loop", 16, "drop", drums=_full(*ALL_DRUMS), sub="rolling", mid="rolling", pad="stab", hook="motif", chant="call")]
 
 
-# radio edit = these bar ranges of the extended mix, in order (name, first source bar, bars); cuts only on 8n+1
-RADIO_CUT = [("Groove", 33, 16), ("Break 1", 49, 8), ("Build 1", 73, 8), ("Drop 1", 81, 32), ("Break 2", 121, 8),
-             ("Build 2", 137, 8), ("Drop 2", 145, 8), ("Outro", 185, 8)]
+# radio edit = these bar ranges of the extended mix, in order (name, first source bar, bars); cuts only on 8n+1.
+# The second drop is the long one (it carries the octave lift); a closing bar is added after the outro.
+RADIO_CUT = [("Groove", 41, 8), ("Break 1", 49, 8), ("Build 1", 73, 8), ("Drop 1", 81, 16), ("Break 2", 121, 8),
+             ("Build 2", 137, 8), ("Drop 2", 145, 32), ("Outro", 185, 8)]
 
 
 def _ranges(v, bars: int) -> list:
@@ -150,8 +155,9 @@ def _mode_at(v, i: int, bars: int):
 
 def _phrase_bar(i: int, mode: str) -> int:
     """Bar of the 16-bar drum phrase for bar i (1-based) of a section."""
-    if mode == "full":       # always the dense half, with a turnaround every 8 bars
-        return 9 + (i - 1) % 8
+    if mode == "full":       # the dense half; a light pickup (phrase bar 12) every 8 bars, the full turnaround every 16
+        pb = 9 + (i - 1) % 8
+        return 12 if pb == 16 and i % 16 else pb
     if mode == "sparse":
         return 1 + (i - 1) % 8
     if mode == "evolve":
@@ -166,7 +172,7 @@ def compose(spec: Spec | None = None) -> Composition:
     if not 50 <= spec.swing <= 66.7:
         raise ValueError("swing must be between 50 (straight) and 66.7 (triplet)")
     if spec.structure == "radio":
-        return cut(compose(replace(spec, structure="extended")), RADIO_CUT, spec)
+        return _with_ending(cut(compose(replace(spec, structure="extended")), RADIO_CUT, spec))
     if spec.structure not in ("extended", "loop16"):
         raise ValueError("structure must be extended, radio or loop16")
     tonic, mode = parse_key(spec.key)
@@ -174,6 +180,7 @@ def compose(spec: Spec | None = None) -> Composition:
              "break": build_progression(tonic, mode, spec.progression, "break")}
     sections = extended_sections() if spec.structure == "extended" else loop_sections()
     events = defaultdict(list)       # track -> [(grid beats, pitch, duration, velocity)]
+    straight = defaultdict(set)      # track -> bars it plays straight
     bars: dict = {}
     voicing = None
     bar = 1
@@ -203,6 +210,8 @@ def compose(spec: Spec | None = None) -> Composition:
                 if not m:
                     continue
                 roles.add(role)
+                if tail and tail >= dr.TAIL_STRAIGHT.get(role, 99):
+                    straight[role].add(b)
                 hits = dr.build_hits(role, tail, spec.variant) if tail else dr.bar_hits(role, _phrase_bar(i, m), spec.variant)
                 if tail == 8:
                     hits = [h for h in hits if h[0] < 3.0]          # silence on beat 4 before the drop
@@ -241,7 +250,7 @@ def compose(spec: Spec | None = None) -> Composition:
     total = bar - 1
     events = {k: v for k, v in events.items() if v}
     _resolve_hook_clashes(events, bars)
-    return Composition(spec, sections, _clamp(_tracks(events, spec), total * BEATS_PER_BAR), bars, total, tonic, mode)
+    return Composition(spec, sections, _clamp(_tracks(events, spec, straight), total * BEATS_PER_BAR), bars, total, tonic, mode)
 
 
 def _clamp(tracks: list, end: float) -> list:
@@ -273,7 +282,7 @@ def _resolve_hook_clashes(events: dict, bars: dict) -> None:
         events["Hook"] = out
 
 
-def _tracks(events: dict, spec: Spec) -> list:
+def _tracks(events: dict, spec: Spec, straight: dict) -> list:
     late = spec.late_ms / 1000.0 * spec.bpm / 60.0 if spec.bake_feel else 0.0
     out = []
     for name in TRACK_ORDER:
@@ -284,20 +293,22 @@ def _tracks(events: dict, spec: Spec) -> list:
             swing = name not in dr.STRAIGHT
         else:
             role, group, hint = PITCHED[name]
-            swing = (name == "Hook" and spec.swing_hook) or (role == "bass" and spec.swing_bass)
+            swing = (name == "Hook" and spec.swing_hook) or (role == "bass" and spec.swing_bass) or (name == "Pad" and spec.swing_pad)
         late_b = late if name in dr.SKINS else 0.0
+        st = frozenset(straight.get(name, ()))
         notes = []
         for g, p, d, vel in sorted(set(events[name])):
-            off = feel_offset(g, swing, spec.swing, late_b) if spec.bake_feel else 0.0
+            sw = swing and int(g // BEATS_PER_BAR) + 1 not in st
+            off = feel_offset(g, sw, spec.swing, late_b) if spec.bake_feel else 0.0
             # swing delays the onset, not the release: a swung hit must not ring into the next 16th
             notes.append(Note(p, g + off, max(0.03, d - (off - late_b)), vel, g))
-        out.append(Track(name, role, group, notes, swing, spec.late_ms if name in dr.SKINS else 0.0, hint, dr.GM_PITCH.get(name)))
+        out.append(Track(name, role, group, notes, swing, spec.late_ms if name in dr.SKINS else 0.0, hint, dr.GM_PITCH.get(name), st))
     return out
 
 
 def cut(src: Composition, segments: list, spec: Spec | None = None) -> Composition:
     """New composition made of whole-bar ranges of `src` (name, first source bar, bars). Used for the radio edit."""
-    sections, bars, moved = [], {}, defaultdict(list)
+    sections, bars, moved, straight = [], {}, defaultdict(list), defaultdict(set)
     dst = 1
     for name, first, n in segments:
         if (first - 1) % 8 or n % 8:
@@ -309,7 +320,24 @@ def cut(src: Composition, segments: list, spec: Spec | None = None) -> Compositi
                     moved[t.name].append(Note(nt.pitch, nt.start + shift, min(nt.duration, hi - nt.grid), nt.velocity, nt.grid + shift))
         for k in range(n):
             bars[dst + k] = src.bars[first + k]
+            for t in src.tracks:
+                if first + k in t.straight_bars:
+                    straight[t.name].add(dst + k)
         sections.append(Section(name, n, src.bars[first].kind, start=dst))
         dst += n
-    tracks = [replace(t, notes=sorted(moved[t.name], key=lambda x: (x.grid, x.pitch))) for t in src.tracks if moved[t.name]]
+    tracks = [replace(t, notes=sorted(moved[t.name], key=lambda x: (x.grid, x.pitch)), straight_bars=frozenset(straight[t.name]))
+              for t in src.tracks if moved[t.name]]
     return Composition(spec or src.spec, sections, _clamp(tracks, bar_start(dst)), bars, dst - 1, src.tonic, src.mode)
+
+
+def _with_ending(comp: Composition) -> Composition:
+    """One closing bar so an edit does not stop on a pickup: the kick and the tonic chord on beat 1, left to ring."""
+    b = comp.total_bars + 1
+    t0 = bar_start(b)
+    chord = build_progression(comp.tonic, comp.mode, comp.spec.progression, "main")[0]
+    add = {"Kick": [Note(60, t0, 0.2, 124, t0)], "Pad": [Note(p, t0, 3.5, 84, t0) for p in pt.voice_chord(chord, None)]}
+    have = {t.name for t in comp.tracks}
+    tracks = [replace(t, notes=t.notes + add.get(t.name, [])) for t in comp.tracks]
+    bars = dict(comp.bars)
+    bars[b] = BarInfo("End", "outro", chord, 0, frozenset(n for n in add if n in have))
+    return replace(comp, tracks=tracks, bars=bars, sections=comp.sections + [Section("End", 1, "outro", start=b)], total_bars=b)

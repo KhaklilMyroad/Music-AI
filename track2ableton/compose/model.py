@@ -26,6 +26,7 @@ class Track:
     late_ms: float = 0.0      # constant, planned laid-back offset
     hint: str = ""            # instrument / sample suggestion for Ableton
     gm_pitch: int | None = None  # General MIDI drum note for the combined drum file
+    straight_bars: frozenset = frozenset()   # bars in which this track is not swung (build rolls)
 
 
 def bar_start(bar: int) -> float:

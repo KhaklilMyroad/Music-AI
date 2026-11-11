@@ -18,13 +18,13 @@ def main(argv=None) -> int:
     ap.add_argument("--key", default="A minor", help='e.g. "A minor", "F minor", "D dorian", "E phrygian", "D hijaz"')
     ap.add_argument("--progression", choices=sorted(PROGRESSIONS), help="default: the usual one for the key's mode")
     ap.add_argument("--structure", choices=["extended", "radio", "loop16"], default="extended",
-                    help="extended = 200-bar DJ mix, radio = 96 bars cut from it, loop16 = 16 bars of the drop for auditioning")
+                    help="extended = 200-bar DJ mix, radio = 97 bars cut from it (96 + a closing bar), loop16 = 16 bars of the drop for auditioning")
     ap.add_argument("--variant", type=int, default=0, help="0-2: alternative wood, bass and hook figures")
     ap.add_argument("--variants", type=int, default=0, help="write this many variants (0..N-1) into sub-folders v0, v1, ...")
     ap.add_argument("--swing", type=float, default=57.5, help="percussion swing in percent (50 = straight)")
     ap.add_argument("--late-ms", type=float, default=6.0, help="how far the skins sit behind the beat")
-    ap.add_argument("--swing-hook", action="store_true")
-    ap.add_argument("--swing-bass", action="store_true")
+    ap.add_argument("--straight-pitched", action="store_true",
+                    help="keep bass, pad and hook on the straight grid; only the percussion swings (for A/B by ear)")
     ap.add_argument("--straight", action="store_true", help="write straight MIDI and apply the groove in Live instead")
     ap.add_argument("--show", metavar="A-B", help="print a text grid of bars A..B, e.g. 81-84")
     a = ap.parse_args(argv)
@@ -35,7 +35,8 @@ def main(argv=None) -> int:
     ok = True
     for v in (range(a.variants) if a.variants else [a.variant]):
         spec = Spec(bpm=a.bpm, key=a.key, progression=a.progression, structure=a.structure, variant=v, swing=a.swing,
-                    late_ms=a.late_ms, swing_hook=a.swing_hook, swing_bass=a.swing_bass, bake_feel=not a.straight)
+                    late_ms=a.late_ms, swing_hook=not a.straight_pitched, swing_bass=not a.straight_pitched,
+                    swing_pad=not a.straight_pitched, bake_feel=not a.straight)
         comp = compose(spec)
         out = os.path.join(a.out, f"v{v}") if a.variants else a.out
         info = write(comp, out)
