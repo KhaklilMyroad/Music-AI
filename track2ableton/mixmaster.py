@@ -222,3 +222,49 @@ def compare(mix_path: str, ref_path: str, max_moves: int = 5) -> dict:
             "band_difference_db": {f"{c:.0f}": round(float(x), 1) for c, x in zip(ca[:n], smooth)},
             "eq_moves": sorted(moves, key=lambda m: m["freq_hz"]),
             "stereo_mix_vs_ref": {"mix_side_to_mid_db": mx.stereo(a).side_to_mid_db, "ref_side_to_mid_db": mx.stereo(r).side_to_mid_db}}
+
+
+def match_chain(mix_path: str, ref_path: str) -> dict:
+    """A starting master chain, in Live's own devices and as numbers to set, that moves the mix towards a reference:
+    tone (EQ Eight), density (Glue Compressor, only if the reference is clearly denser) and loudness (Limiter).
+    A starting point: EQ and compression change loudness, so export and run verify_match, then adjust."""
+    c = compare(mix_path, ref_path)
+    m, r = measure(mix_path, "mix"), measure(ref_path, "reference")
+    chain: list[dict] = []
+    if c["eq_moves"]:
+        chain.append({"device": "EQ Eight", "bands": [dict(band=i + 1, **mv) for i, mv in enumerate(c["eq_moves"])],
+                      "why": "Tone differences from the reference at matched loudness, moved 70 % of the way: the two songs are "
+                             "not the same arrangement."})
+    crest_gap = m.crest_db - r.crest_db
+    if crest_gap > 2.0:
+        chain.append({"device": "Glue Compressor", "ratio": 2, "attack_ms": 10, "release": "Auto",
+                      "aim_gain_reduction_db": round(float(min(4.0, crest_gap / 2)), 1),
+                      "why": f"The mix has {crest_gap:.1f} dB more crest factor than the reference ({m.crest_db} against {r.crest_db} dB)."})
+    gain = float(np.clip(c["loudness_gap_db"], -12, 12))
+    chain.append({"device": "Limiter", "ceiling_db": -1.0, "gain_db": round(gain, 1),
+                  "why": f"The reference is {c['loudness_gap_db']:+.1f} LU from the mix ({c['reference_lufs']} against {c['mix_lufs']} LUFS)."})
+    notes = []
+    width = c["stereo_mix_vs_ref"]["mix_side_to_mid_db"] - c["stereo_mix_vs_ref"]["ref_side_to_mid_db"]
+    if abs(width) > 3:
+        notes.append(f"Stereo: the mix's side signal is {width:+.1f} dB against the reference's (relative to mid). "
+                     "Width is an arrangement and mix decision; a master-bus widener is a last resort.")
+    if abs(c["loudness_gap_db"]) > 12:
+        notes.append("The loudness gap is larger than a limiter should close: fix the mix level first.")
+    return {"chain": chain, "notes": notes, "mix": {"lufs": m.integrated_lufs, "true_peak_dbtp": m.true_peak_dbtp, "crest_db": m.crest_db},
+            "reference": {"lufs": r.integrated_lufs, "true_peak_dbtp": r.true_peak_dbtp, "crest_db": r.crest_db},
+            "apply": "On the master track, in this order. Read each device with get_device first and set by display value "
+                     "(Hz, dB); parameter names differ between Live versions.",
+            "then": "Export the master and run verify_match against the same reference."}
+
+
+def verify_match(master_path: str, ref_path: str, loudness_lu: float = 1.0, band_db: float = 2.5) -> dict:
+    """Did the master land near the reference? Loudness within `loudness_lu`, every third of an octave from 40 Hz up
+    within `band_db` at matched loudness, true peak at or under -1 dBTP. Numbers, not a verdict on the sound."""
+    c = compare(master_path, ref_path)
+    m = measure(master_path, "master")
+    off = {f: d for f, d in c["band_difference_db"].items() if float(f) >= 40 and abs(d) > band_db}
+    checks = {"loudness": abs(c["loudness_gap_db"]) <= loudness_lu, "tone": not off, "true_peak": m.true_peak_dbtp <= -0.9}
+    return {"pass": all(checks.values()), "checks": checks, "loudness_gap_db": c["loudness_gap_db"],
+            "bands_still_off_db": off, "true_peak_dbtp": m.true_peak_dbtp, "master_lufs": m.integrated_lufs,
+            "reference_lufs": c["reference_lufs"],
+            "meaning": "bands_still_off_db: reference minus master in that third of an octave, at matched loudness."}

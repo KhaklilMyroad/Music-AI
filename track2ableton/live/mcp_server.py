@@ -5,6 +5,7 @@ Run:  track2ableton-mcp            (stdio transport)
 """
 from __future__ import annotations
 
+import datetime
 import json
 import os
 from typing import Any
@@ -27,7 +28,8 @@ For device parameters, call get_device to see exact parameter names and display 
 with display_value (e.g. -6 for '-6.0 dB', 1200 for '1.20 kHz'); the bridge solves the raw value
 using Live's own display. For mixing/mastering, analyse audio files (get_audio_files lists the
 files behind clips; bounce/export the master for master_report) before changing devices.
-Always tell the user what you changed. Use undo if a change was wrong."""
+Always tell the user what you changed (journal lists it). Use undo if a change was wrong. You cannot hear: before
+judging a sound, measure it (analyze_audio, clash_report, mix_report, master_report) and say that it is a measurement."""
 
 server = _Server("ableton-live", instructions=INSTRUCTIONS)
 _client: LiveClient | None = None
@@ -40,11 +42,62 @@ def live() -> LiveClient:
     return _client
 
 
+# Commands that only look. Everything else changes the Live Set: it is written to the journal, and refused in
+# read-only mode.
+READS = {"ping", "list_commands", "get_session", "list_tracks", "get_track", "get_routing", "get_notes", "get_device",
+         "browse", "search_browser", "get_audio_files", "get_meters", "transport"}
+
+
+def _is_read(cmd: str, args: dict) -> bool:
+    return cmd in READS or (cmd in ("cue", "scene") and args.get("action", "list") == "list")
+
+
+def _journal_dir() -> str | None:
+    if os.environ.get("T2A_JOURNAL", "1").strip().lower() in ("0", "false", "no", "off"):
+        return None
+    return os.environ.get("T2A_JOURNAL_DIR") or os.path.join(os.path.expanduser("~"), ".track2ableton", "journal")
+
+
+def _brief(v):
+    """Arguments short enough to read back: a long list becomes its length."""
+    if isinstance(v, (list, tuple)) and len(v) > 8:
+        return f"<{len(v)} items>"
+    if isinstance(v, str) and len(v) > 200:
+        return v[:200] + "..."
+    return v
+
+
+def _record(cmd: str, args: dict, error: str | None) -> None:
+    d = _journal_dir()
+    if d is None:
+        return
+    try:                                              # the journal must never be the reason a command fails
+        os.makedirs(d, exist_ok=True)
+        now = datetime.datetime.now()
+        row = {"time": now.isoformat(timespec="seconds"), "cmd": cmd, "args": {k: _brief(v) for k, v in args.items()}, "ok": error is None}
+        if error:
+            row["error"] = error[:300]
+        with open(os.path.join(d, f"journal-{now:%Y%m%d}.jsonl"), "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
+    except OSError:
+        pass
+
+
 def _call(cmd: str, **args) -> Any:
+    args = {k: v for k, v in args.items() if v is not None}
+    read = _is_read(cmd, args)
+    if not read and os.environ.get("T2A_READ_ONLY", "").strip().lower() in ("1", "true", "yes", "on"):
+        raise ToolError(f"Read-only mode (T2A_READ_ONLY is set): '{cmd}' would change the Live Set and was not sent. "
+                        "Looking, measuring and analysing files still work.")
     try:
-        return live().call(cmd, **{k: v for k, v in args.items() if v is not None})
+        result = live().call(cmd, **args)
     except LiveError as exc:  # shown to the model/user verbatim (other exceptions are masked by the SDK)
+        if not read:
+            _record(cmd, args, str(exc))
         raise ToolError(str(exc)) from exc
+    if not read:
+        _record(cmd, args, None)
+    return result
 
 
 def _file(path: str) -> str:
@@ -349,6 +402,82 @@ def rebuild_in_live(project_dir: str, slot: int = 0) -> str:
     with the suggested instrument and effects, the transcribed notes in Session slot `slot`, and reference stems."""
     from .rebuild import rebuild
     return _j(rebuild(project_dir, _call, slot))
+
+
+# ============================================================================== what was changed
+@server.tool()
+def journal(last: int = 30) -> str:
+    """Everything this assistant changed in Live, newest last: time, command, arguments, and whether it worked. Reading
+    and measuring are not listed. Use it to tell the user exactly what was done, or to find what to undo."""
+    d = _journal_dir()
+    if d is None:
+        return _j({"journal": "off (T2A_JOURNAL=0)", "entries": []})
+    rows = []
+    if os.path.isdir(d):
+        for f in sorted(x for x in os.listdir(d) if x.startswith("journal-") and x.endswith(".jsonl"))[-3:]:
+            with open(os.path.join(d, f), encoding="utf-8") as fh:
+                for line in fh:
+                    try:
+                        rows.append(json.loads(line))
+                    except ValueError:
+                        pass
+    return _j({"folder": d, "total_in_last_3_days": len(rows), "entries": rows[-max(1, int(last)):]})
+
+
+# ============================================================================== layers, reference, sample packs
+@server.tool()
+def clash_report(files: dict[str, str], bpm: float | None = None) -> str:
+    """Which layers get in each other's way, measured in time AND frequency (a kick and an off-beat bass share a band and
+    do not clash; an average spectrum cannot tell). files = {name: path} of stems or loops that start at the same moment.
+    For every pair: how much of each sits where the other is present, the bands and (with bpm) the bars where it is
+    worst, and who owns each third of an octave. Numbers about where energy is, not about taste."""
+    from .. import clash
+    try:
+        return _j(clash.report({k: _file(v) for k, v in files.items()}, bpm))
+    except ValueError as exc:
+        raise ToolError(str(exc)) from exc
+
+
+@server.tool()
+def fit_layers(bed: dict[str, str], candidates: dict[str, str]) -> str:
+    """Rank candidate loops or samples by how well each fits into what is already there: the share of the candidate's
+    loudness that lands where the bed (the existing layers, {name: path}) leaves room, at matched level. All files must
+    start at the same moment and be at the same tempo."""
+    from .. import clash
+    try:
+        return _j(clash.fit({k: _file(v) for k, v in bed.items()}, {k: _file(v) for k, v in candidates.items()}))
+    except ValueError as exc:
+        raise ToolError(str(exc)) from exc
+
+
+@server.tool()
+def match_reference(mix_path: str, reference_path: str) -> str:
+    """A starting master chain in Live's own devices, as numbers, that moves a bounced mix towards a reference track:
+    EQ Eight bands for tone, a Glue Compressor only if the reference is clearly denser, Limiter gain and ceiling for
+    loudness. Apply it on the master with get_device / set_parameters, export, then call verify_reference."""
+    return _j(mixmaster.match_chain(_file(mix_path), _file(reference_path)))
+
+
+@server.tool()
+def verify_reference(master_path: str, reference_path: str) -> str:
+    """After mastering: did the export land near the reference? Loudness within 1 LU, every third of an octave within
+    2.5 dB at matched loudness, true peak at or under -1 dBTP. Returns pass/fail per check and what is still off."""
+    return _j(mixmaster.verify_match(_file(master_path), _file(reference_path)))
+
+
+@server.tool()
+def sample_pack(source: str, out_dir: str | None = None, bars: int = 4, max_loops_per_stem: int = 6) -> str:
+    """Make a sample pack from an audio file or a folder of stems: loops cut on the song's real bar lines (exactly `bars`
+    bars long, also when the tempo is not round or drifts), named with tempo and key, repeats left out, plus drum
+    one-shots, a manifest and a README. Only for music the user owns or has cleared; the manifest says so."""
+    from .. import samplepack
+    if not os.path.exists(source):
+        raise ToolError(f"not found: {source}")
+    try:
+        m = samplepack.build(source, out_dir, None, bars, max_loops_per_stem, log=lambda *_: None)
+    except (ValueError, RuntimeError) as exc:
+        raise ToolError(str(exc)) from exc
+    return _j(m)
 
 
 # ============================================================================== vocals and stems

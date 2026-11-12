@@ -22,6 +22,8 @@ track2ableton-mcp = "track2ableton.live.mcp_server:main"
 track2ableton-compose = "track2ableton.compose.__main__:main"
 track2ableton-fix = "track2ableton.fix.__main__:main"
 track2ableton-vocal = "track2ableton.vocal.__main__:main"
+track2ableton-samplepack = "track2ableton.samplepack:main"
+track2ableton-doctor = "track2ableton.doctor:main"
 
 [tool.setuptools.packages.find]
 include = ["track2ableton*"]

@@ -77,6 +77,54 @@ def _slug(s: str) -> str:
     return re.sub(r"[^\w-]+", "_", s).strip("_") or "track"          # \w keeps letters of any script
 
 
+def musical_grid(mono: np.ndarray, sr: int, duration: float):
+    """Tempo, key and where the bars are: one constant grid for a steady song, the tracked beats for one that drifts.
+    Returns (rhythm, tonal, beat_map, bar_grid in seconds)."""
+    chroma_pack = tn.chroma_features(mono, sr)
+    onsets = rh.onset_envelopes(mono, sr)
+    rhythm = rh.analyze(mono, sr, onsets, chroma_pack[0], tn.FPS)
+    tonal = tn.analyze(mono, sr, chroma_pack)
+    beat_map = beatmap.track(onsets, rhythm, duration, chroma_pack[0], tn.FPS)
+    if beat_map.drifting:
+        # One constant grid would slide away from the audio: from here on the tracked beats are the grid.
+        inside = beat_map.times[(beat_map.times >= 0) & (beat_map.times < duration)]
+        rhythm.beat_times = inside
+        rhythm.first_downbeat = float(beat_map.times[beat_map.downbeat])
+        rhythm.downbeat_offset = int(np.argmin(np.abs(inside - rhythm.first_downbeat)))
+        rhythm.bpm = round(beat_map.bpm, 2)
+        rhythm.notes.append(f"Tempo is not steady: beats sit up to {beat_map.drift_ms:.0f} ms away from a constant grid "
+                            f"({beat_map.bpm_lo:.2f}-{beat_map.bpm_hi:.2f} BPM). Notes and warp markers follow the tracked beats.")
+    else:
+        if abs(beat_map.steady_bpm - rhythm.bpm) > 1e-6:
+            # The tempo measured along the whole song is not the round number the analysis snapped to: over three
+            # minutes 127.93 against 128 is a tenth of a second.
+            rhythm.bpm = round(beat_map.steady_bpm, 3)
+            rhythm.first_downbeat = float(beat_map.steady_downbeat)
+            rhythm.beat_times = rhythm.first_downbeat + np.arange(int((duration - rhythm.first_downbeat) / rhythm.beat_len) + 1) * rhythm.beat_len
+            rhythm.downbeat_offset = 0
+            rhythm.notes.append(f"Tempo measured along the song: {rhythm.bpm:g} BPM. The grid uses that, not the nearest round number.")
+    if beat_map.lost:
+        rhythm.notes.append("The beat could not be followed in " + ", ".join(f"{x:.0f}-{y:.0f} s" for x, y in beat_map.lost)
+                            + " (a sudden tempo change is the usual reason). Notes and warp markers there are not reliable.")
+    if not beat_map.drifting:
+        if beat_map.unclear:
+            rhythm.notes.append(f"Tempo is NOT steady (beats up to {beat_map.drift_ms:.0f} ms off a constant grid), but following the "
+                                "beat did not catch clearly more onsets than a constant grid, so a constant grid was kept. "
+                                "A tempo change inside the song is the usual reason: check the grid by ear in every section.")
+    bars = rhythm.bar_times()
+    pre = []
+    t = rhythm.first_downbeat
+    while t > 1e-3:
+        t -= rhythm.bar_len
+        pre.append(t)
+    bar_grid = np.array(sorted(b for b in pre if b > -rhythm.bar_len) + [b for b in np.arange(rhythm.first_downbeat, duration, rhythm.bar_len)])
+    bar_grid = bar_grid[bar_grid >= -rh.START_S - 1e-6] if (bar_grid >= -rh.START_S - 1e-6).sum() >= 4 else bars
+    if beat_map.drifting:
+        bar_grid = beat_map.bar_times(duration)
+    bar_grid = np.maximum(bar_grid, 0.0)              # a downbeat measured a few ms before second 0 is second 0
+    return rhythm, tonal, beat_map, bar_grid
+
+
 def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: str = "htdemucs_6s",
         transcription: str = "auto", write_als: bool = True, als_template: str | None = None, log=print) -> Analysis:
     t_start = time.time()
@@ -105,48 +153,7 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
     tick("decode")
 
     # ------------------------------------------------------------------ global musical analysis
-    chroma_pack = tn.chroma_features(mono, sr)
-    onsets = rh.onset_envelopes(mono, sr)
-    rhythm = rh.analyze(mono, sr, onsets, chroma_pack[0], tn.FPS)
-    tonal = tn.analyze(mono, sr, chroma_pack)
-    beat_map = beatmap.track(onsets, rhythm, song.duration, chroma_pack[0], tn.FPS)
-    if beat_map.drifting:
-        # One constant grid would slide away from the audio: from here on the tracked beats are the grid.
-        inside = beat_map.times[(beat_map.times >= 0) & (beat_map.times < song.duration)]
-        rhythm.beat_times = inside
-        rhythm.first_downbeat = float(beat_map.times[beat_map.downbeat])
-        rhythm.downbeat_offset = int(np.argmin(np.abs(inside - rhythm.first_downbeat)))
-        rhythm.bpm = round(beat_map.bpm, 2)
-        rhythm.notes.append(f"Tempo is not steady: beats sit up to {beat_map.drift_ms:.0f} ms away from a constant grid "
-                            f"({beat_map.bpm_lo:.2f}-{beat_map.bpm_hi:.2f} BPM). Notes and warp markers follow the tracked beats.")
-    else:
-        if abs(beat_map.steady_bpm - rhythm.bpm) > 1e-6:
-            # The tempo measured along the whole song is not the round number the analysis snapped to: over three
-            # minutes 127.93 against 128 is a tenth of a second.
-            rhythm.bpm = round(beat_map.steady_bpm, 3)
-            rhythm.first_downbeat = float(beat_map.steady_downbeat)
-            rhythm.beat_times = rhythm.first_downbeat + np.arange(int((song.duration - rhythm.first_downbeat) / rhythm.beat_len) + 1) * rhythm.beat_len
-            rhythm.downbeat_offset = 0
-            rhythm.notes.append(f"Tempo measured along the song: {rhythm.bpm:g} BPM. The grid uses that, not the nearest round number.")
-    if beat_map.lost:
-        rhythm.notes.append("The beat could not be followed in " + ", ".join(f"{x:.0f}-{y:.0f} s" for x, y in beat_map.lost)
-                            + " (a sudden tempo change is the usual reason). Notes and warp markers there are not reliable.")
-    if not beat_map.drifting:
-        if beat_map.unclear:
-            rhythm.notes.append(f"Tempo is NOT steady (beats up to {beat_map.drift_ms:.0f} ms off a constant grid), but following the "
-                                "beat did not catch clearly more onsets than a constant grid, so a constant grid was kept. "
-                                "A tempo change inside the song is the usual reason: check the grid by ear in every section.")
-    bars = rhythm.bar_times()
-    pre = []
-    t = rhythm.first_downbeat
-    while t > 1e-3:
-        t -= rhythm.bar_len
-        pre.append(t)
-    bar_grid = np.array(sorted(b for b in pre if b > -rhythm.bar_len) + [b for b in np.arange(rhythm.first_downbeat, song.duration, rhythm.bar_len)])
-    bar_grid = bar_grid[bar_grid >= -rh.START_S - 1e-6] if (bar_grid >= -rh.START_S - 1e-6).sum() >= 4 else bars
-    if beat_map.drifting:
-        bar_grid = beat_map.bar_times(song.duration)
-    bar_grid = np.maximum(bar_grid, 0.0)              # a downbeat measured a few ms before second 0 is second 0
+    rhythm, tonal, beat_map, bar_grid = musical_grid(mono, sr, song.duration)
     sections = st.analyze(mono, sr, bar_grid, tonal.chroma, tonal.fps)
     chords = tn.chords_on_grid(tonal, bar_grid, rhythm.beat_times, rhythm.beats_per_bar)
     tick("tempo, key, chords, structure")
