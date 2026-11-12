@@ -16,7 +16,7 @@ py -m pytest tests/test_vocal.py -q
 ```
 
 Expected: no failures. Two tests check the files with outside libraries and are skipped when those are missing
-(`py -m pip install music21 mido` runs them too: `13 passed`). Restart the MCP server (restart Claude Code) so the new tools `vocal_score` and
+(`py -m pip install music21 mido` runs them too: `14 passed`). Restart the MCP server (restart Claude Code) so the new tools `vocal_score` and
 `split_stems` appear. If local changes exist in those folders, stop and ask before overwriting them.
 
 ## Stage 1: what this computer can run
@@ -51,14 +51,35 @@ Depends on the engine the user chose:
 
 - ACE Studio: insert ACE Bridge on a MIDI track as its documentation describes, or import `vocal.mid` /
   `vocal.musicxml` in ACE Studio if it accepts them (not verified: try and report which one keeps the lyrics).
-- OpenUtau with a DiffSinger voice: import `vocal.mid` or `vocal.musicxml`, check the lyrics landed on the notes,
-  render to WAV at the project tempo.
+- OpenUtau with a DiffSinger voice: its documentation names .ustx, .ust and .vsqx projects and File > Import MIDI.
+  Whether the import keeps the lyric events of `vocal.mid`, and whether it reads `vocal.musicxml`, is not known:
+  try both on a short clip and report exactly what arrived (notes only, or notes with a syllable each). If the
+  lyrics do not arrive, stop and say so: the tool will then write the format OpenUtau does read. Do not type the
+  lyrics in by hand as a workaround without telling the user.
 - Any engine: export the voice as WAV starting at the clip's first beat, then `create_audio_clip` on a new audio
   track at the arrangement position where the MIDI clip starts. Measure: the first syllable's onset within about
   20 ms of the first note.
 
 Voice conversion (cloning) comes after this, on the rendered or recorded vocal, and only with a voice model of the
 user's own voice or one they hold a written licence for. Ask, and record the answer in LICENSES.md.
+
+## Demucs, in its own environment
+
+Demucs needs PyTorch: several GB, with its own version pins, and on a new Python on Windows not every part of it
+installs cleanly. Keep it out of the environment the tool and its MCP server run in, so that a failed install
+cannot break them. Ask the user before downloading; say the size pip reports.
+
+1. Make a separate environment, with Python 3.12 if it is installed (`py -0` lists the versions), else the default:
+   `py -3.12 -m venv C:\Users\ronen\demucs-env`
+2. Install PyTorch into it with the command the selector on pytorch.org gives for Windows, pip and this
+   computer's CUDA (do not guess the index URL), then `...\demucs-env\Scripts\python -m pip install demucs soundfile`.
+3. Try it on a short file: `...\demucs-env\Scripts\python -m demucs -n htdemucs_6s -o "%TEMP%\demucs_try" "<a wav>"`.
+   If it fails, report the error text as it is. Do not patch packages.
+4. Tell the tool where it is, then restart Claude Code:
+   `setx T2A_DEMUCS_PYTHON "C:\Users\ronen\demucs-env\Scripts\python.exe"`
+
+Without the variable the tool looks for Demucs in its own environment, and without Demucs anywhere it uses the
+rough built-in split and says so.
 
 ## Stems
 

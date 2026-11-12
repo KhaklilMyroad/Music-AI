@@ -19,7 +19,8 @@ py -m pytest tests/test_fix.py -q
 ```
 
 Expected: `36 passed`. If the source is one mixed file and not a stem folder, the tool has to separate it itself;
-that needs Demucs for usable stems (`py -m pip install demucs`, a large download with PyTorch: ask the user first).
+that needs Demucs for usable stems: a large download with PyTorch, installed in its own environment as
+`docs/VOCAL_IN_LIVE.md` describes (ask the user first).
 With a stem folder nothing is separated and Demucs is not needed.
 
 ## Stage 1: run the fix

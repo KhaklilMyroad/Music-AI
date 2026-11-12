@@ -234,3 +234,43 @@ def test_vocal_command_line(tmp_path, capsys):
     assert vocal_main([mid, str(tmp_path / "words.txt"), "--lang", "es", "--bpm", "100", "-o", str(tmp_path / "out")]) == 0
     assert sorted(os.listdir(tmp_path / "out")) == ["VOCAL_REPORT.md", "vocal.json", "vocal.mid", "vocal.musicxml"]
     assert vocal_main([str(tmp_path / "none.mid"), str(tmp_path / "words.txt")]) == 2
+
+
+FAKE_DEMUCS = '''
+import os, sys
+import soundfile as sf
+a = sys.argv[1:]
+model, out, path = a[a.index("-n") + 1], a[a.index("-o") + 1], a[-1]
+print("PROGRESS 100%")                      # what the real one prints; it must not reach our own standard output
+x, sr = sf.read(path, always_2d=True)
+d = os.path.join(out, model, os.path.splitext(os.path.basename(path))[0])
+os.makedirs(d)
+for name, gain in (("drums", 0.6), ("bass", 0.4)):
+    sf.write(os.path.join(d, name + ".wav"), x * gain, sr)
+'''
+
+
+def test_demucs_can_live_in_another_python(tmp_path, monkeypatch, capfd):
+    from track2ableton import separation
+
+    x, _ = make_song(bpm=124.0, bars=4)
+    wav = str(tmp_path / "song.wav")
+    sf.write(wav, x.T, SR, subtype="PCM_16")
+    monkeypatch.setenv("T2A_DEMUCS_PYTHON", str(tmp_path / "no" / "python.exe"))
+    assert not separation.demucs_available()
+    res = stems.split(wav, out_dir=str(tmp_path / "a"))
+    assert res["method"].startswith("dsp") and "T2A_DEMUCS_PYTHON" in res["note"]          # it says why the rough split was used
+    with pytest.raises(RuntimeError, match="does not exist"):
+        stems.split(wav, out_dir=str(tmp_path / "b"), method="demucs")
+    (tmp_path / "pkg" / "demucs").mkdir(parents=True)                                       # a stand-in for the real package
+    (tmp_path / "pkg" / "demucs" / "__main__.py").write_text(FAKE_DEMUCS, encoding="utf-8")
+    monkeypatch.setenv("PYTHONPATH", str(tmp_path / "pkg"))
+    monkeypatch.setenv("T2A_DEMUCS_PYTHON", sys.executable)
+    capfd.readouterr()
+    res = stems.split(wav, out_dir=str(tmp_path / "c"), method="demucs")
+    assert res["method"] == "demucs:htdemucs_6s" and set(res["stems"]) == {"drums", "bass"}
+    assert "PROGRESS" not in capfd.readouterr().out
+    assert sorted(os.listdir(tmp_path / "c")) == ["song - bass.wav", "song - drums.wav"]    # no working folder left behind
+    (tmp_path / "pkg" / "demucs" / "__main__.py").write_text("import sys; sys.stderr.write('CUDA out of memory'); sys.exit(3)", encoding="utf-8")
+    res = stems.split(wav, out_dir=str(tmp_path / "d"))
+    assert res["method"].startswith("dsp") and "CUDA out of memory" in res["note"]          # a failed run falls back and says why

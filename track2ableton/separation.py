@@ -124,8 +124,25 @@ def mixdown(stems: Stems) -> Audio:
     return Audio(np.sum([a.data for a in stems.stems.values()], axis=0).astype(np.float32), first.sr)
 
 
+def demucs_python() -> str | None:
+    """The interpreter that runs Demucs: the one named in the environment variable T2A_DEMUCS_PYTHON, else this one if
+    Demucs is installed in it. A separate environment keeps PyTorch (several GB, with its own version pins) out of
+    the one this tool and its MCP server run in."""
+    named = os.environ.get("T2A_DEMUCS_PYTHON", "").strip().strip('"')
+    if named:
+        return named if os.path.isfile(named) else None
+    return sys.executable if importlib.util.find_spec("demucs") is not None else None
+
+
 def demucs_available() -> bool:
-    return importlib.util.find_spec("demucs") is not None
+    return demucs_python() is not None
+
+
+def _demucs_missing() -> str:
+    named = os.environ.get("T2A_DEMUCS_PYTHON", "").strip().strip('"')
+    if named:
+        return f"T2A_DEMUCS_PYTHON names {named}, which does not exist."
+    return "Demucs is not installed. Run: pip install demucs, or set T2A_DEMUCS_PYTHON to the python of an environment that has it."
 
 
 def separate(path: str, audio: Audio, method: str = "auto", model: str = "htdemucs_6s", workdir: str | None = None) -> Stems:
@@ -135,27 +152,35 @@ def separate(path: str, audio: Audio, method: str = "auto", model: str = "htdemu
         except Exception as exc:  # weights blocked, OOM, ...
             if method == "demucs":
                 raise
-            note = f"Demucs failed ({type(exc).__name__}: {str(exc)[:200]}); used the built-in DSP separator instead."
+            note = f"Demucs failed ({type(exc).__name__}: {str(exc)[:300]}); used the built-in DSP separator instead."
             res = _dsp(audio)
             res.quality_note = note + " " + res.quality_note
             return res
     if method == "demucs":
-        raise RuntimeError("Demucs is not installed. Run: pip install demucs")
-    return _dsp(audio)
+        raise RuntimeError(_demucs_missing())
+    res = _dsp(audio)
+    if method == "auto" and os.environ.get("T2A_DEMUCS_PYTHON", "").strip():
+        res.quality_note = _demucs_missing() + " " + res.quality_note
+    return res
 
 
 def _demucs(path: str, model: str, workdir: str | None) -> Stems:
     out = workdir or tempfile.mkdtemp(prefix="t2a_demucs_")
-    cmd = [sys.executable, "-m", "demucs", "-n", model, "-o", out, path]
-    subprocess.run(cmd, check=True)
-    base = os.path.splitext(os.path.basename(path))[0]
-    folder = os.path.join(out, model, base)
-    files = sorted(glob.glob(os.path.join(folder, "*.wav")))
-    if not files:
-        raise RuntimeError(f"Demucs produced no stems in {folder}")
-    stems = {os.path.splitext(os.path.basename(f))[0]: load(f) for f in files}
-    if workdir is None:
-        shutil.rmtree(out, ignore_errors=True)
+    cmd = [demucs_python(), "-m", "demucs", "-n", model, "-o", out, path]
+    # Output is captured: this can run inside the MCP server, whose own standard output is the protocol stream,
+    # and Demucs prints progress bars.
+    run = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+    try:
+        if run.returncode != 0:
+            raise RuntimeError(f"demucs exited with {run.returncode}: {(run.stderr or run.stdout).strip()[-300:]}")
+        base = os.path.splitext(os.path.basename(path))[0]
+        folder = os.path.join(out, model, base)
+        files = sorted(glob.glob(os.path.join(folder, "*.wav")))
+        if not files:
+            raise RuntimeError(f"Demucs produced no stems in {folder}")
+        stems = {os.path.splitext(os.path.basename(f))[0]: load(f) for f in files}
+    finally:
+        shutil.rmtree(out, ignore_errors=True)        # the stems are in memory; the caller saves what it keeps
     return Stems(stems, f"demucs:{model}", "Neural separation (Demucs). Expect some bleed between stems, mostly in reverb tails and cymbals.")
 
 
