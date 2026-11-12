@@ -165,10 +165,13 @@ def audio_clip(abs_path: str, rel_path: str, markers: list[tuple[float, float]],
     _sample_ref(clip.find("SampleRef"), abs_path, rel_path)
     start = markers[0][1]
     beats = markers[-1][1] - start
-    clip.set("Time", f"{start:g}")
-    _set(clip, "CurrentStart", f"{start:g}")
+    # The file can begin a few ms before bar 1 (a downbeat just after second 0). Nothing can sit before the start
+    # of the arrangement, so the clip begins at beat 0 and plays from that far into the sample.
+    trim = max(0.0, -start)
+    clip.set("Time", f"{start + trim:g}")
+    _set(clip, "CurrentStart", f"{start + trim:g}")
     _set(clip, "CurrentEnd", f"{start + beats:g}")
-    for tag, v in (("LoopStart", 0), ("LoopEnd", beats), ("StartRelative", 0), ("OutMarker", beats),
+    for tag, v in (("LoopStart", trim), ("LoopEnd", beats), ("StartRelative", 0), ("OutMarker", beats),
                    ("HiddenLoopStart", 0), ("HiddenLoopEnd", beats)):
         _set(clip, f"Loop/{tag}", f"{v:g}")
     _set(clip, "Loop/LoopOn", False)

@@ -51,6 +51,10 @@ def detect_drum_hits(mono: np.ndarray, sr: int, low_source: np.ndarray | None = 
     x = resample(mono[None, :], sr, SR)[0] if sr != SR else mono
     n_fft, hop = 1024, 128
     fps = SR / hop
+    # An onset is a rise from the frame before. A hit on the very first sample of the file has no frame before it,
+    # so a little silence goes in front, and comes off the hit times at the end.
+    lead = 16 * hop
+    x = np.concatenate([np.zeros(lead, dtype=x.dtype), x])
     mag = dsp.stft_mag(x, n_fft, hop)
     freqs = dsp.fft_freqs(n_fft, SR)
     logm = np.log1p(100 * mag)
@@ -62,6 +66,7 @@ def detect_drum_hits(mono: np.ndarray, sr: int, low_source: np.ndarray | None = 
 
     if low_source is not None:
         xl = resample(low_source[None, :], sr, SR)[0] if sr != SR else low_source
+        xl = np.concatenate([np.zeros(lead, dtype=xl.dtype), xl])
         mag_l = dsp.stft_mag(xl, n_fft, hop)[: mag.shape[0]]
         low_f, low_e = band(30, 150, np.log1p(100 * mag_l), mag_l)
     else:
@@ -121,6 +126,8 @@ def detect_drum_hits(mono: np.ndarray, sr: int, low_source: np.ndarray | None = 
             near = st[np.abs(t - h.time) <= 2.0]
             if h.strength >= 0.5 * np.percentile(near, 90):
                 kept.append(h)
+    for h in kept:
+        h.time = max(0.0, h.time - lead / SR)
     kept.sort(key=lambda h: h.time)
     return kept
 

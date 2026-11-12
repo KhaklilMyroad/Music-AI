@@ -35,6 +35,23 @@ def _merge_sections(sections: list) -> list:
     return out
 
 
+def _clear_previous(out_dir: str, source: str) -> None:
+    """A second run into the same folder must not mix in the first run's files: a stem that is gone, or last
+    time's repaired notes turning up as this time's raw ones. Only folders this tool writes are removed, only when
+    the folder holds an earlier result, and never one the source itself is in."""
+    if not any(os.path.exists(os.path.join(out_dir, f)) for f in ("fix.json", "recipe.json")):
+        return
+    src = os.path.normcase(os.path.abspath(source))
+    for name in ("MIDI", "MIDI_raw", "Stems", "Samples"):
+        d = os.path.join(out_dir, name)
+        inside = os.path.commonpath([src, os.path.normcase(os.path.abspath(d))]) == os.path.normcase(os.path.abspath(d))
+        if os.path.isdir(d) and not inside:
+            shutil.rmtree(d)
+    for f in os.listdir(out_dir):
+        if f.endswith(" Rebuild.als"):
+            os.remove(os.path.join(out_dir, f))
+
+
 def _turns(a, bpb: int) -> set[int]:
     """Arrangement bars (0-based) that end a 4-bar phrase or a section."""
     lead = int(a.lead_in_beats // bpb)
@@ -62,6 +79,10 @@ def _tones(root: int, quality: str) -> set[int]:
 def run(source: str, out_dir: str, bpm: float | None = None, light: bool = False, separation_method: str = "auto",
         demucs_model: str = "htdemucs_6s", transcription: str = "auto", write_als: bool = True,
         als_template: str | None = None, log=print) -> dict:
+    if als_template and not os.path.isfile(als_template):
+        raise FileNotFoundError(f"template not found: {als_template}")          # before minutes of analysis, not after
+    if os.path.isdir(out_dir):
+        _clear_previous(out_dir, source)
     a = pipeline.run(source, out_dir, separation_method, demucs_model, transcription, write_als=False, log=log)
     bpb = a.rhythm.beats_per_bar
     measured = float(a.rhythm.bpm)
@@ -72,7 +93,7 @@ def run(source: str, out_dir: str, bpm: float | None = None, light: bool = False
 
     # ---------------------------------------------------------------- harmony: one loop, voted per place in it
     seq = _half_bar_chords(a, bpb, total_beats)
-    prog = nt.chord_loop(seq, _tones, lambda r, q: tn.Chord(0, 0, r, q).name)
+    prog = nt.chord_loop(seq, lambda r, q: tn.Chord(0, 0, r, q).name)
     scale = set(a.tonal.scale_pcs)
 
     def allowed(pc: int, beat: float) -> bool:
@@ -141,10 +162,12 @@ def run(source: str, out_dir: str, bpm: float | None = None, light: bool = False
         "source": os.path.basename(os.path.normpath(a.source)), "stems": a.separation_method, "skipped_files": a.skipped_files,
         "tempo": {"measured_bpm": round(measured, 2), "project_bpm": a.project_bpm,
                   "stretch_percent": round((a.project_bpm / measured - 1) * 100, 2),
-                  "drifting": a.drifting, "furthest_from_constant_grid_ms": round(bm.drift_ms, 1),
+                  "drifting": a.drifting, "not_steady_but_not_followed": bm.unclear,
+                  "furthest_from_constant_grid_ms": round(bm.drift_ms, 1),
                   "slowest_8_bars_bpm": round(bm.bpm_lo, 2), "fastest_8_bars_bpm": round(bm.bpm_hi, 2),
                   "followed_blind_s": [[round(x, 1), round(y, 1)] for x, y in bm.weak],
                   "found_again_at_s": [round(x, 1) for x in bm.relocked],
+                  "map_does_not_fit_audio_s": [[round(x, 1), round(y, 1)] for x, y in bm.lost],
                   "warp_markers": len(a.warp_markers()), "time_signature": f"{bpb}/4"},
         "key": {"name": a.tonal.key_name, "confidence": round(a.tonal.key_confidence, 2)},
         "progression": {"loop_bars": prog.loop_bars, "chords_per_half_bar": loop, "share_of_song": round(prog.share, 2),
@@ -152,11 +175,19 @@ def run(source: str, out_dir: str, bpm: float | None = None, light: bool = False
         "sections": sections, "mode": "light" if light else "normal", "tracks": rows, "findings": findings,
         "warnings": a.warnings,
     }
-    pipeline.write_outputs(a, out_dir, write_als, log, als_template)
-    with open(os.path.join(out_dir, "fix.json"), "w", encoding="utf-8") as fh:
-        json.dump(info, fh, ensure_ascii=False, indent=1, cls=pipeline._Enc)
-    with open(os.path.join(out_dir, "FIX_REPORT.md"), "w", encoding="utf-8") as fh:
-        fh.write(report(info, odd))
+    def save():
+        with open(os.path.join(out_dir, "fix.json"), "w", encoding="utf-8") as fh:
+            json.dump(info, fh, ensure_ascii=False, indent=1, cls=pipeline._Enc)
+        with open(os.path.join(out_dir, "FIX_REPORT.md"), "w", encoding="utf-8") as fh:
+            fh.write(report(info, odd))
+
+    save()                                            # the report first: a Live Set that fails to write must not cost it
+    try:
+        pipeline.write_outputs(a, out_dir, write_als, log, als_template)
+    except Exception as exc:
+        info["als_error"] = f"{type(exc).__name__}: {exc}"
+        pipeline.write_outputs(a, out_dir, False, log, None)
+        save()
     return info
 
 
@@ -167,16 +198,27 @@ def report(info: dict, odd: list[dict]) -> str:
          "## טמפו", "",
          f"- נמדד: **{t['measured_bpm']:g} BPM** ({t['time_signature']}). טמפו הפרויקט: **{t['project_bpm']:g} BPM** "
          f"(מתיחה של {t['stretch_percent']:+.2f}%)."]
+    if abs(t["stretch_percent"]) > 6:
+        L.append("- **המתיחה גדולה.** ייתכן שהטמפו נמדד בחצי או בכפול מהאמיתי (למשל 70 במקום 140), או ש-`--bpm` רחוק מהשיר. "
+                 "לבדוק לפני שממשיכים.")
     if t["drifting"]:
         L.append(f"- הטמפו **לא יציב**: פעמות יושבות עד {t['furthest_from_constant_grid_ms']:g}ms מגריד קבוע "
                  f"({t['slowest_8_bars_bpm']:g}–{t['fastest_8_bars_bpm']:g} BPM). התווים וסמני ה-Warp עוקבים אחרי הפעמות האמיתיות "
                  f"({t['warp_markers']} סמנים).")
+    elif t["not_steady_but_not_followed"]:
+        L.append(f"- **הטמפו לא יציב, והמעקב לא הצליח לעקוב אחריו בביטחון.** פעמות יושבות עד {t['furthest_from_constant_grid_ms']:g}ms "
+                 "מגריד קבוע, ונשאר גריד קבוע. הסיבה הרגילה היא שינוי טמפו באמצע השיר, שהכלי לא תומך בו. "
+                 "התווים וסמני ה-Warp עלולים להיות לא נכונים בחלק מהשיר: לבדוק את הגריד באוזן בכל קטע.")
     else:
         L.append(f"- הטמפו יציב (סטייה מרבית מגריד קבוע: {t['furthest_from_constant_grid_ms']:g}ms). מספיקים {t['warp_markers']} סמני Warp.")
-    if t["followed_blind_s"]:
+    if t["map_does_not_fit_audio_s"]:
+        L.append("- **המעקב איבד את הפעמה** ב: " + ", ".join(f"{x:g}–{y:g} שניות" for x, y in t["map_does_not_fit_audio_s"])
+                 + ". שם פחות מחצי מהמכות יושבות על הגריד שנמצא, כנראה בגלל שינוי טמפו חד שהכלי לא יודע לעקוב אחריו. "
+                 "התווים וסמני ה-Warp בקטעים האלה לא אמינים.")
+    if t["drifting"] and t["followed_blind_s"]:
         L.append("- קטעים שבהם הפעמה לא הייתה ברורה והמעקב המשיך לפי הקצב שלפניהם (לבדוק באוזן): "
                  + ", ".join(f"{x:g}–{y:g} שניות" for x, y in t["followed_blind_s"]) + ".")
-    if t["found_again_at_s"]:
+    if t["drifting"] and t["found_again_at_s"]:
         L.append("- הפעמה נמצאה מחדש אחרי קטע כזה ב: " + ", ".join(f"{x:g}" for x in t["found_again_at_s"])
                  + " שניות. אם משהו זז שם בחצי פעמה, זה המקום.")
     p = info["progression"]
@@ -233,6 +275,8 @@ def report(info: dict, odd: list[dict]) -> str:
             L.append(f"- {name}: {why.get(reason, reason)}")
     if info["warnings"]:
         L += ["", "## אזהרות מהניתוח (באנגלית, כמו שהכלי כותב אותן)", ""] + [f"- {x}" for x in info["warnings"]]
+    if info.get("als_error"):
+        L += ["", "## קובץ ה-.als לא נכתב", "", f"- {info['als_error']}", "- שאר הקבצים תקינים. אפשר לבנות דרך הגשר, או להריץ שוב עם `--template`."]
     L += ["", "## מה יש בתיקייה", "",
           "- `MIDI/` התווים אחרי התיקון. `MIDI_raw/` התווים כמו שזוהו, להשוואה.",
           "- `Stems/` הסטמים. ב-`.als` כל סטם כבר מונח עם סמני Warp לטמפו הפרויקט.",

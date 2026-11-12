@@ -18,7 +18,7 @@ py -m pip install -e ".[live]"
 py -m pytest tests/test_fix.py -q
 ```
 
-Expected: `24 passed`. If the source is one mixed file and not a stem folder, the tool has to separate it itself;
+Expected: `36 passed`. If the source is one mixed file and not a stem folder, the tool has to separate it itself;
 that needs Demucs for usable stems (`py -m pip install demucs`, a large download with PyTorch: ask the user first).
 With a stem folder nothing is separated and Demucs is not needed.
 
@@ -32,7 +32,9 @@ Add `--bpm N` only if the user asked for a specific tempo; the default is the me
 number. Then read `FIX_REPORT.md` and `fix.json` in the output folder and tell the user, in Hebrew, in a few lines:
 
 - measured tempo, project tempo, the stretch in percent, and whether the tempo drifts;
-- any stretch the report says was followed blind, or where the beat was found again: those are the places to check;
+- any stretch the report says was followed blind, where the beat was found again, or where the map lost the beat:
+  those are the places to check. If the report says the tempo is not steady and could not be followed, or warns
+  that the stretch is large (the tempo may have been measured at half or double), stop here and tell the user;
 - the key and the chord loop;
 - per track: notes before and after, and how many bars were voted on out of how many;
 - files that were left out of a stem folder, and stems whose kind was guessed as "other".

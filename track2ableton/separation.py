@@ -35,42 +35,66 @@ class Stems:
 
 AUDIO_EXT = (".wav", ".flac", ".aif", ".aiff", ".mp3", ".m4a", ".ogg")
 KIND_WORDS = {
-    "vocals": ("vocal", "vox", "voice", "choir", "acapella", "backing", "sing", "adlib"),
-    "drums": ("drum", "kick", "snare", "hat", "hihat", "perc", "clap", "cymbal", "conga", "bongo", "shaker", "tom", "cowbell", "clave", "rim"),
-    "bass": ("bass", "sub", "808"),
-    "piano": ("piano", "keys", "keyboard", "rhodes"),
-    "guitar": ("guitar", "gtr"),
+    "vocals": {"vocal", "vox", "voice", "choir", "acapella", "adlib", "singer", "שירה", "ווקאל", "קולות"},
+    "drums": {"drum", "kick", "snare", "hat", "hihat", "hh", "perc", "percussion", "clap", "cymbal", "conga", "bongo", "shaker",
+              "tom", "cowbell", "clave", "rim", "rimshot", "ride", "crash", "tambourine", "timbale", "תופים", "פרקשן", "קיק"},
+    "bass": {"bass", "sub", "subbass", "bassline", "808", "בס", "באס"},
+    "piano": {"piano", "keys", "keyboard", "rhodes", "פסנתר", "קלידים"},
+    "guitar": {"guitar", "gtr", "גיטרה"},
 }
-MIX_WORDS = ("mix", "master", "instrumental", "full", "original")
+PHRASES = {("bass", "guitar"): "bass", ("bass", "drum"): "drums", ("kick", "drum"): "drums"}
+MIX_WORDS = {"mix", "mixdown", "master", "instrumental", "full", "original"}
+TITLE_ENDS = ("-", "_", "(", "[", "–", "|")       # a common start of all names is the song title only if it ends like this
 
 
 def _words(name: str) -> list[str]:
-    return re.findall(r"[a-z]+|\d+", name.lower())
+    return re.findall(r"[^\W\d_]+|\d+", name.lower())
+
+
+def _kind_of(word: str) -> str | None:
+    for k, keys in KIND_WORDS.items():
+        if word in keys or (word.endswith("s") and word[:-1] in keys):
+            return k
+    return None
 
 
 def stem_kind(label: str) -> str:
-    """What a stem file is, from the words in its name; the last word that says something wins ('Bass Drum' is drums)."""
+    """What a stem file is, from the whole words in its name ('Subtle Pad' is not a sub). The last word that says
+    something wins, except for the names that mean one instrument: bass guitar, bass drum, kick drum."""
+    words = [w[:-1] if w.endswith("s") and w[:-1] in {x for p in PHRASES for x in p} else w for w in _words(label)]
+    for i in range(len(words) - 1):
+        if (words[i], words[i + 1]) in PHRASES:
+            return PHRASES[(words[i], words[i + 1])]
     kind = "other"
-    for w in _words(label):
-        for k, keys in KIND_WORDS.items():
-            if any(w.startswith(key) for key in keys):
-                kind = k
+    for w in words:
+        kind = _kind_of(w) or kind
     return kind
+
+
+def _is_mix(label: str) -> bool:
+    """A name that says mix and names no instrument: 'Full Mix', 'Master'. 'Full Drums' is a stem."""
+    return any(w in MIX_WORDS for w in _words(label)) and stem_kind(label) == "other"
 
 
 def from_folder(folder: str) -> Stems:
     """Stems somebody else separated (an export from the generator or the DAW): every audio file in the folder is one
-    stem. A file that names itself a mix is left out, or the song would be counted twice."""
+    stem. A file that is the whole mix is left out, or the song would be counted twice."""
     files = sorted(f for f in os.listdir(folder) if f.lower().endswith(AUDIO_EXT) and os.path.isfile(os.path.join(folder, f)))
     if not files:
         raise ValueError(f"no audio files in {folder}")
     bases = [os.path.splitext(f)[0] for f in files]
-    pre = os.path.commonprefix(bases) if len(bases) > 1 else ""
-    pre = pre[: max(pre.rfind(c) for c in " -_([") + 1] if any(c in pre for c in " -_([") else ""   # cut at a word boundary
+    # A file whose whole name is how every other name starts ("Song" beside "Song - Drums") is the song itself.
+    whole = next((b for b in bases if len(bases) > 2 and all(o.startswith(b) for o in bases)), None)
+    rest = [b for b in bases if b != whole]
+    pre = os.path.commonprefix(rest) if len(rest) > 1 else ""
+    cut = max((pre.rfind(c) for c in TITLE_ENDS), default=-1)
+    pre = pre[: cut + 1] if cut >= 0 else ""          # "Song - " is a title; "Bass " (Bass Drum, Bass Guitar) is not
+    labels = [(b[len(pre):].strip(" -_()[]–|") or b) if b != whole else b for b in bases]
+    if not any(stem_kind(x) != "other" for x, b in zip(labels, bases) if b != whole):
+        labels = [b.strip(" -_()[]–|") for b in bases]    # the shared start was the instrument: "Vocals - Lead", "Vocals - Backing"
     stems, kinds, skipped = {}, {}, []
-    for f, base in zip(files, bases):
-        label = base[len(pre):].strip(" -_()[]") or base
-        if len(files) > 1 and any(w in MIX_WORDS for w in _words(label)):
+    for f, base, label in zip(files, bases, labels):
+        if len(files) > 1 and (_is_mix(label) or base == whole):
             skipped.append(f"{f}: its name says it is a mix, not a stem")
             continue
         a = load(os.path.join(folder, f))
@@ -82,7 +106,7 @@ def from_folder(folder: str) -> Stems:
         stems[label] = a
         kinds[label] = stem_kind(label)
     if not stems:
-        raise ValueError(f"no usable stems in {folder}: {skipped}")
+        raise ValueError(f"no usable stems in {folder}: " + "; ".join(skipped))
     sr = next(iter(stems.values())).sr
     n = 0
     for k in list(stems):

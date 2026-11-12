@@ -167,7 +167,9 @@ def estimate_chords(chroma: np.ndarray, bass: np.ndarray, segments: list[tuple[f
             penalty = 0.10 if len(ivs) > 3 else (0.03 if q in ("sus4", "dim") else 0.0)
             templates.append((r, q, t / np.linalg.norm(t), penalty))
     energy = chroma.sum(axis=1)
-    quiet = np.percentile(energy, 10) * 1.5 if energy.size else 0
+    # Quiet means well below what the song usually is. Without the second bound a song that is equally loud
+    # throughout has every bar under 1.5 x its own 10th percentile and gets no chords at all.
+    quiet = min(np.percentile(energy, 10) * 1.5, np.percentile(energy, 90) * 0.3) if energy.size else 0
     out: list[Chord] = []
     for s, e in segments:
         a, b = int(s * fps), max(int(s * fps) + 1, int(e * fps))

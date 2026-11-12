@@ -2,9 +2,11 @@
 
 rhythm.analyze fits one constant tempo. Generated or played music often sits a little off a round tempo and can
 drift, so a constant grid slides away from the audio. track() follows the beat through the song: in a 4-bar window
-around every bar it measures how far the beats sit from the constant grid, and never looks further than half a 16th
-from where the windows before it point, so it cannot hop onto an off-beat. The result maps seconds to arrangement
-beats. That map is what puts a transcribed note on the right 16th, and what the warp markers are made of.
+around every bar it measures how far the beats sit from the constant grid, and looks no further than half a 16th
+from where the windows before it point (a little further after a stretch with no clear beat), so it does not hop
+onto an off-beat by itself. It keeps the phase the analysis gave it: if that took the off-beat for the beat, so
+does the map. The result maps seconds to arrangement beats. That map is what puts a transcribed note on the right
+16th, and what the warp markers are made of.
 """
 from __future__ import annotations
 
@@ -15,7 +17,9 @@ import numpy as np
 from . import rhythm as rh
 
 DRIFT_MS = 15.0          # a beat further than this from the best constant-tempo grid counts as drift,
-MIN_GAIN = 0.10          # if the tracked beats also hit this much more onset energy than that grid
+MIN_GAIN = 0.10          # if the tracked beats also hit this much more onset energy than that grid over the song,
+LOCAL_GAIN = 0.5         # or this much more in some 8-bar stretch where they are far from it
+START_S = rh.START_S
 WINDOW_BARS = 4
 
 
@@ -31,14 +35,23 @@ class BeatMap:
     bpm_hi: float
     tracked: float               # share of the windows in which the beat was clear enough to measure
     gain: float = 0.0            # how much more onset energy the tracked beats hit than the best constant grid does
+    local_gain: float = 0.0      # the same in the 8-bar stretch where it is largest and the beats are off that grid
+    steady_bpm: float = 0.0      # the constant grid to use when the song is not drifting: tempo,
+    steady_downbeat: float = 0.0   # and the second of the first downbeat on it
     weak: list[tuple[float, float]] = field(default_factory=list)   # seconds: stretches followed blind
     relocked: list[float] = field(default_factory=list)             # seconds where the beat was found again after one
+    lost: list[tuple[float, float]] = field(default_factory=list)   # seconds: the tracked beats do not fit the audio here
 
     @property
     def drifting(self) -> bool:
         """Only when following the beat pays: where onsets are soft the tracker wanders a little by itself, and a
         steady song must not be bent to fit that."""
-        return self.drift_ms > DRIFT_MS and self.gain > MIN_GAIN
+        return self.drift_ms > DRIFT_MS and (self.gain > MIN_GAIN or self.local_gain > LOCAL_GAIN)
+
+    @property
+    def unclear(self) -> bool:
+        """Off a constant grid by more than counts as steady, yet following it did not pay: say so, do not call it steady."""
+        return self.drift_ms > 2 * DRIFT_MS and not self.drifting
 
     def to_beats(self, t):
         return np.interp(np.asarray(t, dtype=float), self.times, np.arange(self.times.size)) - self.downbeat + self.lead_in
@@ -87,7 +100,9 @@ def track(onsets: rh.OnsetData, rhythm: rh.Rhythm, duration: float, chroma: np.n
     reach = period / 8                            # half a 16th: only one grid line fits inside the search range
     offs = np.arange(-reach, reach + 5e-4, 1e-3)
 
-    relock = np.arange(-period / 2, period / 2, 1e-3)   # after a blind stretch: any phase, the strongest wins
+    # After a blind stretch the search is wider, but stays short of a 16th to either side: a peak half a beat
+    # away is as likely the off-beat as a beat that drifted, and taking it would bend a steady song.
+    relock = np.arange(-0.2 * period, 0.2 * period, 1e-3)
 
     def peak(c: int, around: float, lean: float, spread, offs=offs) -> tuple[float, float, float]:
         """Best (score, deviation at the window centre, contrast) of a comb whose spacing is the reference period
@@ -142,8 +157,9 @@ def track(onsets: rh.OnsetData, rhythm: rh.Rhythm, duration: float, chroma: np.n
     # side, the clearer windows counting for more.
     filled = np.interp(np.arange(centres.size), np.where(ok)[0], dev[ok])
     w = np.where(ok, weight, 0.0) + 1e-9
-    kernel = np.ones(5)
-    filled = np.convolve(filled * w, kernel, mode="same") / np.convolve(w, kernel, mode="same")
+    k = min(2, (centres.size - 1) // 2)             # a clip of a few bars has fewer windows than the usual five
+    pad = lambda x: np.pad(x, k, mode="edge")
+    filled = np.convolve(pad(filled * w), np.ones(2 * k + 1), mode="valid") / np.convolve(pad(w), np.ones(2 * k + 1), mode="valid")
     per_beat = np.interp(np.arange(n), centres, filled)
     per_beat = np.convolve(np.pad(per_beat, bpb, mode="edge"), np.ones(2 * bpb + 1) / (2 * bpb + 1), mode="valid")
     times = ref + per_beat + rh.ONSET_LAG_S
@@ -158,15 +174,55 @@ def track(onsets: rh.OnsetData, rhythm: rh.Rhythm, duration: float, chroma: np.n
     def hit(t):
         return float(np.interp((t - rh.ONSET_LAG_S) * fps, frames, soft, left=0.0, right=0.0).sum())
 
-    gain = hit(times) / (max(hit(np.polyval(fit, np.arange(n))), hit(ref + rh.ONSET_LAG_S)) + 1e-12) - 1.0
+    line = np.polyval(fit, np.arange(n))
+    grid = ref + rh.ONSET_LAG_S
+    # The constant grid for a song that is not drifting: the analysis' own (often a round tempo) unless the line
+    # through the tracked beats clearly catches more of the onsets, as it does when the tempo is 127.93 and not 128.
+    # Compared at its best phase, so that the line does not win only for sitting a few ms better on the beats.
+    shifted = grid + float(np.mean(times - grid))
+    steady = line if hit(line) > 1.02 * max(hit(grid), hit(shifted)) else grid
+    gain = hit(times) / (hit(steady) + 1e-12) - 1.0
+    local_gain = 0.0
+    span8 = 8 * bpb
+    typical = hit(times) / n * span8
+    for a in range(0, max(1, n - span8 + 1), bpb):
+        sl = slice(a, a + span8)
+        if np.max(np.abs(times[sl] - steady[sl])) > 2 * DRIFT_MS / 1000 and hit(times[sl]) > 0.25 * typical:
+            local_gain = max(local_gain, hit(times[sl]) / (hit(steady[sl]) + 1e-12) - 1.0)
     span = 8 * bpb
     local = 60.0 * span / (times[span:] - times[:-span]) if n > span else np.array([60.0 / fit[0]])
+
+    # Where the song is not steady, check the map against the audio: with the beats right, most onsets fall on
+    # a 16th of the map. Where under half of the onset energy does, the map has lost the song (a tempo change too
+    # sudden to follow), and that stretch is reported instead of trusted.
+    lost: list[tuple[float, float]] = []
+    if drift_ms > DRIFT_MS:
+        beats_i = np.arange(n)
+        for a in range(0, max(1, n - span8 + 1), span8 // 2):
+            b = min(n - 1, a + span8)
+            lo, hi = int(max(0, (times[a] - rh.ONSET_LAG_S) * fps)), int(min(env.size, (times[b] - rh.ONSET_LAG_S) * fps))
+            if hi - lo < 8:
+                continue
+            on16 = (np.interp(np.arange(a, b, 0.25), beats_i, times) - rh.ONSET_LAG_S) * fps - lo
+            near = np.zeros(hi - lo, dtype=bool)
+            for d in (-1, 0, 1):
+                near[np.clip(np.round(on16 + d).astype(int), 0, hi - lo - 1)] = True
+            seg = env[lo:hi]
+            if seg.sum() > 0.25 * env.mean() * (hi - lo) and seg[near].sum() < 0.5 * seg.sum():
+                if lost and times[a] <= lost[-1][1] + 1e-6:
+                    lost[-1] = (lost[-1][0], float(times[b]))
+                else:
+                    lost.append((float(times[a]), float(times[b])))
 
     head, tail = times[1] - times[0], times[-1] - times[-2]
     before = int(np.ceil(max(0.0, times[0]) / head)) + 1
     after = int(np.ceil(max(0.0, duration - times[-1]) / tail)) + 1
     times = np.concatenate([times[0] - head * np.arange(before, 0, -1), times, times[-1] + tail * np.arange(1, after + 1)])
-    downbeat = next(i for i in range(times.size) if (i - before - phase) % bpb == 0 and times[i] >= -1e-6)
+    downbeat = next(i for i in range(times.size) if (i - before - phase) % bpb == 0 and times[i] >= -START_S)
+    steady_bpm = 60.0 / float(steady[1] - steady[0])
+    first = float(steady[phase])
+    while first - bpb * 60.0 / steady_bpm >= -START_S:
+        first -= bpb * 60.0 / steady_bpm
     weak = []
     for j in np.where(~ok)[0]:
         a, b = float(times[before + max(0, centres[j] - bpb // 2)]), float(times[before + min(n - 1, centres[j] + bpb // 2)])
@@ -174,6 +230,6 @@ def track(onsets: rh.OnsetData, rhythm: rh.Rhythm, duration: float, chroma: np.n
             weak[-1] = (weak[-1][0], b)
         else:
             weak.append((a, b))
-    return BeatMap(times, downbeat, bpb, float(bpb if times[downbeat] > 0.01 else 0), 60.0 / float(fit[0]), drift_ms,
-                   float(local.min()), float(local.max()), float(ok.mean()), gain, weak,
-                   sorted(float(times[before + centres[j]]) for j in relocks))
+    return BeatMap(times, downbeat, bpb, float(bpb if times[downbeat] > START_S else 0), 60.0 / float(fit[0]), drift_ms,
+                   float(local.min()), float(local.max()), float(ok.mean()), gain, local_gain, steady_bpm, first, weak,
+                   sorted(float(times[before + centres[j]]) for j in relocks), lost)

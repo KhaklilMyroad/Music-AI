@@ -21,7 +21,8 @@ MIN_AGREE = 0.35         # bars one loop apart must share this much before the p
 PEER_SIM = 0.4           # a repetition votes on the rhythm only if it shares this much with the bar being repaired
 PITCH_SIM = 0.6          # stricter where pitches count: Am and F share two notes of three and are not the same bar
 MIN_PEERS = 3            # a vote needs the bar and at least two repetitions
-NEAR = 2                 # repetitions taken on each side of the bar
+TAIL = 8                 # 16ths at the end of a phrase-end bar that are never touched: the last two beats
+LOOPS = (1, 2, 3, 4, 6, 8, 12, 16)
 RECURS = 3               # a note at the same place in the bar this often is intended, whatever the scale says
 NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
@@ -57,43 +58,50 @@ def _jaccard(a: frozenset, b: frozenset) -> float:
     return len(a & b) / len(a | b) if (a or b) else 1.0
 
 
-def loop_length(ev: dict[int, frozenset], candidates=(1, 2, 4, 8, 16)) -> tuple[int, float]:
-    """After how many bars the part repeats, and how alike bars that far apart are (0-1). The loop with the best
-    agreement wins, the shorter one on a tie: a loop that is too short would flatten what changes inside the phrase."""
+def loop_length(ev: dict[int, frozenset], candidates=LOOPS) -> tuple[int, float]:
+    """After how many bars the part repeats, and how alike bars that far apart are (0-1). A loop that repeats
+    exactly wins, the shortest such; otherwise the best agreement, the shorter loop on a near tie. A loop that is
+    too short would flatten what changes inside the phrase."""
     scores = {}
     for L in candidates:
         pairs = [_jaccard(ev[b], ev[b + L]) for b in ev if b + L in ev]
-        if len(pairs) >= 2 and len(ev) >= MIN_PEERS * L:
+        if len(pairs) >= max(2, L):                  # the part must go round the loop at least twice
             scores[L] = float(np.mean(pairs))
     if not scores or max(scores.values()) < MIN_AGREE:
         return 0, max(scores.values(), default=0.0)
     best = max(scores.values())
-    L = min(l for l, sc in scores.items() if sc >= best - 0.02)
+    L = min(l for l, sc in scores.items() if sc >= (best if best > 1 - 1e-9 else best - 0.02))
     return L, scores[L]
 
 
 def _peers(ev: dict[int, frozenset], b: int, L: int, sim: float = PEER_SIM) -> list[int]:
-    """The bar itself and its nearest repetitions that resemble it: two before and two after where the song has
-    them. Voting among the nearest keeps what a whole section does differently from another section."""
-    like = sorted(p for p in ev if p != b and (p - b) % L == 0 and _jaccard(ev[b], ev[p]) >= sim)
+    """The bar itself and its nearest repetitions that resemble it. Voting among the nearest keeps what a whole
+    section does differently from another. With a one-bar loop that is two bars on each side; with a longer loop
+    one repetition on each side, so that a section only two loops long is not outvoted by its neighbours."""
+    near = 2 if L == 1 else 1
+    reach = max(8, 4 * L)                           # bars: a repetition further away than this is another part of the song
+    like = sorted(p for p in ev if p != b and (p - b) % L == 0 and abs(p - b) <= reach and _jaccard(ev[b], ev[p]) >= sim)
     before, after = [p for p in like if p < b], [p for p in like if p > b]
-    take_b = min(len(before), max(NEAR, 2 * NEAR - len(after)))
-    take_a = min(len(after), 2 * NEAR - take_b)
+    if L > 1:                                       # at the song's edge: no vote, rather than two from one side
+        return before[len(before) - min(near, len(before)):] + [b] + after[:near]
+    take_b = min(len(before), max(near, 2 * near - len(after)))
+    take_a = min(len(after), 2 * near - take_b)
     return before[len(before) - take_b:] + [b] + after[:take_a]
 
 
 def _wins(c: int, n: int, own: bool, light: bool) -> bool:
-    """Does an event that `c` of the `n` voters have (the bar itself included) belong in the bar? Normally a strict
-    majority decides. `light` changes a bar only when its repetitions are unanimous against it."""
-    if not light:
-        return 2 * c > n
-    return c > 1 if own else c == n - 1
+    """Does an event that `c` of the `n` voters have (the bar itself included) belong in the bar? A bar changes
+    only on a strict majority against what was heard in it, so a tie leaves it alone. `light` asks for more: every
+    repetition must disagree with the bar."""
+    if light:
+        return c > 1 if own else c == n - 1
+    return 2 * c >= n if own else 2 * c > n
 
 
-def vote(ev: dict[int, frozenset], L: int, turns: set[int], half: int, step_of: Callable = lambda e: e,
+def vote(ev: dict[int, frozenset], L: int, turns: set[int], tail: int, step_of: Callable = lambda e: e,
          sim: float = PEER_SIM, light: bool = False) -> tuple[dict, int, int]:
-    """Per bar, the events the bar and its nearest repetitions agree on. In a phrase-end bar the last two beats
-    are left as heard: that is where fills and the gap before a drop live.
+    """Per bar, the events the bar and its nearest repetitions agree on. In a phrase-end bar everything from step
+    `tail` on (the last two beats) is left as heard: that is where fills and the gap before a drop live.
     Returns (events, bars voted, turns kept)."""
     out, voted, kept = {}, 0, 0
     for b, own in ev.items():
@@ -105,9 +113,9 @@ def vote(ev: dict[int, frozenset], L: int, turns: set[int], half: int, step_of: 
         count = Counter(e for p in peers for e in ev[p])
         maj = frozenset(e for e, c in count.items() if _wins(c, len(peers), e in own, light))
         if b in turns:
-            tail_own = frozenset(e for e in own if step_of(e) >= half)
-            kept += tail_own != frozenset(e for e in maj if step_of(e) >= half)
-            maj = frozenset(e for e in maj if step_of(e) < half) | tail_own
+            tail_own = frozenset(e for e in own if step_of(e) >= tail)
+            kept += tail_own != frozenset(e for e in maj if step_of(e) >= tail)
+            maj = frozenset(e for e in maj if step_of(e) < tail) | tail_own
         out[b] = maj
     return out, voted, kept
 
@@ -151,13 +159,14 @@ def repair_drums(notes: list[Note], bpb: int, turns: set[int], light: bool = Fal
             rep.fixed = len(mine)
             reports[pitch] = rep
             continue
-        voted, rep.voted, rep.turns_kept = vote(ev, rep.loop_bars, turns, spb // 2, light=light)
+        voted, rep.voted, rep.turns_kept = vote(ev, rep.loop_bars, turns, spb - TAIL, light=light)
+        first, last = min(at), max(at)
         for b, steps in voted.items():
             peers = _peers(ev, b, rep.loop_bars)
             for s in steps:
                 if b * spb + s in at:
                     out.append(at[b * spb + s])
-                else:
+                elif first < b * spb + s < last:        # nothing is invented before the part starts or after it ends
                     vel = _median([at[p * spb + s].velocity for p in peers if p * spb + s in at], 90)
                     out.append(Note(pitch, (b * spb + s) * GRID, GRID, int(vel)))
                     rep.added += 1
@@ -174,13 +183,18 @@ def _recurring(notes: list[Note], spb: int) -> set[tuple[int, int]]:
     return {k for k, c in count.items() if c >= RECURS}
 
 
-def _fold_octaves(notes: list[Note], spb: int, rep: Report) -> None:
+def _protected(n: Note, spb: int, turns: set[int]) -> bool:
+    s = _step(n.start)
+    return s // spb in turns and s % spb >= spb - TAIL
+
+
+def _fold_octaves(notes: list[Note], spb: int, turns: set[int], rep: Report) -> None:
     """A note about an octave away from the notes around it, and not a recurring figure, is an octave error."""
     keep = _recurring(notes, spb)
     pitches = [n.pitch for n in notes]
     for i, n in enumerate(notes):
         near = pitches[max(0, i - 3): i] + pitches[i + 1: i + 4]
-        if len(near) < 4 or (_step(n.start) % spb, n.pitch) in keep:
+        if len(near) < 4 or (_step(n.start) % spb, n.pitch) in keep or _protected(n, spb, turns):
             continue
         d = n.pitch - float(np.median(near))
         k = int(round(d / 12))
@@ -189,7 +203,7 @@ def _fold_octaves(notes: list[Note], spb: int, rep: Report) -> None:
             rep.folded += 1
 
 
-def _snap_outside(notes: list[Note], spb: int, allowed: Callable[[int, float], bool], rep: Report) -> None:
+def _snap_outside(notes: list[Note], spb: int, turns: set[int], allowed: Callable[[int, float], bool], rep: Report) -> None:
     """A short note outside the scale and the chord, that does not recur, moves to the neighbouring semitone the
     notes around it point to. Long or recurring ones stay, and are reported."""
     keep = _recurring(notes, spb)
@@ -202,7 +216,7 @@ def _snap_outside(notes: list[Note], spb: int, allowed: Callable[[int, float], b
         pc = n.pitch % 12
         if allowed(pc, n.start) or share[pc] >= 0.04:
             continue
-        if (_step(n.start) % spb, n.pitch) in keep or n.duration > 0.5:
+        if (_step(n.start) % spb, n.pitch) in keep or n.duration > 0.5 or _protected(n, spb, turns):
             kept[pc] += 1
             continue
         around = [m.pitch for m in notes[max(0, i - 1): i] + notes[i + 1: i + 2]]
@@ -229,9 +243,20 @@ def repair_mono(notes: list[Note], bpb: int, turns: set[int], allowed: Callable[
     notes = [one[s] for s in sorted(one)]
     rep = Report(raw=len(raw))
     rep.removed = len(raw) - len(notes)
-    _fold_octaves(notes, spb, rep)
-    _snap_outside(notes, spb, allowed, rep)
+    _fold_octaves(notes, spb, turns, rep)
+    _snap_outside(notes, spb, turns, allowed, rep)
     at = {_step(n.start): n for n in notes}
+    first, last = (min(at), max(at)) if at else (0, 0)
+    # A note that stands in the same relation to its bar's main pitch as the note at that place in the bar before or
+    # after it is a figure the part plays here (a fifth at the end of every chorus bar), not an accident.
+    by_bar: dict[int, list[int]] = {}
+    for st, n in at.items():
+        by_bar.setdefault(st // spb, []).append(n.pitch)
+    main = {b: min(p for p, c in Counter(ps).items() if c == max(Counter(ps).values())) for b, ps in by_bar.items()}
+    rel = {st: n.pitch - main[st // spb] for st, n in at.items()}
+
+    def figure(b: int, st: int) -> bool:
+        return any(rel.get((b + d) * spb + st) == rel[b * spb + st] for d in (-1, 1))
     ev_r: dict[int, set] = {}
     ev_p: dict[int, set] = {}
     for s, n in at.items():
@@ -243,7 +268,7 @@ def repair_mono(notes: list[Note], bpb: int, turns: set[int], allowed: Callable[
     rep.loop_bars, rep.agreement = loop_length(ev_r)
     rep.pitch_loop_bars, _ = loop_length(ev_p)
     if rep.loop_bars:
-        steps, rep.voted, rep.turns_kept = vote(ev_r, rep.loop_bars, turns, spb // 2, light=light)
+        steps, rep.voted, rep.turns_kept = vote(ev_r, rep.loop_bars, turns, spb - TAIL, light=light)
     else:
         steps = dict(ev_r)
     out: list[Note] = []
@@ -258,10 +283,13 @@ def repair_mono(notes: list[Note], bpb: int, turns: set[int], allowed: Callable[
             top, n_top = Counter(heard).most_common(1)[0] if heard else (None, 0)
             if own is not None:
                 sure = n_top == len(heard) - 1 if light else 2 * n_top > len(heard)
-                if len(heard) >= MIN_PEERS and sure and top != own.pitch and not (b in turns and s >= spb // 2):
+                if (len(heard) >= MIN_PEERS and sure and top != own.pitch and not figure(b, s)
+                        and not (b in turns and s >= spb - TAIL)):
                     own.pitch = top
                     rep.repitched += 1
                 line.append(own)
+                continue
+            if not first < b * spb + s < last:      # nothing is invented before the line starts or after it ends
                 continue
             if heard and 2 * n_top > len(heard):
                 pitch = top
@@ -288,9 +316,11 @@ def repair_poly(notes: list[Note], bpb: int, turns: set[int], allowed: Callable[
     spb = bpb * 4
     notes = _clean(notes)
     rep = Report(raw=len(notes))
-    _snap_outside(notes, spb, allowed, rep)
+    _snap_outside(notes, spb, turns, allowed, rep)
     notes = _clean(notes)
+    rep.removed = rep.raw - len(notes)              # a snapped note that landed on one already there
     at = {(_step(n.start), n.pitch): n for n in notes}
+    first, last = (min(k[0] for k in at), max(k[0] for k in at)) if at else (0, 0)
     ev: dict[int, set] = {}
     for (s, p) in at:
         ev.setdefault(s // spb, set()).add((s % spb, p))
@@ -301,25 +331,25 @@ def repair_poly(notes: list[Note], bpb: int, turns: set[int], allowed: Callable[
     if not rep.loop_bars:
         rep.fixed = len(notes)
         return notes, rep
-    voted, rep.voted, rep.turns_kept = vote(ev, rep.loop_bars, turns, spb // 2, lambda e: e[0], PITCH_SIM, light)
+    voted, rep.voted, rep.turns_kept = vote(ev, rep.loop_bars, turns, spb - TAIL, lambda e: e[0], PITCH_SIM, light)
     out: list[Note] = []
     for b, events in voted.items():
         peers = _peers(ev, b, rep.loop_bars, PITCH_SIM)
         for (s, p) in events:
             if (b * spb + s, p) in at:
                 out.append(at[(b * spb + s, p)])
-            else:
+            elif first <= b * spb + s <= last:
                 src = [at[(q * spb + s, p)] for q in peers if (q * spb + s, p) in at]
                 out.append(Note(p, (b * spb + s) * GRID, _median([n.duration for n in src], GRID),
                                 int(_median([n.velocity for n in src], 80))))
                 rep.added += 1
         rep.removed += len(ev[b] - events)
     out.sort(key=lambda n: (n.start, n.pitch))
-    last: dict[int, Note] = {}
+    prev: dict[int, Note] = {}
     for n in out:                                   # the same pitch never overlaps itself
-        if n.pitch in last and last[n.pitch].start + last[n.pitch].duration > n.start:
-            last[n.pitch].duration = max(GRID, n.start - last[n.pitch].start)
-        last[n.pitch] = n
+        if n.pitch in prev and prev[n.pitch].start + prev[n.pitch].duration > n.start:
+            prev[n.pitch].duration = max(GRID, n.start - prev[n.pitch].start)
+        prev[n.pitch] = n
     rep.fixed = len(out)
     return out, rep
 
@@ -330,25 +360,26 @@ def repair_poly(notes: list[Note], bpb: int, turns: set[int], allowed: Callable[
 class Progression:
     loop_bars: int                    # 0: no repeating progression found
     chords: list[str]                 # one name per half bar of the loop
-    share: float                      # how much of the song's half bars agree with the loop
+    share: float                      # how much of the song's sounding half bars had the loop's chord as heard
     fixed: list[tuple[int, str]]      # per half bar of the song: (root pitch class or -1, quality)
     changed: int                      # half bars whose chord was replaced by the loop's
 
 
-def chord_loop(seq: list[tuple[int, str]], tones: Callable[[int, str], set[int]], name: Callable[[int, str], str]) -> Progression:
+def chord_loop(seq: list[tuple[int, str]], name: Callable[[int, str], str]) -> Progression:
     """seq: the detected chord of every half bar, (root, quality), root -1 for none. The progression is voted per
-    place in the loop; a detected chord gives way to the loop's only when the two share at least two notes
-    (the same harmony heard differently). A chord that shares fewer is a real change and stays."""
+    place in the loop. A detected chord gives way to the loop's only when both stand on the same root (G heard as
+    G7 or Gsus4: the same harmony heard differently). Any other root is a real change and stays, a relative chord
+    included: C in a chorus where the verse has Am is the song, not an error."""
     n = len(seq)
     scores = {}
-    for L in (1, 2, 4, 8, 16):
+    for L in LOOPS:
         pairs = [seq[i] == seq[i + 2 * L] for i in range(n - 2 * L) if seq[i][0] >= 0 and seq[i + 2 * L][0] >= 0]
         if len(pairs) >= 4:
             scores[L] = float(np.mean(pairs))
     if not scores or max(scores.values()) < MIN_AGREE:
         return Progression(0, [], max(scores.values(), default=0.0), list(seq), 0)
     best = max(scores.values())
-    L = min(l for l, s in scores.items() if s >= 0.92 * best)
+    L = min(l for l, sc in scores.items() if sc >= (best if best > 1 - 1e-9 else 0.92 * best))
     loop = []
     for ph in range(2 * L):
         c = Counter(seq[i] for i in range(ph, n, 2 * L) if seq[i][0] >= 0)
@@ -356,13 +387,10 @@ def chord_loop(seq: list[tuple[int, str]], tones: Callable[[int, str], set[int]]
     fixed, changed, agree = [], 0, 0
     for i, c in enumerate(seq):
         want = loop[i % (2 * L)]
-        if c[0] < 0 or want[0] < 0 or c == want:
-            fixed.append(c)
-            agree += c == want and c[0] >= 0
-        elif len(tones(*c) & tones(*want)) >= 2:
+        agree += c == want and c[0] >= 0
+        if c[0] >= 0 and c != want and c[0] == want[0]:
             fixed.append(want)
             changed += 1
-            agree += 1
         else:
             fixed.append(c)
     sounding = sum(1 for c in seq if c[0] >= 0) or 1

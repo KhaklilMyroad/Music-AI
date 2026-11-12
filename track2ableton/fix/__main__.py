@@ -35,12 +35,20 @@ def main(argv=None) -> int:
     from .project import run
 
     print(f"track2ableton fix: {src} -> {out}")
-    info = run(src, out, args.bpm, args.light, args.separation, args.demucs_model, args.transcription, not args.no_als, args.template)
+    try:
+        info = run(src, out, args.bpm, args.light, args.separation, args.demucs_model, args.transcription, not args.no_als, args.template)
+    except (ValueError, FileNotFoundError) as exc:      # nothing usable in the folder, a clip too short, a missing template
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     t = info["tempo"]
     print(f"\n  Tempo {t['measured_bpm']:g} -> {t['project_bpm']:g} BPM ({t['stretch_percent']:+.2f} %), "
           f"{'drifting, ' if t['drifting'] else ''}{t['warp_markers']} warp markers | Key {info['key']['name']}")
     for r in info["tracks"]:
         print(f"  {r['track']:24} {r['raw_notes']:5d} -> {r['fixed_notes']:5d} notes, {r['changed']} changed")
+    if t["not_steady_but_not_followed"]:
+        print("  ! The tempo is not steady and could not be followed: check the grid by ear in every section.")
+    if info.get("als_error"):
+        print(f"  ! The Live Set was not written ({info['als_error']}). Everything else is there.")
     print(f"\n  Read: {os.path.join(out, 'FIX_REPORT.md')}")
     return 0
 

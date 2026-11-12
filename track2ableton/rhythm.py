@@ -13,6 +13,7 @@ N_FFT = 1024
 # synthetic kicks is ~7-13 ms early, so beat times are shifted later by this amount.
 ONSET_LAG_S = 0.010
 HOP = 256
+START_S = 0.03   # a first downbeat this close to second 0 (either side) is where the file starts, not a pickup
 FPS = SR / HOP
 
 
@@ -213,10 +214,9 @@ def analyze(mono: np.ndarray, sr: int, onsets: OnsetData | None = None, chroma_f
     downbeat_offset = downbeat_phase(low_b, chord_change, beats_per_bar)
     first_downbeat = float(beat_times[downbeat_offset])
     # Extrapolate the grid backwards so bar 1 starts at or before t=0 alignment.
-    while first_downbeat - beats_per_bar * 60 / bpm >= -1e-6:
+    # A downbeat measured a few ms before second 0 is the start of the file, not the end of a bar that is missing.
+    while first_downbeat - beats_per_bar * 60 / bpm >= -START_S:
         first_downbeat -= beats_per_bar * 60 / bpm
-    if first_downbeat < 0:
-        first_downbeat += beats_per_bar * 60 / bpm
 
     swing = estimate_swing(onsets.full, beat_frames, period)
 

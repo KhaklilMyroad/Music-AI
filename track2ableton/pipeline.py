@@ -13,6 +13,7 @@ import numpy as np
 from . import __version__, audio as aio, beatmap, midi, mixanalysis as mx, rhythm as rh, separation, sounddesign as sd
 from . import structure as st, tonal as tn, transcribe as tr
 
+MIN_SECONDS = 4.0
 STEM_ORDER = ["drums", "bass", "piano", "guitar", "other", "vocals"]
 STEM_LABEL = {"drums": "Drums", "bass": "Bass", "vocals": "Vocals", "other": "Synths / Other", "piano": "Piano / Keys", "guitar": "Guitar"}
 
@@ -73,7 +74,7 @@ class Analysis:
 
 
 def _slug(s: str) -> str:
-    return re.sub(r"[^A-Za-z0-9_-]+", "_", s).strip("_") or "track"
+    return re.sub(r"[^\w-]+", "_", s).strip("_") or "track"          # \w keeps letters of any script
 
 
 def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: str = "htdemucs_6s",
@@ -87,8 +88,14 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
         log(f"  [{timings[name]:6.1f}s] {name}")
 
     os.makedirs(out_dir, exist_ok=True)
+    if os.path.isdir(path):
+        audio = sorted(f for f in os.listdir(path) if f.lower().endswith(separation.AUDIO_EXT))
+        if len(audio) == 1:
+            path = os.path.join(path, audio[0])       # one file in a folder is a song to separate, not a stem
     given = separation.from_folder(path) if os.path.isdir(path) else None
     song = separation.mixdown(given) if given else aio.load(path)
+    if song.duration < MIN_SECONDS:
+        raise ValueError(f"{song.duration:.1f} s of audio is too short to find a tempo and bars in (at least {MIN_SECONDS:g} s)")
     if song.sr > 48000:
         song = song.resampled(44100)
     if song.channels == 1:
@@ -112,6 +119,23 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
         rhythm.bpm = round(beat_map.bpm, 2)
         rhythm.notes.append(f"Tempo is not steady: beats sit up to {beat_map.drift_ms:.0f} ms away from a constant grid "
                             f"({beat_map.bpm_lo:.2f}-{beat_map.bpm_hi:.2f} BPM). Notes and warp markers follow the tracked beats.")
+    else:
+        if abs(beat_map.steady_bpm - rhythm.bpm) > 1e-6:
+            # The tempo measured along the whole song is not the round number the analysis snapped to: over three
+            # minutes 127.93 against 128 is a tenth of a second.
+            rhythm.bpm = round(beat_map.steady_bpm, 3)
+            rhythm.first_downbeat = float(beat_map.steady_downbeat)
+            rhythm.beat_times = rhythm.first_downbeat + np.arange(int((song.duration - rhythm.first_downbeat) / rhythm.beat_len) + 1) * rhythm.beat_len
+            rhythm.downbeat_offset = 0
+            rhythm.notes.append(f"Tempo measured along the song: {rhythm.bpm:g} BPM. The grid uses that, not the nearest round number.")
+    if beat_map.lost:
+        rhythm.notes.append("The beat could not be followed in " + ", ".join(f"{x:.0f}-{y:.0f} s" for x, y in beat_map.lost)
+                            + " (a sudden tempo change is the usual reason). Notes and warp markers there are not reliable.")
+    if not beat_map.drifting:
+        if beat_map.unclear:
+            rhythm.notes.append(f"Tempo is NOT steady (beats up to {beat_map.drift_ms:.0f} ms off a constant grid), but following the "
+                                "beat did not catch clearly more onsets than a constant grid, so a constant grid was kept. "
+                                "A tempo change inside the song is the usual reason: check the grid by ear in every section.")
     bars = rhythm.bar_times()
     pre = []
     t = rhythm.first_downbeat
@@ -119,14 +143,15 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
         t -= rhythm.bar_len
         pre.append(t)
     bar_grid = np.array(sorted(b for b in pre if b > -rhythm.bar_len) + [b for b in np.arange(rhythm.first_downbeat, song.duration, rhythm.bar_len)])
-    bar_grid = bar_grid[bar_grid >= -1e-6] if (bar_grid >= -1e-6).sum() >= 4 else bars
+    bar_grid = bar_grid[bar_grid >= -rh.START_S - 1e-6] if (bar_grid >= -rh.START_S - 1e-6).sum() >= 4 else bars
     if beat_map.drifting:
         bar_grid = beat_map.bar_times(song.duration)
+    bar_grid = np.maximum(bar_grid, 0.0)              # a downbeat measured a few ms before second 0 is second 0
     sections = st.analyze(mono, sr, bar_grid, tonal.chroma, tonal.fps)
     chords = tn.chords_on_grid(tonal, bar_grid, rhythm.beat_times, rhythm.beats_per_bar)
     tick("tempo, key, chords, structure")
 
-    lead_in_grid = float(rhythm.beats_per_bar if rhythm.first_downbeat > 0.01 else 0)
+    lead_in_grid = float(rhythm.beats_per_bar if rhythm.first_downbeat > rh.START_S else 0)
 
     def to_beats(t):
         if beat_map.drifting:
@@ -162,6 +187,7 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
     echo_hits = []
     kinds = {n: stems.kinds.get(n, n if n in STEM_ORDER else "other") for n in stems.stems}
     names = sorted(stems.stems, key=lambda n: (STEM_ORDER.index(kinds[n]), n not in STEM_ORDER, n))
+    used: set[str] = set()
     for stem_name in names:
         a = stems.stems[stem_name]
         name = kinds[stem_name]                       # what the stem is: drums / bass / vocals / piano / guitar / other
@@ -173,11 +199,16 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
         level = aio.rms_db(m)
         if level < -50:
             log(f"  - {stem_name}: silent ({level:.0f} dBFS), skipped")
+            stems.skipped.append(f"{stem_name}: silent")
             continue
         label = STEM_LABEL.get(stem_name, stem_name if given else stem_name.title())
         if name == "vocals" and stems.method.startswith("dsp"):
             label = "Centre Lead"  # the DSP separator cannot tell a vocal from a centred synth lead
-        stem_path = aio.save(os.path.join(stem_dir, f"{_slug(label)}.wav"), a.data, sr)
+        slug = _slug(label)
+        while slug in used:                           # two names can clean up to the same file name
+            slug += "_2"
+        used.add(slug)
+        stem_path = aio.save(os.path.join(stem_dir, f"{slug}.wav"), a.data, sr)
         spec = mx.spectrum_profile(m, sr)
         dyn = mx.dynamics(m, sr)
         ster = mx.stereo(a)
@@ -200,7 +231,7 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
             if kick_times is None or kicks.size > kick_times.size:
                 kick_times = kicks
             shots = tr.extract_one_shots(m, sr, hits)
-            samp_dir = os.path.join(out_dir, "Samples", _slug(label))
+            samp_dir = os.path.join(out_dir, "Samples", slug)
             os.makedirs(samp_dir, exist_ok=True)
             for piece, clip in shots.items():
                 drum_samples[piece] = aio.save(os.path.join(samp_dir, f"{piece}.wav"), clip, sr)
@@ -276,8 +307,8 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
                 devices.append(eq)
             # chord-track alternative
             ch = tr.chords_to_midi(chords, to_beats, octave_base=48 if spec.centroid_hz < 1500 else 60)
-            midi.write(os.path.join(midi_dir, f"{_slug(label)}_chords.mid"), ch.notes, rhythm.bpm, f"{label} chords", 0, rhythm.beats_per_bar)
-            notes_out.append(f"Also exported block chords from the chord analysis: MIDI/{_slug(label)}_chords.mid")
+            midi.write(os.path.join(midi_dir, f"{slug}_chords.mid"), ch.notes, rhythm.bpm, f"{label} chords", 0, rhythm.beats_per_bar)
+            notes_out.append(f"Also exported block chords from the chord analysis: MIDI/{slug}_chords.mid")
 
         # ---------------- shared processing estimates for melodic/vocal stems
         if name != "drums":
@@ -325,7 +356,7 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
 
         mid_path = None
         if kind == "midi" or name == "vocals":
-            mid_path = midi.write(os.path.join(midi_dir, f"{_slug(label)}.mid"), trans.notes, rhythm.bpm, label,
+            mid_path = midi.write(os.path.join(midi_dir, f"{slug}.mid"), trans.notes, rhythm.bpm, label,
                                   9 if name == "drums" else 0, rhythm.beats_per_bar)
             clip_notes = trans.notes
         meas["transcription"] = {"method": trans.method, "confidence": trans.confidence, "notes": len(trans.notes),
@@ -388,6 +419,8 @@ def to_json(a: Analysis) -> dict:
         "beat_map": None if a.beat_map is None else {
             "mean_bpm": round(a.beat_map.bpm, 3), "slowest_8_bars_bpm": round(a.beat_map.bpm_lo, 2), "fastest_8_bars_bpm": round(a.beat_map.bpm_hi, 2),
             "furthest_from_constant_grid_ms": round(a.beat_map.drift_ms, 1), "drifting": a.beat_map.drifting,
+            "not_steady_but_not_followed": a.beat_map.unclear,
+            "map_does_not_fit_audio_s": [[round(x, 1), round(y, 1)] for x, y in a.beat_map.lost],
             "beat_clear_share": round(a.beat_map.tracked, 2), "followed_blind_s": [[round(x, 1), round(y, 1)] for x, y in a.beat_map.weak],
             "found_again_at_s": [round(x, 1) for x in a.beat_map.relocked]},
         "key": {"name": a.tonal.key_name, "camelot": a.tonal.camelot, "confidence": round(a.tonal.key_confidence, 2),
@@ -431,7 +464,9 @@ def write_outputs(a: Analysis, out_dir: str, write_als: bool, log=print, als_tem
     if write_als:
         try:
             from .ableton import als
-            als.write(a, out_dir, os.path.join(out_dir, f"{_slug(os.path.splitext(os.path.basename(os.path.normpath(a.source)))[0])} Rebuild.als"), als_template)
+            base = os.path.basename(os.path.normpath(a.source))
+            name = base if os.path.isdir(a.source) else os.path.splitext(base)[0]      # "Song v1.2 stems" is a folder, not a file with an extension
+            als.write(a, out_dir, os.path.join(out_dir, f"{_slug(name)} Rebuild.als"), als_template)
         except Exception as exc:  # keep the rest of the package even if .als export fails
             a.warnings.append(f".als export failed: {exc}")
             log(f"  ! .als export failed: {exc}")
