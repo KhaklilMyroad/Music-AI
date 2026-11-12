@@ -26,8 +26,9 @@ def _track(events: list[tuple[int, bytes]]) -> bytes:
     return b"MTrk" + struct.pack(">I", len(data)) + bytes(data)
 
 
-def write(path: str, notes, bpm: float, name: str = "Track", channel: int = 0, beats_per_bar: int = 4) -> str:
-    """notes: iterable with .pitch, .start (beats), .duration (beats), .velocity."""
+def write(path: str, notes, bpm: float, name: str = "Track", channel: int = 0, beats_per_bar: int = 4, lyrics=None) -> str:
+    """notes: iterable with .pitch, .start (beats), .duration (beats), .velocity.
+    lyrics: optional [(beat, text)], written as lyric meta events (FF 05) at those beats."""
     tempo = int(round(60_000_000 / bpm))
     meta = [
         (0, b"\xff\x51\x03" + tempo.to_bytes(3, "big")),
@@ -45,6 +46,9 @@ def write(path: str, notes, bpm: float, name: str = "Track", channel: int = 0, b
         # note-offs sort before note-ons at equal ticks via (tick, 0x80 < 0x90)
         ev.append((off, bytes([0x80 | channel, p, 0])))
         ev.append((on, bytes([0x90 | channel, p, v])))
+    for beat, text in lyrics or []:
+        tb = str(text).encode("utf-8")
+        ev.append((int(round(beat * PPQ)), b"\xff\x05" + _vlq(len(tb)) + tb))      # sorts ahead of the note-on at its tick
     ev.sort(key=lambda e: (e[0], e[1][0] & 0xF0 == 0x90))
     header = b"MThd" + struct.pack(">IHHH", 6, 1, 2, PPQ)
     with open(path, "wb") as f:
@@ -117,3 +121,46 @@ def read(path: str) -> list[dict]:
         pos = end
     notes.sort(key=lambda n: (n["start"], n["pitch"]))
     return notes
+
+
+def read_lyrics(path: str) -> list[tuple[float, str]]:
+    """Lyric meta events (FF 05) of a Standard MIDI File as [(beat, text)]."""
+    data = open(path, "rb").read()
+    if data[:4] != b"MThd":
+        raise ValueError("not a MIDI file")
+    ntracks, division = struct.unpack(">HH", data[10:14])
+    pos, out = 14, []
+
+    def vlq(p):
+        v = 0
+        while True:
+            b = data[p]
+            p += 1
+            v = (v << 7) | (b & 0x7F)
+            if not b & 0x80:
+                return v, p
+
+    for _ in range(ntracks):
+        if data[pos:pos + 4] != b"MTrk":
+            break
+        length = struct.unpack(">I", data[pos + 4:pos + 8])[0]
+        p, end, tick, status = pos + 8, pos + 8 + length, 0, 0
+        while p < end:
+            delta, p = vlq(p)
+            tick += delta
+            if data[p] & 0x80:
+                status = data[p]
+                p += 1
+            if status == 0xFF:
+                kind = data[p]
+                ln, p = vlq(p + 1)
+                if kind == 0x05:
+                    out.append((tick / division, data[p:p + ln].decode("utf-8", "replace")))
+                p += ln
+            elif status in (0xF0, 0xF7):
+                ln, p = vlq(p)
+                p += ln
+            else:
+                p += 1 if status & 0xF0 in (0xC0, 0xD0) else 2
+        pos = end
+    return sorted(out)

@@ -351,6 +351,35 @@ def rebuild_in_live(project_dir: str, slot: int = 0) -> str:
     return _j(rebuild(project_dir, _call, slot))
 
 
+# ============================================================================== vocals and stems
+@server.tool()
+def vocal_score(track: str, lyrics: str, out_dir: str, language: str = "en", slot: int | None = None,
+                arrangement_index: int | None = None, fit: str = "strict", phrase_gap: float = 1.0) -> str:
+    """Turn a MIDI clip with a vocal melody plus its lyrics into a vocal score: one syllable per note, checked (counts per
+    line, range, breath, syllables too fast to sing, word stress against the bar), written to out_dir as vocal.mid (with
+    lyric events), vocal.musicxml, vocal.json and VOCAL_REPORT.md (Hebrew). It prepares the score for a singing engine; it
+    does not make sound. lyrics: one line per phrase; a lone "-" holds the previous syllable on that note; "sha-lom" sets
+    syllables by hand. language: "en" (needs the cmudict package for sure counts), "es", or "typed" (as typed only).
+    Give slot (Session) or arrangement_index. fit="end" lets the last syllable of a line carry its extra notes."""
+    from ..vocal.live import score_clip
+    try:
+        return _j(score_clip(_call, _ref(track), lyrics, out_dir, language, slot, arrangement_index, fit, phrase_gap))
+    except ValueError as exc:
+        raise ToolError(str(exc)) from exc
+
+
+@server.tool()
+def split_stems(file_path: str, out_dir: str | None = None, to_live: bool = True, position: float = 0.0, model: str = "htdemucs_6s") -> str:
+    """Split an audio file into stems (drums, bass, vocals, other, and guitar/piano with the default model) and, with
+    to_live, put each on its own new audio track at `position` (arrangement beats). Uses Demucs when it is installed
+    (pip install demucs); otherwise a rough built-in split, and the result says which was used."""
+    from . import stems
+    res = stems.split(_file(file_path), out_dir, "auto", model)
+    if to_live:
+        res["tracks"] = stems.to_live(_call, res["stems"], position)
+    return _j(res)
+
+
 def _ref(x):
     if x is None:
         return None

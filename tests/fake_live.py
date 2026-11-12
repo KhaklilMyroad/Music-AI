@@ -165,6 +165,11 @@ class Track:
         c.start_time = start
         self.arrangement_clips.append(c)
 
+    def create_audio_clip(self, path, position):
+        c = Clip(4.0, midi=False, file_path=path)
+        c.start_time = position
+        self.arrangement_clips.append(c)
+
     def duplicate_clip_to_arrangement(self, clip, time):
         import copy
         c = copy.deepcopy(clip)

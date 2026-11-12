@@ -235,3 +235,28 @@ def test_sidechain_routing(h):
     h.handle("insert_device", {"track": 0, "name": "EQ Eight"})
     with pytest.raises(CommandError):
         h.handle("set_sidechain", {"track": 0, "device": "EQ Eight", "source": "Kick"})
+
+
+def test_mcp_vocal_score_and_split_stems(bridge, tmp_path, monkeypatch):
+    from track2ableton.live import client as cl, mcp_server as ms
+
+    from .synth import SR, make_song
+
+    song, port = bridge
+    monkeypatch.setattr(ms, "_client", cl.LiveClient(port=port, timeout=10))
+    ms.create_track(kind="midi", name="Vox")
+    ms.create_clip(track="Vox", slot=0, length=8)
+    ms.write_notes(track="Vox", slot=0, notes=[{"pitch": 60 + i, "start": float(i), "duration": 0.9, "velocity": 100} for i in range(6)])
+    out = json.loads(ms.vocal_score(track="Vox", lyrics="ma-ña-na es hoy -", out_dir=str(tmp_path / "v"), language="es", slot=0))
+    assert out["ready"] and out["note_count"] == 6 and out["syllable_count"] == 5 and os.path.isfile(out["files"]["midi"])
+    bad = json.loads(ms.vocal_score(track="Vox", lyrics="hola", out_dir=str(tmp_path / "v"), language="es", slot=0))
+    assert not bad["ready"] and bad["problems"][0]["kind"] == "count"
+    with pytest.raises(ms.ToolError):
+        ms.vocal_score(track="Vox", lyrics="hola", out_dir=str(tmp_path / "v"))            # no slot, no arrangement clip
+    x, _ = make_song(bpm=124.0, bars=8)
+    wav = str(tmp_path / "song.wav")
+    sf.write(wav, x.T, SR, subtype="PCM_16")
+    before = len(song.tracks)
+    res = json.loads(ms.split_stems(wav, position=8.0))
+    assert len(song.tracks) == before + len(res["stems"]) and res["tracks"][0]["track"] in res["stems"]
+    assert song.tracks[-1].arrangement_clips[0].start_time == 8.0
