@@ -158,11 +158,13 @@ def _sample_ref(sr_el: ET.Element, abs_path: str, rel_path: str):
     return info
 
 
-def audio_clip(abs_path: str, rel_path: str, start: float, bpm: float, name: str, color: int, bpb: int) -> ET.Element:
+def audio_clip(abs_path: str, rel_path: str, markers: list[tuple[float, float]], name: str, color: int, bpb: int) -> ET.Element:
+    """markers: (second in the file, arrangement beat), first one at second 0. Two markers at the measured tempo
+    stretch nothing; more markers, or a project tempo that differs from the measured one, make Live warp the stem."""
     clip = _template("Clip", "audio")
-    info = _sample_ref(clip.find("SampleRef"), abs_path, rel_path)
-    dur_s = info.frames / info.samplerate
-    beats = dur_s * bpm / 60.0
+    _sample_ref(clip.find("SampleRef"), abs_path, rel_path)
+    start = markers[0][1]
+    beats = markers[-1][1] - start
     clip.set("Time", f"{start:g}")
     _set(clip, "CurrentStart", f"{start:g}")
     _set(clip, "CurrentEnd", f"{start + beats:g}")
@@ -174,12 +176,11 @@ def audio_clip(abs_path: str, rel_path: str, start: float, bpm: float, name: str
     _set(clip, "Color", color)
     _set(clip, "TimeSignature/TimeSignatures/RemoteableTimeSignature/Numerator", bpb)
     _set(clip, "IsWarped", True)
-    _set(clip, "WarpMode", 0)  # 0 as in the donor clip; with 1:1 warp markers nothing is stretched
+    _set(clip, "WarpMode", 0)  # as in the donor clip (Beats); pick Complex Pro in Live for tonal stems that get stretched
     wm = clip.find("WarpMarkers")
     _clear(wm)
-    # 1:1 mapping (project tempo == detected tempo): no time-stretching happens.
-    ET.SubElement(wm, "WarpMarker", Id="0", SecTime="0", BeatTime="0")
-    ET.SubElement(wm, "WarpMarker", Id="1", SecTime=repr(dur_s), BeatTime=repr(beats))
+    for i, (sec, beat) in enumerate(markers):
+        ET.SubElement(wm, "WarpMarker", Id=str(i), SecTime=repr(float(sec)), BeatTime=repr(float(beat - start)))
     _set(clip, "Fades/FadeInLength", 0)
     _set(clip, "Fades/FadeOutLength", 0)
     return clip
@@ -378,7 +379,7 @@ def _max_pool_id(root: ET.Element) -> int:
 def write(analysis, out_dir: str, path: str, template: str | None = None) -> str:
     a = analysis
     bpb = a.rhythm.beats_per_bar
-    bpm = a.rhythm.bpm
+    bpm = a.tempo
     user_tpl = None
     if template:
         with gzip.open(template) as f:
@@ -388,8 +389,8 @@ def write(analysis, out_dir: str, path: str, template: str | None = None) -> str
     tracks_el = ls.find("Tracks")
     _clear(tracks_el)
     ids = IdPool(max(_max_pool_id(root), _max_pool_id(_lib())) + 1)
-    song_start = a.lead_in_beats - a.rhythm.first_downbeat / a.rhythm.beat_len
-    total_beats = song_start + a.duration * bpm / 60.0
+    markers = a.warp_markers()
+    total_beats = markers[-1][1]
     end_beat = float(np.ceil(total_beats / bpb) * bpb)
 
     returns = list(a.returns)
@@ -432,7 +433,7 @@ def write(analysis, out_dir: str, path: str, template: str | None = None) -> str
                         mute=tr.stem != "vocals")
         abs_stem = os.path.join(out_dir, tr.audio_file)
         ref.find("DeviceChain/MainSequencer/Sample/ArrangerAutomation/Events").append(
-            audio_clip(abs_stem, tr.audio_file, song_start, bpm, f"{tr.name} stem", tr.color, bpb))
+            audio_clip(abs_stem, tr.audio_file, markers, f"{tr.name} stem", tr.color, bpb))
         if tr.kind == "audio":  # vocals: processing lives on the stem itself
             add_devices(ref, tr.devices, ref.find("DeviceChain/DeviceChain/Devices"))
             regular.append(ref)

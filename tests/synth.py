@@ -142,3 +142,50 @@ def make_song(bpm=124.0, bars=32, key_root=57, seed=0, offset_s=0.0, sidechain=T
              "chords": ["Am", "F", "C", "G"], "rt60_pad": 1.8, "sidechain_db": 10, "bars": bars,
              "stems": {"drums": drums, "bass": bass, "pad": np.stack([pad_l, pad_r])}}
     return out.astype(np.float32), truth
+
+
+def drift_clock(bpm=129.6, beats=400, wobble=0.004, ramp=0.006, wobble_beats=96.0):
+    """A tempo that is not constant: `bpm` times (1 + a slow sine of +-wobble + a linear ramp of `ramp` over the song).
+    Returns seconds(beat) for fractional beats."""
+    b = np.arange(0, beats + 8, 1 / 32)
+    tempo = bpm * (1 + wobble * np.sin(2 * np.pi * b / wobble_beats) + ramp * b / beats)
+    sec = np.concatenate([[0.0], np.cumsum(60.0 / tempo[:-1] / 32)])
+    return lambda x: np.interp(np.asarray(x, dtype=float), b, sec)
+
+
+def render_parts(parts: dict, clock, offset_s=0.0, tail_s=2.0):
+    """parts: {"kick": [beat], "clap": [beat], "hat": [beat], "bass": [(pitch, beat, beats)], "pad": [(pitch, beat, beats)]}.
+    `clock` maps beats to seconds. Returns {name: mono float32} stems of equal length, sample rate SR."""
+    last = 0.0
+    for name, ev in parts.items():
+        for e in ev:
+            last = max(last, float(e) if np.isscalar(e) else e[1] + e[2])
+    n = int((float(clock(last)) + offset_s + tail_s) * SR)
+    out = {name: np.zeros(n) for name in parts}
+
+    def add(buf, sig, t0, gain=1.0):
+        i = int(round(t0 * SR))
+        j = min(buf.size, i + sig.size)
+        if j > i:
+            buf[i:j] += gain * sig[: j - i]
+
+    k, s = kick(), snare()
+    for name, ev in parts.items():
+        for q, e in enumerate(ev):
+            if name == "kick":
+                add(out[name], k, offset_s + float(clock(e)), 0.9)
+            elif name == "clap":
+                add(out[name], s, offset_s + float(clock(e)), 0.7)
+            elif name == "hat":
+                add(out[name], hat(seed=q), offset_s + float(clock(e)), 0.8)
+            else:
+                pitch, b0, dur = e
+                t0, t1 = float(clock(b0)), float(clock(b0 + dur))
+                t = np.arange(int((t1 - t0) * 0.92 * SR)) / SR
+                if name == "bass":
+                    env = np.minimum(1, t / 0.005) * np.exp(-t * 2) * np.minimum(1, (t[-1] - t) / 0.01 + 1e-9)
+                    add(out[name], 0.5 * saw(midi_hz(pitch), t) * env, offset_s + t0)
+                else:
+                    env = np.minimum(1, t / 0.03) * np.minimum(1, (t[-1] - t) / 0.03 + 1e-9)
+                    add(out[name], 0.15 * saw(midi_hz(pitch), t, 12) * env, offset_s + t0)
+    return {name: x.astype(np.float32) for name, x in out.items()}

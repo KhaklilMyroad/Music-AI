@@ -11,11 +11,12 @@ from __future__ import annotations
 import glob
 import importlib.util
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -28,6 +29,75 @@ class Stems:
     stems: dict[str, Audio]
     method: str
     quality_note: str
+    kinds: dict[str, str] = field(default_factory=dict)   # stem name -> drums / bass / vocals / piano / guitar / other
+    skipped: list[str] = field(default_factory=list)      # files in a stem folder that were left out, with why
+
+
+AUDIO_EXT = (".wav", ".flac", ".aif", ".aiff", ".mp3", ".m4a", ".ogg")
+KIND_WORDS = {
+    "vocals": ("vocal", "vox", "voice", "choir", "acapella", "backing", "sing", "adlib"),
+    "drums": ("drum", "kick", "snare", "hat", "hihat", "perc", "clap", "cymbal", "conga", "bongo", "shaker", "tom", "cowbell", "clave", "rim"),
+    "bass": ("bass", "sub", "808"),
+    "piano": ("piano", "keys", "keyboard", "rhodes"),
+    "guitar": ("guitar", "gtr"),
+}
+MIX_WORDS = ("mix", "master", "instrumental", "full", "original")
+
+
+def _words(name: str) -> list[str]:
+    return re.findall(r"[a-z]+|\d+", name.lower())
+
+
+def stem_kind(label: str) -> str:
+    """What a stem file is, from the words in its name; the last word that says something wins ('Bass Drum' is drums)."""
+    kind = "other"
+    for w in _words(label):
+        for k, keys in KIND_WORDS.items():
+            if any(w.startswith(key) for key in keys):
+                kind = k
+    return kind
+
+
+def from_folder(folder: str) -> Stems:
+    """Stems somebody else separated (an export from the generator or the DAW): every audio file in the folder is one
+    stem. A file that names itself a mix is left out, or the song would be counted twice."""
+    files = sorted(f for f in os.listdir(folder) if f.lower().endswith(AUDIO_EXT) and os.path.isfile(os.path.join(folder, f)))
+    if not files:
+        raise ValueError(f"no audio files in {folder}")
+    bases = [os.path.splitext(f)[0] for f in files]
+    pre = os.path.commonprefix(bases) if len(bases) > 1 else ""
+    pre = pre[: max(pre.rfind(c) for c in " -_([") + 1] if any(c in pre for c in " -_([") else ""   # cut at a word boundary
+    stems, kinds, skipped = {}, {}, []
+    for f, base in zip(files, bases):
+        label = base[len(pre):].strip(" -_()[]") or base
+        if len(files) > 1 and any(w in MIX_WORDS for w in _words(label)):
+            skipped.append(f"{f}: its name says it is a mix, not a stem")
+            continue
+        a = load(os.path.join(folder, f))
+        if float(np.max(np.abs(a.data))) < 1e-4:
+            skipped.append(f"{f}: silent")
+            continue
+        while label in stems:
+            label += " 2"
+        stems[label] = a
+        kinds[label] = stem_kind(label)
+    if not stems:
+        raise ValueError(f"no usable stems in {folder}: {skipped}")
+    sr = next(iter(stems.values())).sr
+    n = 0
+    for k in list(stems):
+        if stems[k].sr != sr:
+            stems[k] = stems[k].resampled(sr)
+        n = max(n, stems[k].data.shape[1])
+    for k, a in stems.items():
+        d = a.data if a.data.shape[0] == 2 else np.repeat(a.data[:1], 2, axis=0)
+        stems[k] = Audio(np.pad(d, ((0, 0), (0, n - d.shape[1]))), sr)
+    return Stems(stems, "folder", f"{len(stems)} stems supplied in a folder; nothing was separated here.", kinds, skipped)
+
+
+def mixdown(stems: Stems) -> Audio:
+    first = next(iter(stems.stems.values()))
+    return Audio(np.sum([a.data for a in stems.stems.values()], axis=0).astype(np.float32), first.sr)
 
 
 def demucs_available() -> bool:

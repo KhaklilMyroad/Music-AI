@@ -151,6 +151,33 @@ def estimate_tempo(env: np.ndarray, fps: float = FPS, lo: float = 60, hi: float 
     return bpm, conf
 
 
+def beat_accents(beat_frames: np.ndarray, onsets: OnsetData, chroma_frames: np.ndarray | None = None,
+                 chroma_fps: float = FPS) -> tuple[np.ndarray, np.ndarray]:
+    """The two bar markers at every beat: the low-band accent and how much the harmony changes there."""
+    def sync(e):
+        idx = np.clip(np.round(beat_frames).astype(int), 0, e.size - 1)
+        return np.array([e[max(0, i - 2): i + 3].max() for i in idx])
+
+    low_b = sync(onsets.low)
+    chord_change = np.zeros_like(low_b)
+    if chroma_frames is not None and chroma_frames.shape[0] > 0:
+        cf = chroma_frames
+        idx = np.clip(np.round(beat_frames * chroma_fps / FPS).astype(int), 0, cf.shape[0] - 1)
+        bc = np.array([cf[idx[i]: idx[i + 1]].mean(axis=0) if i + 1 < idx.size and idx[i + 1] > idx[i] else cf[idx[i]] for i in range(idx.size)])
+        chord_change[1:] = np.linalg.norm(np.diff(bc, axis=0), axis=1)
+        chord_change = chord_change / (chord_change.std() + 1e-9)
+    return low_b, chord_change
+
+
+def downbeat_phase(low_b: np.ndarray, chord_change: np.ndarray, beats_per_bar: int) -> int:
+    """Which beat (0 .. beats_per_bar-1) starts the bars: harmonic change is the strongest bar marker; low-band accents help."""
+    scores = []
+    for off in range(beats_per_bar):
+        sel = slice(off, None, beats_per_bar)
+        scores.append(2.0 * chord_change[sel].mean() + low_b[sel].mean() / (low_b.mean() + 1e-9) * 0.5)
+    return int(np.argmax(scores))
+
+
 def analyze(mono: np.ndarray, sr: int, onsets: OnsetData | None = None, chroma_frames: np.ndarray | None = None, chroma_fps: float = FPS) -> Rhythm:
     onsets = onsets or onset_envelopes(mono, sr)
     env = onsets.full + 0.5 * onsets.low
@@ -168,18 +195,7 @@ def analyze(mono: np.ndarray, sr: int, onsets: OnsetData | None = None, chroma_f
     beat_times = beat_frames / FPS + ONSET_LAG_S
 
     # Meter: compare 3 vs 4 beat periodicity of beat-synchronous low-band accents.
-    def sync(e):
-        idx = np.clip(np.round(beat_frames).astype(int), 0, e.size - 1)
-        return np.array([e[max(0, i - 2): i + 3].max() for i in idx])
-
-    low_b = sync(onsets.low)
-    chord_change = np.zeros_like(low_b)
-    if chroma_frames is not None and chroma_frames.shape[0] > 0:
-        cf = chroma_frames
-        idx = np.clip(np.round(beat_frames * chroma_fps / FPS).astype(int), 0, cf.shape[0] - 1)
-        bc = np.array([cf[idx[i]: idx[i + 1]].mean(axis=0) if i + 1 < idx.size and idx[i + 1] > idx[i] else cf[idx[i]] for i in range(idx.size)])
-        chord_change[1:] = np.linalg.norm(np.diff(bc, axis=0), axis=1)
-        chord_change = chord_change / (chord_change.std() + 1e-9)
+    low_b, chord_change = beat_accents(beat_frames, onsets, chroma_frames, chroma_fps)
     accent = low_b / (low_b.std() + 1e-9) + chord_change
 
     def lag_corr(a, lag):
@@ -194,12 +210,7 @@ def analyze(mono: np.ndarray, sr: int, onsets: OnsetData | None = None, chroma_f
         beats_per_bar = 3
         notes.append("Triple meter detected (3/4).")
 
-    # Downbeat phase: harmonic change is the strongest bar marker; low-band accents help.
-    scores = []
-    for off in range(beats_per_bar):
-        sel = slice(off, None, beats_per_bar)
-        scores.append(2.0 * chord_change[sel].mean() + low_b[sel].mean() / (low_b.mean() + 1e-9) * 0.5)
-    downbeat_offset = int(np.argmax(scores))
+    downbeat_offset = downbeat_phase(low_b, chord_change, beats_per_bar)
     first_downbeat = float(beat_times[downbeat_offset])
     # Extrapolate the grid backwards so bar 1 starts at or before t=0 alignment.
     while first_downbeat - beats_per_bar * 60 / bpm >= -1e-6:

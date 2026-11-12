@@ -19,6 +19,7 @@ test = ["pytest>=7", "mido>=1.3"]
 track2ableton = "track2ableton.cli:main"
 track2ableton-mcp = "track2ableton.live.mcp_server:main"
 track2ableton-compose = "track2ableton.compose.__main__:main"
+track2ableton-fix = "track2ableton.fix.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["track2ableton*"]

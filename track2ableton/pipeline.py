@@ -10,7 +10,7 @@ from typing import Any
 
 import numpy as np
 
-from . import __version__, audio as aio, midi, mixanalysis as mx, rhythm as rh, separation, sounddesign as sd
+from . import __version__, audio as aio, beatmap, midi, mixanalysis as mx, rhythm as rh, separation, sounddesign as sd
 from . import structure as st, tonal as tn, transcribe as tr
 
 STEM_ORDER = ["drums", "bass", "piano", "guitar", "other", "vocals"]
@@ -40,13 +40,36 @@ class Analysis:
     master: list[sd.Device]
     timings: dict[str, float] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
-
-    def to_beats(self, t):
-        return (np.asarray(t, dtype=float) - self.rhythm.first_downbeat) / self.rhythm.beat_len + self.lead_in_beats_grid
+    beat_map: Any = None               # beatmap.BeatMap: where every beat really is
+    project_bpm: float | None = None   # tempo of the Live Set when it differs from the measured one (stems get warped)
+    skipped_files: list[str] = field(default_factory=list)
 
     @property
-    def lead_in_beats_grid(self) -> float:
-        return float(self.rhythm.beats_per_bar if self.rhythm.first_downbeat > 0.01 else 0)
+    def drifting(self) -> bool:
+        return self.beat_map is not None and self.beat_map.drifting
+
+    @property
+    def tempo(self) -> float:
+        return float(self.project_bpm or self.rhythm.bpm)
+
+    def to_beats(self, t):
+        if self.drifting:
+            return self.beat_map.to_beats(t)
+        return (np.asarray(t, dtype=float) - self.rhythm.first_downbeat) / self.rhythm.beat_len + self.lead_in_beats
+
+    def to_seconds(self, beats):
+        if self.drifting:
+            return self.beat_map.to_seconds(beats)
+        return (np.asarray(beats, dtype=float) - self.lead_in_beats) * self.rhythm.beat_len + self.rhythm.first_downbeat
+
+    def song_start_beat(self) -> float:
+        return float(self.to_beats(0.0))
+
+    def warp_markers(self) -> list[tuple[float, float]]:
+        """(second in the audio, arrangement beat): two points for a steady tempo, more where it drifts."""
+        if self.drifting:
+            return self.beat_map.warp_markers(self.duration)
+        return [(0.0, self.song_start_beat()), (float(self.duration), float(self.to_beats(self.duration)))]
 
 
 def _slug(s: str) -> str:
@@ -64,7 +87,8 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
         log(f"  [{timings[name]:6.1f}s] {name}")
 
     os.makedirs(out_dir, exist_ok=True)
-    song = aio.load(path)
+    given = separation.from_folder(path) if os.path.isdir(path) else None
+    song = separation.mixdown(given) if given else aio.load(path)
     if song.sr > 48000:
         song = song.resampled(44100)
     if song.channels == 1:
@@ -78,6 +102,16 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
     onsets = rh.onset_envelopes(mono, sr)
     rhythm = rh.analyze(mono, sr, onsets, chroma_pack[0], tn.FPS)
     tonal = tn.analyze(mono, sr, chroma_pack)
+    beat_map = beatmap.track(onsets, rhythm, song.duration, chroma_pack[0], tn.FPS)
+    if beat_map.drifting:
+        # One constant grid would slide away from the audio: from here on the tracked beats are the grid.
+        inside = beat_map.times[(beat_map.times >= 0) & (beat_map.times < song.duration)]
+        rhythm.beat_times = inside
+        rhythm.first_downbeat = float(beat_map.times[beat_map.downbeat])
+        rhythm.downbeat_offset = int(np.argmin(np.abs(inside - rhythm.first_downbeat)))
+        rhythm.bpm = round(beat_map.bpm, 2)
+        rhythm.notes.append(f"Tempo is not steady: beats sit up to {beat_map.drift_ms:.0f} ms away from a constant grid "
+                            f"({beat_map.bpm_lo:.2f}-{beat_map.bpm_hi:.2f} BPM). Notes and warp markers follow the tracked beats.")
     bars = rhythm.bar_times()
     pre = []
     t = rhythm.first_downbeat
@@ -86,6 +120,8 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
         pre.append(t)
     bar_grid = np.array(sorted(b for b in pre if b > -rhythm.bar_len) + [b for b in np.arange(rhythm.first_downbeat, song.duration, rhythm.bar_len)])
     bar_grid = bar_grid[bar_grid >= -1e-6] if (bar_grid >= -1e-6).sum() >= 4 else bars
+    if beat_map.drifting:
+        bar_grid = beat_map.bar_times(song.duration)
     sections = st.analyze(mono, sr, bar_grid, tonal.chroma, tonal.fps)
     chords = tn.chords_on_grid(tonal, bar_grid, rhythm.beat_times, rhythm.beats_per_bar)
     tick("tempo, key, chords, structure")
@@ -93,7 +129,14 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
     lead_in_grid = float(rhythm.beats_per_bar if rhythm.first_downbeat > 0.01 else 0)
 
     def to_beats(t):
+        if beat_map.drifting:
+            return beat_map.to_beats(t)
         return (np.asarray(t, dtype=float) - rhythm.first_downbeat) / rhythm.beat_len + lead_in_grid
+
+    def to_seconds(b):
+        if beat_map.drifting:
+            return beat_map.to_seconds(b)
+        return (np.asarray(b, dtype=float) - lead_in_grid) * rhythm.beat_len + rhythm.first_downbeat
 
     # ------------------------------------------------------------------ master measurements
     lufs = mx.integrated_lufs(song)
@@ -105,22 +148,23 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
     tick("loudness & master")
 
     # ------------------------------------------------------------------ stems
-    stems = separation.separate(path, song, separation_method, demucs_model, workdir=os.path.join(out_dir, "_demucs_tmp"))
+    stems = given or separation.separate(path, song, separation_method, demucs_model, workdir=os.path.join(out_dir, "_demucs_tmp"))
     tick(f"separation ({stems.method})")
 
     stem_dir = os.path.join(out_dir, "Stems")
     midi_dir = os.path.join(out_dir, "MIDI")
-    samp_dir = os.path.join(out_dir, "Samples", "Drums")
-    for d in (stem_dir, midi_dir, samp_dir):
+    for d in (stem_dir, midi_dir):
         os.makedirs(d, exist_ok=True)
 
     tracks: list[sd.TrackRecipe] = []
     kick_times = None
     reverb_times = []
     echo_hits = []
-    names = [n for n in STEM_ORDER if n in stems.stems] + [n for n in stems.stems if n not in STEM_ORDER]
-    for name in names:
-        a = stems.stems[name]
+    kinds = {n: stems.kinds.get(n, n if n in STEM_ORDER else "other") for n in stems.stems}
+    names = sorted(stems.stems, key=lambda n: (STEM_ORDER.index(kinds[n]), n not in STEM_ORDER, n))
+    for stem_name in names:
+        a = stems.stems[stem_name]
+        name = kinds[stem_name]                       # what the stem is: drums / bass / vocals / piano / guitar / other
         if a.sr != sr:
             a = a.resampled(sr)
         n = min(a.data.shape[1], song.data.shape[1])
@@ -128,9 +172,9 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
         m = a.mono
         level = aio.rms_db(m)
         if level < -50:
-            log(f"  - {name}: silent ({level:.0f} dBFS), skipped")
+            log(f"  - {stem_name}: silent ({level:.0f} dBFS), skipped")
             continue
-        label = STEM_LABEL.get(name, name.title())
+        label = STEM_LABEL.get(stem_name, stem_name if given else stem_name.title())
         if name == "vocals" and stems.method.startswith("dsp"):
             label = "Centre Lead"  # the DSP separator cannot tell a vocal from a centred synth lead
         stem_path = aio.save(os.path.join(stem_dir, f"{_slug(label)}.wav"), a.data, sr)
@@ -152,8 +196,12 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
         if name == "drums":
             hits = tr.detect_drum_hits(m, sr, low_source=mono if stems.method.startswith("dsp") else None)
             trans = tr.drums_to_midi(hits, to_beats)
-            kick_times = np.array([h.time for h in hits if h.piece == "kick"])
+            kicks = np.array([h.time for h in hits if h.piece == "kick"])
+            if kick_times is None or kicks.size > kick_times.size:
+                kick_times = kicks
             shots = tr.extract_one_shots(m, sr, hits)
+            samp_dir = os.path.join(out_dir, "Samples", _slug(label))
+            os.makedirs(samp_dir, exist_ok=True)
             for piece, clip in shots.items():
                 drum_samples[piece] = aio.save(os.path.join(samp_dir, f"{piece}.wav"), clip, sr)
             pads = {p: {"note": tr.DRUM_NOTES[p], "pad": _pad_name(tr.DRUM_NOTES[p]), "sample": os.path.relpath(f, out_dir)}
@@ -216,7 +264,7 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
             mono_tr = tr.mono_to_midi(m, sr, to_beats, 80, 2000, tonal.tuning_cents)
             harm = mx.harmonic_profile(mono_tr.details["_x22k"], tr.SR, mono_tr.details["_f0"], mono_tr.details["_hop_s"])
             sec = [(n.start, n.start + n.duration) for n in trans.notes]
-            sec_s = [((s - lead_in_grid) * rhythm.beat_len + rhythm.first_downbeat, (e - lead_in_grid) * rhythm.beat_len + rhythm.first_downbeat) for s, e in sec]
+            sec_s = [(float(to_seconds(s)), float(to_seconds(e))) for s, e in sec]
             env = sd._env_stats(m, sr, sec_s)
             instrument, role = sd.melodic_instrument(name, poly, env, harm, spec)
             meas["harmonics"] = harm
@@ -288,7 +336,7 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
             midi_file=os.path.relpath(mid_path, out_dir) if mid_path else None,
             audio_file=os.path.relpath(stem_path, out_dir), notes=notes_out, measurements=meas,
             clip_notes=clip_notes, drum_samples={k: os.path.relpath(v, out_dir) for k, v in drum_samples.items()}))
-        tick(f"stem: {name}")
+        tick(f"stem: {stem_name}")
 
     # ------------------------------------------------------------------ returns
     returns: list[sd.TrackRecipe] = []
@@ -312,8 +360,9 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
         warnings.append("Low key confidence (atonal, modal or modulating material).")
     warnings += rhythm.notes + tonal.notes
 
-    result = Analysis(path, song.duration, sr, rhythm, tonal, sections, chords, lead_in_grid, lufs, tp, lra, mspec, mdyn, mst,
-                      stems.method, stems.quality_note, tracks, returns, master, timings, warnings)
+    lead_in = beat_map.lead_in if beat_map.drifting else lead_in_grid
+    result = Analysis(path, song.duration, sr, rhythm, tonal, sections, chords, lead_in, lufs, tp, lra, mspec, mdyn, mst,
+                      stems.method, stems.quality_note, tracks, returns, master, timings, warnings, beat_map, None, stems.skipped)
     write_outputs(result, out_dir, write_als, log, als_template)
     tick("write outputs")
     return result
@@ -334,8 +383,13 @@ def to_json(a: Analysis) -> dict:
         "tempo": {"bpm": r.bpm, "bpm_measured": round(r.bpm_raw, 2), "confidence": round(r.confidence, 2),
                   "time_signature": f"{r.beats_per_bar}/4", "first_downbeat_s": round(r.first_downbeat, 3),
                   "swing_percent_mpc": round(r.swing_percent, 1), "tempo_drift_bpm_std": round(r.tempo_stability, 2)},
-        "arrangement": {"song_start_beat": a.lead_in_beats - a.rhythm.first_downbeat / a.rhythm.beat_len,
-                        "first_downbeat_beat": a.lead_in_beats},
+        "arrangement": {"song_start_beat": a.song_start_beat(), "first_downbeat_beat": a.lead_in_beats,
+                        "project_bpm": a.tempo, "warp_markers_sec_beat": [[round(t, 4), round(b, 4)] for t, b in a.warp_markers()]},
+        "beat_map": None if a.beat_map is None else {
+            "mean_bpm": round(a.beat_map.bpm, 3), "slowest_8_bars_bpm": round(a.beat_map.bpm_lo, 2), "fastest_8_bars_bpm": round(a.beat_map.bpm_hi, 2),
+            "furthest_from_constant_grid_ms": round(a.beat_map.drift_ms, 1), "drifting": a.beat_map.drifting,
+            "beat_clear_share": round(a.beat_map.tracked, 2), "followed_blind_s": [[round(x, 1), round(y, 1)] for x, y in a.beat_map.weak],
+            "found_again_at_s": [round(x, 1) for x in a.beat_map.relocked]},
         "key": {"name": a.tonal.key_name, "camelot": a.tonal.camelot, "confidence": round(a.tonal.key_confidence, 2),
                 "candidates": a.tonal.key_candidates, "tuning_cents": round(a.tonal.tuning_cents, 1),
                 "a4_hz": round(a.tonal.tuning_a4_hz, 2), "scale_pitch_classes": a.tonal.scale_pcs},
@@ -377,7 +431,7 @@ def write_outputs(a: Analysis, out_dir: str, write_als: bool, log=print, als_tem
     if write_als:
         try:
             from .ableton import als
-            als.write(a, out_dir, os.path.join(out_dir, f"{_slug(os.path.splitext(os.path.basename(a.source))[0])} Rebuild.als"), als_template)
+            als.write(a, out_dir, os.path.join(out_dir, f"{_slug(os.path.splitext(os.path.basename(os.path.normpath(a.source)))[0])} Rebuild.als"), als_template)
         except Exception as exc:  # keep the rest of the package even if .als export fails
             a.warnings.append(f".als export failed: {exc}")
             log(f"  ! .als export failed: {exc}")
