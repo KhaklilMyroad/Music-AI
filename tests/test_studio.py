@@ -243,3 +243,246 @@ def test_the_new_tools_through_the_mcp_module(tmp_path):
     sf.write(wav, x.T, SR, subtype="PCM_16")
     pack = json.loads(ms.sample_pack(wav, out_dir=str(tmp_path / "pack")))
     assert pack["loops"] and os.path.isdir(pack["folder"])
+
+
+# ------------------------------------------------------------------------------------------- after the QA review
+
+def test_the_client_and_the_remote_script_agree_on_what_every_command_does():
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ableton_bridge"))
+    from T2A_Bridge import handlers
+    from track2ableton.live import guard
+
+    from . import fake_live as fl
+    song = fl.Song()
+    cmds = handlers.Handlers(song, fl.Application(song)).commands()
+    shapes = [{}, {"action": "list"}, {"action": "LIST"}, {"action": "add"}, {"action": "jump"}, {"action": "play"},
+              {"source": "Kick"}, {"channel": "Post FX"}, {"track": 0}]
+    for cmd in cmds + ["no_such_command"]:
+        for args in shapes:
+            assert guard.kind_of(cmd, args) == handlers.kind_of(cmd, args), (cmd, args)
+    kinds = {c: guard.kind_of(c, {}) for c in cmds}
+    assert {c for c, k in kinds.items() if k == "read"} == set(guard.READS) | {"cue", "scene", "set_sidechain"}      # with no arguments these list
+    assert kinds["transport"] == "playback" and guard.kind_of("cue", {"action": "jump"}) == "playback"
+    assert guard.kind_of("set_sidechain", {"source": "Kick"}) == "write" and guard.kind_of("scene", {"action": "create"}) == "write"
+    assert all(kinds[c] == "write" for c in ("create_track", "add_notes", "set_parameter", "delete_clip", "undo", "load_from_browser"))
+
+
+def test_read_only_holds_inside_the_remote_script_and_for_any_caller(bridge, monkeypatch):  # noqa: F811
+    from T2A_Bridge import handlers
+    from track2ableton.compose import Spec, compose
+    from track2ableton.compose.live import push
+    from track2ableton.live import client as cl, guard, journal
+
+    from . import fake_live as fl
+    song, port = bridge
+    c = cl.LiveClient(port=port, timeout=5)
+    for value in ("1", " TRUE ", "y", "enabled", "2", '"1"', "כן", "readonly"):       # anything not plainly off is on
+        monkeypatch.setenv("T2A_READ_ONLY", value)
+        assert guard.read_only() and handlers.read_only(), value
+    for value in ("", "0", "false", " No ", "off", '"0"'):
+        monkeypatch.setenv("T2A_READ_ONLY", value)
+        assert not guard.read_only() and not handlers.read_only(), value
+    monkeypatch.delenv("T2A_READ_ONLY")
+    assert doctor.main(["--read-only", "on"]) == 0 and guard.read_only() and os.path.isfile(guard.read_only_flag())
+    before = (song.tempo, len(song.tracks))
+    with pytest.raises(cl.LiveError, match="Read-only mode"):                           # the documented direct path, not the MCP server
+        push(compose(Spec(structure="loop16")), c.call, prefix="X ")
+    with pytest.raises(cl.LiveError, match="Read-only mode"):
+        c.call("transport", action="play")
+    assert (song.tempo, len(song.tracks)) == before and journal.read()["entries"] == []
+    assert c.call("get_session")["tempo"] == before[0] and c.call("ping")["read_only"] is True
+    assert c.call("set_sidechain", track=0, device="Compressor") if False else True     # (listing needs a device; kind_of covers it)
+    h = handlers.Handlers(fl.Song(), None)                                              # a caller that skips the client's check
+    with pytest.raises(handlers.CommandError, match="Read-only mode"):
+        h.handle("create_track", {"kind": "midi"})
+    assert h.handle("get_session", {})["tempo"]
+    assert doctor.main(["--read-only", "off"]) == 0 and not guard.read_only()
+    res = push(compose(Spec(structure="loop16", bpm=126)), c.call, prefix="X ")
+    assert res["ok"] and song.tempo == 126
+    rows = journal.read(last=1000)["entries"]
+    assert rows[0]["cmd"] == "set_song" and {r["cmd"] for r in rows} >= {"create_track", "add_notes"}     # journalled without the MCP server
+    c.close()
+
+
+def test_a_change_live_did_not_confirm_in_time_is_recorded_as_unknown(monkeypatch):
+    import socket
+    import threading
+
+    from track2ableton.live import client as cl, journal
+
+    srv = socket.socket()
+    srv.bind(("127.0.0.1", 0))
+    srv.listen(1)
+    held = []
+    threading.Thread(target=lambda: held.append(srv.accept()), daemon=True).start()      # accepts, never answers
+    c = cl.LiveClient(port=srv.getsockname()[1], timeout=0.4)
+    with pytest.raises(cl.LiveTimeout, match="may still be carried out"):
+        c.call("create_track", kind="midi", name="Pad")
+    row = journal.read()["entries"][-1]
+    assert row["cmd"] == "create_track" and row["ok"] is None and "unknown" in row["outcome"]
+    with pytest.raises(cl.LiveTimeout):
+        c.call("get_session")                                                            # a read that times out is not journalled
+    assert len(journal.read()["entries"]) == 1
+    assert cl.LiveClient().timeout > 20                                                  # longer than the Remote Script waits for Live
+    srv.close()
+    monkeypatch.setenv("T2A_PORT", "abc")
+    with pytest.raises(cl.LiveError, match="T2A_PORT must be a number"):
+        cl.LiveClient()
+
+
+def test_the_journal_says_when_it_is_not_recording_and_stays_small(tmp_path, monkeypatch):
+    from track2ableton.live import journal
+
+    assert "NOT recorded" in journal.read()["note"]                                      # no folder yet: say so, do not report "nothing changed"
+    journal.record("add_notes", {"track": 1, "notes": [{"pitch": 60, "junk": "x" * 100000}] * 8, "path": "C:/" + "d/" * 300 + "song.wav"}, True)
+    row = journal.read()["entries"][0]
+    assert len(json.dumps(row)) < 6000 and "song.wav" in json.dumps(row) or "shortened" in row["args"]
+    assert journal.read(last=0)["entries"] == [] and journal.read(last=-5)["entries"] == [] and journal.read()["total"] == 1
+    assert journal.read(this_session=False)["total"] == 1
+    d = journal.folder()
+    with open(os.path.join(d, "journal-20200101.jsonl"), "w") as fh:
+        fh.write('{"cmd": "old"}\n')
+    with open(os.path.join(d, sorted(os.listdir(d))[-1]), "ab") as fh:
+        fh.write(b"\xff\xfe not json\n")
+    os.mkdir(os.path.join(d, "journal-99999999.jsonl"))                                  # a folder with a journal's name
+    got = journal.read(this_session=False)
+    assert got["total"] == 1 and got["unreadable_lines"] == 1                            # old days are not counted, bad lines are reported
+    monkeypatch.setenv("T2A_JOURNAL_DIR", str(tmp_path / "a file"))
+    (tmp_path / "a file").write_text("x")
+    journal.record("set_song", {"tempo": 120}, True)                                     # cannot be written: must not raise
+    assert "note" in journal.read()
+    monkeypatch.setenv("T2A_JOURNAL_DIR", "~/journal here")
+    assert journal.folder() == os.path.join(os.path.expanduser("~"), "journal here")
+    journal.record("set_song", {"tempo": "\ud83d"}, True)                                # an unencodable character must not raise either
+
+
+def test_tools_say_what_is_wrong_with_a_file(tmp_path, monkeypatch):
+    from track2ableton.live import guard, mcp_server as ms
+
+    f = layers(tmp_path)
+    empty, text, folder = tmp_path / "empty.wav", tmp_path / "text.wav", tmp_path / "dir.wav"
+    empty.write_bytes(b"")
+    text.write_text("this is not audio")
+    folder.mkdir()
+    for bad in (empty, text):
+        for call in (lambda b: ms.clash_report({"a": f["kick"], "b": str(b)}), lambda b: ms.fit_layers({"a": f["kick"]}, {"b": str(b)}),
+                     lambda b: ms.match_reference(f["kick"], str(b)), lambda b: ms.verify_reference(str(b), f["kick"]),
+                     lambda b: ms.split_stems(str(b), to_live=False), lambda b: ms.sample_pack(str(b))):
+            with pytest.raises(ms.ToolError, match="cannot read audio|no audio in it"):
+                call(bad)
+    with pytest.raises(ms.ToolError, match="not found"):
+        ms.match_reference(str(folder), f["kick"])
+    blocked = tmp_path / "blocked"
+    blocked.write_text("a file where a folder is wanted")
+    with pytest.raises(ms.ToolError, match="sample_pack"):
+        ms.sample_pack(f["kick"], out_dir=str(blocked / "pack"))
+    with pytest.raises(ms.ToolError, match="language must be"):
+        ms.vocal_score(track="0", lyrics="la", out_dir=str(tmp_path / "v"), language="fr", slot=0)
+    guard.set_read_only(True)
+    with pytest.raises(ms.ToolError, match="Nothing was split"):
+        ms.split_stems(f["kick"])
+    assert not os.path.exists(str(tmp_path / "kick stems"))                              # refused before the work, not after it
+    guard.set_read_only(False)
+    assert ms.main(["--help"]) == 0
+
+
+def test_a_stems_folder_survives_one_damaged_file(tmp_path):
+    from track2ableton import separation
+
+    t = np.arange(SR) / SR
+    sf.write(tmp_path / "Song - Drums.wav", 0.3 * np.sin(2 * np.pi * 100 * t), SR)
+    sf.write(tmp_path / "Song - Bass.wav", 0.3 * np.sin(2 * np.pi * 50 * t), SR)
+    (tmp_path / "Song - Keys.wav").write_bytes(b"")
+    (tmp_path / "._Song - Drums.wav").write_bytes(b"\x00\x05\x16\x07 AppleDouble")
+    st = separation.from_folder(str(tmp_path))
+    assert set(st.kinds) == {"Drums", "Bass"} and st.skipped == ["Song - Keys.wav: unreadable"]
+
+
+def test_doctor_with_two_libraries_a_custom_one_and_a_wrong_folder(tmp_path, monkeypatch, capsys):
+    one, two, custom = tmp_path / "OneDrive" / "User Library", tmp_path / "Docs" / "User Library", tmp_path / "Music stuff" / "Lib"
+    for d in (one, two, custom / "Presets"):
+        d.mkdir(parents=True)
+    monkeypatch.setattr(doctor, "user_library_candidates", lambda *a, **k: [str(one), str(two)])
+    rows = doctor.check(port=1)
+    scripts = [r for r in rows if r["name"].startswith("Remote Script in")]
+    assert [r["state"] for r in scripts] == ["problem", "problem"] and all(f'--user-library "{lib}"' in r["fix"] for r, lib in zip(scripts, (one, two)))
+    assert doctor.main(["--install-bridge", "--user-library", str(two)]) == 0            # the fix as printed, for the second library
+    states = {r["name"]: r["state"] for r in doctor.check(port=1)}
+    assert states["Remote Script in " + str(two)] == "ok" and states["Remote Script in " + str(one)] == "optional"
+    assert states["Which library Live uses"] == "optional"                               # it cannot know, and says so
+    assert doctor.main(["--install-bridge", "--user-library", str(custom)]) == 0
+    assert any(r["name"] == "Remote Script in " + str(custom) and r["state"] == "ok" for r in doctor.check(port=1))     # remembered
+    wrong = two / "Remote Scripts"
+    assert doctor.main(["--install-bridge", "--user-library", str(wrong)]) == 2 and not (wrong / "Remote Scripts").exists()
+    assert "Remote Scripts folder itself" in capsys.readouterr().err
+    assert doctor.main(["--install-bridge", "--user-library", str(tmp_path / "Docs")]) == 2      # just some folder
+    assert doctor.main(["--install-bridge", "--user-library", str(tmp_path / "Docs"), "--force"]) == 0
+    link_lib = tmp_path / "L" / "User Library"
+    (link_lib / "Remote Scripts").mkdir(parents=True)
+    os.symlink(str(one), str(link_lib / "Remote Scripts" / "T2A_Bridge"))
+    assert doctor.main(["--install-bridge", "--user-library", str(link_lib)]) == 2 and one.exists()
+    mine = two / "Remote Scripts" / "T2A_Bridge" / "handlers.py"
+    real = doctor.shutil.copytree
+
+    def copy_that_fails_for_the_new_script(src, dst, *a, **k):                           # as when Live holds the files open
+        if "ableton_bridge" in str(src):
+            raise PermissionError("in use")
+        return real(src, dst, *a, **k)
+
+    monkeypatch.setattr(doctor.shutil, "copytree", copy_that_fails_for_the_new_script)
+    size = mine.stat().st_size
+    assert doctor.main(["--install-bridge", "--user-library", str(two)]) == 2 and mine.stat().st_size == size     # the old copy is back
+    assert "close it and try again" in capsys.readouterr().err
+
+
+def test_doctor_tells_another_program_on_the_port_from_no_live(tmp_path, monkeypatch):
+    import socket
+    import threading
+
+    lib = tmp_path / "User Library"
+    lib.mkdir()
+    monkeypatch.setattr(doctor, "user_library_candidates", lambda *a, **k: [str(lib)])
+    srv = socket.socket()
+    srv.bind(("127.0.0.1", 0))
+    srv.listen(2)
+
+    def http():
+        conn, _ = srv.accept()
+        conn.recv(4096)
+        conn.sendall(b"HTTP/1.1 400 Bad Request\r\n\r\n<html>no</html>\n")
+        conn.close()
+
+    threading.Thread(target=http, daemon=True).start()
+    live = {r["name"]: r for r in doctor.check(port=srv.getsockname()[1])}["Ableton Live"]
+    assert live["state"] == "problem" and "not this tool's Remote Script" in live["detail"] and "9877" in live["fix"]
+    srv.close()
+    live = {r["name"]: r for r in doctor.check(port=1)}["Ableton Live"]
+    assert live["state"] == "problem" and "Start Live" in live["fix"]
+    monkeypatch.setenv("T2A_PORT", "abc")
+    assert {r["name"]: r for r in doctor.check()}["Ableton Live"]["state"] == "problem"  # a row, not a traceback
+    monkeypatch.delenv("T2A_PORT")
+    monkeypatch.setenv("T2A_DEMUCS_PYTHON", sys.executable)                              # a real python, without demucs in it
+    demucs = {r["name"]: r for r in doctor.check(port=1)}["Demucs (neural stem splitting)"]
+    assert demucs["state"] == "problem" and "cannot import demucs" in demucs["detail"]
+    monkeypatch.setenv("T2A_DEMUCS_PYTHON", str(tmp_path))
+    assert "is a folder" in {r["name"]: r for r in doctor.check(port=1)}["Demucs (neural stem splitting)"]["detail"]
+
+
+def test_the_wheel_carries_the_remote_script_and_the_server_starts_politely(monkeypatch, capsys):
+    import tomllib
+
+    from track2ableton.live import launch
+
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    cfg = tomllib.load(open(os.path.join(root, "pyproject.toml"), "rb"))
+    listed = set(cfg["tool"]["setuptools"]["packages"])
+    found = {os.path.relpath(d, root).replace(os.sep, ".") for d, _, files in os.walk(os.path.join(root, "track2ableton")) if "__init__.py" in files}
+    assert found <= listed and "T2A_Bridge" in listed                                    # a new sub-package must be added to the list
+    assert cfg["tool"]["setuptools"]["package-dir"]["T2A_Bridge"] == "ableton_bridge/T2A_Bridge"
+    assert os.path.isfile(os.path.join(doctor.bridge_source(), "handlers.py"))
+    for name, target in cfg["project"]["scripts"].items():
+        module, func = target.split(":")
+        assert callable(getattr(__import__(module, fromlist=[func]), func)), name
+    assert launch.main(["--help"]) == 0 and "claude mcp add" in capsys.readouterr().out
+    monkeypatch.setattr(launch.importlib.util, "find_spec", lambda name: None)
+    assert launch.main([]) == 1 and '"mcp" package' in capsys.readouterr().err

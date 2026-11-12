@@ -268,7 +268,7 @@ def report(info: dict, odd: list[dict]) -> str:
             L.append(f"- {f['track']}: {f['count']} מתוך {f['of']} תווים מתחילים יחד עם קיק. לא שונה. "
                      "איפה שהקיק והבאס מכים יחד, הסאב צריך sidechain או קיק קצר יותר.")
     if info["skipped_files"]:
-        why = {"its name says it is a mix, not a stem": "לפי השם זה מיקס ולא סטם", "silent": "שקט"}
+        why = {"its name says it is a mix, not a stem": "לפי השם זה מיקס ולא סטם", "silent": "שקט", "unreadable": "לא ניתן לקריאה כאודיו"}
         L += ["", "## קבצים שלא נכנסו", ""]
         for x in info["skipped_files"]:
             name, _, reason = x.rpartition(": ")

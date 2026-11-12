@@ -67,6 +67,14 @@ def _strength(start: float, bpb: int) -> int:
     return 2 if step % 4 == 0 else 1 if step % 2 == 0 else 0
 
 
+def language(lang) -> str:
+    """The language as the code knows it, or a ValueError that names the choices."""
+    lang = str(lang).strip().lower()
+    if lang not in ("en", "es", "typed"):
+        raise ValueError(f"language must be 'en', 'es' or 'typed' (syllables exactly as typed with hyphens), not {lang!r}")
+    return lang
+
+
 def _p(level: str, kind: str, at: str, detail: str, **data) -> dict:
     return {"level": level, "kind": kind, "at": at, "detail": detail, "data": data}
 
@@ -77,6 +85,7 @@ def build(notes, text: str, lang: str = "en", bpm: float = 120.0, beats_per_bar:
     syllables and notes differ in number; fit="end" lets the last syllable of such a line carry the extra notes."""
     if fit not in ("strict", "end"):
         raise ValueError("fit must be 'strict' or 'end'")
+    lang = language(lang)
     if not 20 <= bpm <= 400:
         raise ValueError("bpm out of range")
     get = (lambda n, k: n[k]) if notes and isinstance(notes[0], dict) else getattr

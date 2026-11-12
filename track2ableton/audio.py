@@ -54,8 +54,14 @@ def load(path: str, sr: int | None = None) -> Audio:
     try:
         data, file_sr = sf.read(path, dtype="float32", always_2d=True)
         data = data.T
-    except Exception:
-        data, file_sr = _ffmpeg_decode(path)
+    except Exception as first:
+        try:
+            data, file_sr = _ffmpeg_decode(path)
+        except Exception as second:                  # neither decoder could: say which file, in one sentence
+            raise ValueError(f"cannot read audio from {path}: not an audio file, or damaged "
+                             f"({type(first).__name__}; {type(second).__name__})") from second
+    if data.size == 0:
+        raise ValueError(f"{path} has no audio in it (0 samples)")
     if data.shape[0] > 2:
         data = data[:2]
     audio = Audio(np.ascontiguousarray(data), int(file_sr))
@@ -71,7 +77,7 @@ def _ffmpeg_decode(path: str) -> tuple[np.ndarray, int]:
         out = os.path.join(tmp, "decoded.wav")
         subprocess.run(
             ["ffmpeg", "-nostdin", "-loglevel", "error", "-y", "-i", path, "-vn", "-c:a", "pcm_f32le", out],
-            check=True,
+            check=True, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
         data, file_sr = sf.read(out, dtype="float32", always_2d=True)
     return data.T, int(file_sr)

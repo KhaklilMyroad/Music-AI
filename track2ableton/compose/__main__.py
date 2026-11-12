@@ -21,6 +21,8 @@ def _bar_range(text: str) -> tuple:
 
 
 def main(argv=None) -> int:
+    from .._console import safe_output
+    safe_output()
     ap = argparse.ArgumentParser(prog="track2ableton-compose",
                                  description="Compose a full club track as MIDI (drums, bass, chords, hook, vocal triggers), checked bar by bar.")
     ap.add_argument("--out", required=True, help="output folder")

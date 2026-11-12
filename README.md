@@ -86,7 +86,7 @@ track2ableton song.wav --template "Empty.als"  # מומלץ: Set ריק שנשמ
 Claude (Desktop / Code)  --MCP-->  track2ableton-mcp  --TCP 127.0.0.1:9877-->  T2A_Bridge (Remote Script בתוך Live)  -->  Live Object Model
 ```
 
-**מה אפשר לשלוט בו (39 כלים):**
+**מה אפשר לשלוט בו (47 כלים):**
 
 | תחום | יכולות |
 |---|---|
@@ -164,7 +164,7 @@ python -m track2ableton.doctor
 python -m track2ableton.samplepack "My Song.wav" --bars 4
 ```
 
-כלים חדשים ל-Claude Code מול Live: `clash_report` ו-`fit_layers` (שכבות), `match_reference` ו-`verify_reference` (מאסטר מול רפרנס), `sample_pack`, `journal`. משתנה הסביבה `T2A_READ_ONLY=1` מעביר למצב שבו שום דבר שמשנה את הפרויקט לא נשלח ל-Live. פקודות מוכנות בעברית: [docs/COMMANDS.md](docs/COMMANDS.md). השוואה למתחרה, כולל מה שחסר לנו: [docs/MARKET.md](docs/MARKET.md).
+כלים חדשים ל-Claude Code מול Live: `clash_report` ו-`fit_layers` (שכבות), `match_reference` ו-`verify_reference` (מאסטר מול רפרנס), `sample_pack`, `journal`. `python -m track2ableton.doctor --read-only on` מעביר למצב שבו שום דבר שמשנה את הפרויקט לא מתבצע. המצב נאכף בתוך הגשר שרץ ב-Ableton, כך שהוא חל על כל תוכנה שמדברת איתו. פקודות מוכנות בעברית: [docs/COMMANDS.md](docs/COMMANDS.md). השוואה למתחרה, כולל מה שחסר לנו: [docs/MARKET.md](docs/MARKET.md).
 
 ### ווקאל מ-MIDI: פרטיטורה ווקאלית, וסטמים ישר ל-Ableton
 

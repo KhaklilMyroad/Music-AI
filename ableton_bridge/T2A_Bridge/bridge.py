@@ -33,7 +33,6 @@ class T2ABridge(ControlSurface):
         self._thread = threading.Thread(target=self._serve, name="T2A_Bridge")
         self._thread.daemon = True
         self._thread.start()
-        self.show_message("T2A Bridge listening on %s:%d" % (HOST, PORT))
 
     # ---------------------------------------------------------------- main-thread side
     def _drain(self):
@@ -64,18 +63,32 @@ class T2ABridge(ControlSurface):
             pass
         ControlSurface.disconnect(self)
 
+    def _say(self, text):
+        try:                                   # called from the socket thread: must never take it down
+            self.show_message(text)
+        except Exception:
+            self.log_message(text)
+
     # ---------------------------------------------------------------- socket side
     def _serve(self):
         try:
             srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # On Windows SO_REUSEADDR lets a second program listen on a port that is taken, and the two then steal
+            # each other's connections (another Ableton bridge uses 9877 too). Ask for the port exclusively there.
+            exclusive = getattr(socket, "SO_EXCLUSIVEADDRUSE", None)
+            if exclusive is not None:
+                srv.setsockopt(socket.SOL_SOCKET, exclusive, 1)
+            else:
+                srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             srv.bind((HOST, PORT))
             srv.listen(4)
             srv.settimeout(1.0)
             self._server = srv
         except Exception as exc:
             self.log_message("T2A could not listen on %s:%d: %s" % (HOST, PORT, exc))
+            self._say("T2A Bridge could NOT listen on %s:%d (is another bridge using the port?)" % (HOST, PORT))
             return
+        self._say("T2A Bridge listening on %s:%d" % (HOST, PORT))
         while self._running:
             try:
                 conn, _ = srv.accept()

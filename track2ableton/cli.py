@@ -9,6 +9,8 @@ from . import __version__
 
 
 def main(argv=None) -> int:
+    from ._console import safe_output
+    safe_output()
     ap = argparse.ArgumentParser(prog="track2ableton", description="Reverse-engineer a mixed track into an Ableton Live 12 rebuild package.")
     ap.add_argument("audio", help="input audio file (wav, flac, aiff, mp3, m4a ...)")
     ap.add_argument("-o", "--out", help="output folder (default: '<name> Rebuild Project' next to the input)")

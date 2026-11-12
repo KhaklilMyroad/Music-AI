@@ -79,7 +79,8 @@ def _is_mix(label: str) -> bool:
 def from_folder(folder: str) -> Stems:
     """Stems somebody else separated (an export from the generator or the DAW): every audio file in the folder is one
     stem. A file that is the whole mix is left out, or the song would be counted twice."""
-    files = sorted(f for f in os.listdir(folder) if f.lower().endswith(AUDIO_EXT) and os.path.isfile(os.path.join(folder, f)))
+    files = sorted(f for f in os.listdir(folder) if f.lower().endswith(AUDIO_EXT) and not f.startswith(".")
+                   and os.path.isfile(os.path.join(folder, f)))          # no ._name.wav shadows from macOS
     if not files:
         raise ValueError(f"no audio files in {folder}")
     bases = [os.path.splitext(f)[0] for f in files]
@@ -97,7 +98,11 @@ def from_folder(folder: str) -> Stems:
         if len(files) > 1 and (_is_mix(label) or base == whole):
             skipped.append(f"{f}: its name says it is a mix, not a stem")
             continue
-        a = load(os.path.join(folder, f))
+        try:
+            a = load(os.path.join(folder, f))
+        except ValueError:
+            skipped.append(f"{f}: unreadable")        # one damaged file must not cost the whole folder
+            continue
         if float(np.max(np.abs(a.data))) < 1e-4:
             skipped.append(f"{f}: silent")
             continue
@@ -124,11 +129,18 @@ def mixdown(stems: Stems) -> Audio:
     return Audio(np.sum([a.data for a in stems.stems.values()], axis=0).astype(np.float32), first.sr)
 
 
+DEMUCS_TIMEOUT_S = 3600        # a split that runs longer than this is stuck
+
+
+def _named_demucs() -> str:
+    return os.path.expanduser(os.environ.get("T2A_DEMUCS_PYTHON", "").strip().strip("\"'").strip())
+
+
 def demucs_python() -> str | None:
     """The interpreter that runs Demucs: the one named in the environment variable T2A_DEMUCS_PYTHON, else this one if
     Demucs is installed in it. A separate environment keeps PyTorch (several GB, with its own version pins) out of
     the one this tool and its MCP server run in."""
-    named = os.environ.get("T2A_DEMUCS_PYTHON", "").strip().strip('"')
+    named = _named_demucs()
     if named:
         return named if os.path.isfile(named) else None
     return sys.executable if importlib.util.find_spec("demucs") is not None else None
@@ -139,9 +151,9 @@ def demucs_available() -> bool:
 
 
 def _demucs_missing() -> str:
-    named = os.environ.get("T2A_DEMUCS_PYTHON", "").strip().strip('"')
+    named = _named_demucs()
     if named:
-        return f"T2A_DEMUCS_PYTHON names {named}, which does not exist."
+        return f"T2A_DEMUCS_PYTHON names {named}, which is {'a folder, not the python program in it' if os.path.isdir(named) else 'not there'}."
     return "Demucs is not installed. Run: pip install demucs, or set T2A_DEMUCS_PYTHON to the python of an environment that has it."
 
 
@@ -159,18 +171,26 @@ def separate(path: str, audio: Audio, method: str = "auto", model: str = "htdemu
     if method == "demucs":
         raise RuntimeError(_demucs_missing())
     res = _dsp(audio)
-    if method == "auto" and os.environ.get("T2A_DEMUCS_PYTHON", "").strip():
+    if method == "auto" and _named_demucs():
         res.quality_note = _demucs_missing() + " " + res.quality_note
     return res
 
 
 def _demucs(path: str, model: str, workdir: str | None) -> Stems:
-    out = workdir or tempfile.mkdtemp(prefix="t2a_demucs_")
-    cmd = [demucs_python(), "-m", "demucs", "-n", model, "-o", out, path]
-    # Output is captured: this can run inside the MCP server, whose own standard output is the protocol stream,
-    # and Demucs prints progress bars.
-    run = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
+    """`workdir` is where the temporary folder is made (the system's temp folder if None). It is a fresh folder of
+    its own and is removed again, so nothing of the user's can be in it."""
+    if workdir:
+        os.makedirs(os.path.dirname(os.path.abspath(workdir)) or ".", exist_ok=True)
+    out = tempfile.mkdtemp(prefix="t2a_demucs_", dir=os.path.dirname(os.path.abspath(workdir)) if workdir else None)
     try:
+        cmd = [demucs_python(), "-m", "demucs", "-n", model, "-o", out, path]
+        # Output is captured and standard input closed: this can run inside the MCP server, whose own standard
+        # streams are the protocol, and Demucs prints progress bars.
+        try:
+            run = subprocess.run(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                 errors="replace", timeout=DEMUCS_TIMEOUT_S)
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(f"demucs did not finish within {DEMUCS_TIMEOUT_S // 60} minutes") from None
         if run.returncode != 0:
             raise RuntimeError(f"demucs exited with {run.returncode}: {(run.stderr or run.stdout).strip()[-300:]}")
         base = os.path.splitext(os.path.basename(path))[0]

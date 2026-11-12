@@ -18,15 +18,21 @@ test = ["pytest>=7", "mido>=1.3"]
 
 [project.scripts]
 track2ableton = "track2ableton.cli:main"
-track2ableton-mcp = "track2ableton.live.mcp_server:main"
+track2ableton-mcp = "track2ableton.live.launch:main"
 track2ableton-compose = "track2ableton.compose.__main__:main"
 track2ableton-fix = "track2ableton.fix.__main__:main"
 track2ableton-vocal = "track2ableton.vocal.__main__:main"
 track2ableton-samplepack = "track2ableton.samplepack:main"
 track2ableton-doctor = "track2ableton.doctor:main"
 
-[tool.setuptools.packages.find]
-include = ["track2ableton*"]
+[tool.setuptools]
+# The Remote Script that goes into Ableton's User Library ships inside the wheel as its own top-level package, so
+# that `track2ableton-doctor --install-bridge` works from any installation, not only from a checkout.
+packages = ["track2ableton", "track2ableton.ableton", "track2ableton.compose", "track2ableton.fix", "track2ableton.live",
+            "track2ableton.vocal", "T2A_Bridge"]
+
+[tool.setuptools.package-dir]
+T2A_Bridge = "ableton_bridge/T2A_Bridge"
 
 [tool.setuptools.package-data]
 "track2ableton.ableton" = ["templates/*.gz", "templates/*.md"]

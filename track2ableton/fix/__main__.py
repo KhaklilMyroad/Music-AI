@@ -14,6 +14,8 @@ def _bpm(x: str) -> float:
 
 
 def main(argv=None) -> int:
+    from .._console import safe_output
+    safe_output()
     ap = argparse.ArgumentParser(prog="track2ableton-fix", description="Put a finished recording right: a round steady tempo, "
                                  "notes that agree with their own repetitions, one chord loop, and a Live Set to go on from.")
     ap.add_argument("source", help="an audio file, or a folder with one audio file per stem")

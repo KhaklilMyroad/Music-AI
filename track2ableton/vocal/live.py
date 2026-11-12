@@ -10,6 +10,7 @@ def score_clip(call: Callable[..., Any], track, lyrics: str, out_dir: str, lang:
                arrangement_index: int | None = None, fit: str = "strict", phrase_gap: float = 1.0, name: str = "vocal") -> dict:
     """call(cmd, **args) is LiveClient.call. Note times are the clip's own (beat 0 = the start of the clip), so a
     rendered vocal goes into the arrangement where the clip starts."""
+    lang = vs.language(lang)                          # before Live is asked for anything
     if (slot is None) == (arrangement_index is None):
         raise ValueError("give slot (Session) or arrangement_index (Arrangement), one of them")
     session = call("get_session")

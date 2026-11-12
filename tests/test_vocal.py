@@ -260,7 +260,7 @@ def test_demucs_can_live_in_another_python(tmp_path, monkeypatch, capfd):
     assert not separation.demucs_available()
     res = stems.split(wav, out_dir=str(tmp_path / "a"))
     assert res["method"].startswith("dsp") and "T2A_DEMUCS_PYTHON" in res["note"]          # it says why the rough split was used
-    with pytest.raises(RuntimeError, match="does not exist"):
+    with pytest.raises(RuntimeError, match="not there"):
         stems.split(wav, out_dir=str(tmp_path / "b"), method="demucs")
     (tmp_path / "pkg" / "demucs").mkdir(parents=True)                                       # a stand-in for the real package
     (tmp_path / "pkg" / "demucs" / "__main__.py").write_text(FAKE_DEMUCS, encoding="utf-8")
@@ -274,3 +274,18 @@ def test_demucs_can_live_in_another_python(tmp_path, monkeypatch, capfd):
     (tmp_path / "pkg" / "demucs" / "__main__.py").write_text("import sys; sys.stderr.write('CUDA out of memory'); sys.exit(3)", encoding="utf-8")
     res = stems.split(wav, out_dir=str(tmp_path / "d"))
     assert res["method"].startswith("dsp") and "CUDA out of memory" in res["note"]          # a failed run falls back and says why
+    monkeypatch.setenv("T2A_DEMUCS_PYTHON", str(tmp_path))                                   # a folder, not the program in it
+    with pytest.raises(RuntimeError, match="a folder"):
+        stems.split(wav, out_dir=str(tmp_path / "e"), method="demucs")
+    keep = tmp_path / "f" / "_demucs_tmp"                                                    # a folder of the user's with that name
+    keep.mkdir(parents=True)
+    (keep / "mine.txt").write_text("keep me")
+    monkeypatch.setenv("T2A_DEMUCS_PYTHON", sys.executable)
+    stems.split(wav, out_dir=str(tmp_path / "f"))
+    assert (keep / "mine.txt").read_text() == "keep me"
+
+
+def test_an_unknown_language_is_refused():
+    with pytest.raises(ValueError, match="language must be"):
+        vs.build(notes_of(TWINKLE), WORDS, "he")
+    assert vs.build(notes_of(TWINKLE), WORDS, " EN ").info["syllable_count"] == vs.build(notes_of(TWINKLE), WORDS, "en").info["syllable_count"]

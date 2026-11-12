@@ -3,7 +3,10 @@
 # Python 3.7-compatible syntax on purpose (no walrus, no builtin generics).
 from __future__ import absolute_import, division, print_function
 
+import os
 import re
+
+VERSION = "0.2"
 
 try:  # only available inside Live
     import Live  # noqa: F401
@@ -13,6 +16,45 @@ except Exception:  # pragma: no cover
 
 class CommandError(Exception):
     pass
+
+
+# Commands that only look. `kind_of` is the one place that says what a command does to the Live Set; the client
+# keeps a copy (track2ableton/live/guard.py) and a test holds the two together.
+READS = frozenset(["ping", "list_commands", "get_session", "list_tracks", "get_track", "get_routing", "get_notes",
+                   "get_device", "browse", "search_browser", "get_audio_files", "get_meters"])
+OFF_WORDS = ("", "0", "false", "no", "off")
+
+
+def kind_of(cmd, args=None):
+    """'read': only looks. 'playback': starts, stops or moves playback without editing anything.
+    'write': changes the Live Set."""
+    args = args or {}
+    action = str(args.get("action", "list")).lower()
+    if cmd in READS:
+        return "read"
+    if cmd in ("cue", "scene") and action == "list":
+        return "read"
+    if cmd == "set_sidechain" and args.get("source") is None and args.get("channel") is None:
+        return "read"                      # no source given: it lists the options
+    if cmd == "transport" or (cmd == "cue" and action in ("next", "prev", "jump")):
+        return "playback"
+    return "write"
+
+
+def read_only_flag():
+    return os.path.join(os.path.expanduser("~"), ".track2ableton", "read_only")
+
+
+def read_only():
+    """Has the user switched read-only on? Either the flag file exists (python -m track2ableton.doctor --read-only on),
+    or T2A_READ_ONLY is set to anything that is not plainly off: a value this code does not know means on."""
+    v = os.environ.get("T2A_READ_ONLY")
+    if v is not None and v.strip().strip("\"'").strip().lower() not in OFF_WORDS:
+        return True
+    try:
+        return os.path.exists(read_only_flag())
+    except Exception:
+        return False
 
 
 def _num(s):
@@ -58,6 +100,10 @@ class Handlers(object):
         fn = getattr(self, "cmd_" + str(cmd), None)
         if fn is None:
             raise CommandError("unknown command '%s'. Available: %s" % (cmd, ", ".join(self.commands())))
+        if kind_of(cmd, args) != "read" and read_only():
+            # Enforced here, inside Live, so that it holds for anything that talks to this bridge.
+            raise CommandError("Read-only mode is on: '%s' was not carried out. Looking and measuring still work. "
+                               "Switch it off with: python -m track2ableton.doctor --read-only off" % cmd)
         return fn(**(args or {}))
 
     # ------------------------------------------------------------------ lookup helpers
@@ -277,7 +323,7 @@ class Handlers(object):
 
     # ================================================================== SESSION / TRANSPORT
     def cmd_ping(self):
-        return {"pong": True, "commands": len(self.commands())}
+        return {"pong": True, "bridge": "T2A_Bridge", "version": VERSION, "commands": len(self.commands()), "read_only": read_only()}
 
     def cmd_list_commands(self):
         return self.commands()

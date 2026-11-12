@@ -155,6 +155,8 @@ def _readme(m: dict) -> str:
 
 
 def main(argv=None) -> int:
+    from ._console import safe_output
+    safe_output()
     import argparse
     import sys
 

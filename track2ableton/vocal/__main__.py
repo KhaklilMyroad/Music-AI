@@ -10,6 +10,8 @@ from . import score as vs
 
 
 def main(argv=None) -> int:
+    from .._console import safe_output
+    safe_output()
     ap = argparse.ArgumentParser(prog="track2ableton-vocal", description="A melody (MIDI) and its words as a vocal score: a syllable "
                                  "on every note, checked, as MIDI with lyrics, MusicXML and JSON. It prepares the score; it does not sing.")
     ap.add_argument("melody", help="a MIDI file with the vocal melody, one note at a time")
