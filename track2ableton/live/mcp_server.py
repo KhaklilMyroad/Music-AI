@@ -429,14 +429,15 @@ def journal(last: int = 30, this_session: bool = True) -> str:
 # ============================================================================== layers, reference, sample packs
 @server.tool()
 @_clear_errors
-def clash_report(files: dict[str, str], bpm: float | None = None) -> str:
+def clash_report(files: dict[str, str], bpm: float | None = None, beats_per_bar: int = 4) -> str:
     """Which layers get in each other's way, measured in time AND frequency (a kick and an off-beat bass share a band and
     do not clash; an average spectrum cannot tell). files = {name: path} of stems or loops that start at the same moment.
-    For every pair: how much of each sits where the other is present, the bands and (with bpm) the bars where it is
-    worst, and who owns each third of an octave. Numbers about where energy is, not about taste."""
+    Per pair: a_under_b / b_under_a (how much of each the other matches or exceeds in the same cell), clash, when_both_play
+    (read this one when two layers meet only in part of the song), the worst bands, and with bpm the bars that stand out.
+    Pairs come in order of how much of the whole mix their overlap is. Numbers about where energy is, not about taste."""
     from .. import clash
     try:
-        return _j(clash.report({k: _file(v) for k, v in files.items()}, bpm))
+        return _j(clash.report({k: _file(v) for k, v in files.items()}, bpm, beats_per_bar))
     except ValueError as exc:
         raise ToolError(str(exc)) from exc
 
@@ -444,9 +445,10 @@ def clash_report(files: dict[str, str], bpm: float | None = None) -> str:
 @server.tool()
 @_clear_errors
 def fit_layers(bed: dict[str, str], candidates: dict[str, str]) -> str:
-    """Rank candidate loops or samples by how well each fits into what is already there: the share of the candidate's
-    loudness that lands where the bed (the existing layers, {name: path}) leaves room, at matched level. All files must
-    start at the same moment and be at the same tempo."""
+    """Rank candidate loops or samples by the room the existing layers (bed, {name: path}) leave them: `free` is the
+    share of a candidate's loudness that falls where the bed is not already present, in the same moment, band and
+    channel. The candidate's own level does not matter, nor whether the bed is one bounce or separate stems. Files must
+    start at the same moment and be at the same tempo. A candidate with no sound in it is listed apart, not ranked."""
     from .. import clash
     try:
         return _j(clash.fit({k: _file(v) for k, v in bed.items()}, {k: _file(v) for k, v in candidates.items()}))
@@ -458,33 +460,35 @@ def fit_layers(bed: dict[str, str], candidates: dict[str, str]) -> str:
 @_clear_errors
 def match_reference(mix_path: str, reference_path: str) -> str:
     """A starting master chain in Live's own devices, as numbers, that moves a bounced mix towards a reference track:
-    EQ Eight bands for tone, a Glue Compressor only if the reference is clearly denser, Limiter gain and ceiling for
-    loudness. Apply it on the master with get_device / set_parameters, export, then call verify_reference."""
+    EQ Eight bands for tone (no boost under 45 Hz), Limiter gain and ceiling for loudness, and a Glue Compressor only
+    when the crest factors are far apart and tone does not explain it. One pass closes about half of a tonal gap.
+    Apply it on the master with get_device / set_parameters, export, then call verify_reference, and repeat."""
     return _j(mixmaster.match_chain(_file(mix_path), _file(reference_path)))
 
 
 @server.tool()
 @_clear_errors
 def verify_reference(master_path: str, reference_path: str) -> str:
-    """After mastering: did the export land near the reference? Loudness within 1 LU, every third of an octave within
-    2.5 dB at matched loudness, true peak at or under -1 dBTP. Returns pass/fail per check and what is still off."""
+    """After mastering: did the export land near the reference? Five measurements, pass or fail each: loudness within
+    1 LU; tone in every third of an octave from 40 Hz to 12.5 kHz; true peak at or under -1 dBTP; stereo width; crest
+    factor. A pass means the numbers are close, not that it sounds right: say so when you report it."""
     return _j(mixmaster.verify_match(_file(master_path), _file(reference_path)))
 
 
 @server.tool()
 @_clear_errors
-def sample_pack(source: str, out_dir: str | None = None, bars: int = 4, max_loops_per_stem: int = 6) -> str:
-    """Make a sample pack from an audio file or a folder of stems: loops cut on the song's real bar lines (exactly `bars`
-    bars long, also when the tempo is not round or drifts), named with tempo and key, repeats left out, plus drum
-    one-shots, a manifest and a README. Only for music the user owns or has cleared; the manifest says so."""
+def sample_pack(source: str, out_dir: str | None = None, bars: int = 4, max_loops_per_stem: int = 6,
+                about_bpm: float | None = None, beats_per_bar: int | None = None) -> str:
+    """Make a sample pack from an audio file or a folder of stems: loops of `bars` bars cut on the bar lines the analysis
+    finds, each starting on the hit that opens its bar, named with tempo (and key for pitched parts), repeats and bleed
+    left out, plus drum one-shots, a manifest and a README. Pass about_bpm (the Live Set's tempo) whenever it is known:
+    the audio alone cannot always tell a tempo from twice or half of it. Read `notes` and `left_out` in the result to
+    the user. Only for music the user owns or has cleared; the manifest says so."""
     from .. import samplepack
     if not os.path.exists(source):
         raise ToolError(f"not found: {source}")
-    try:
-        m = samplepack.build(source, out_dir, None, bars, max_loops_per_stem, log=lambda *_: None)
-    except (ValueError, RuntimeError) as exc:
-        raise ToolError(str(exc)) from exc
-    return _j(m)
+    return _j(samplepack.build(source, out_dir, None, bars, max_loops_per_stem, about_bpm=about_bpm, beats_per_bar=beats_per_bar,
+                               log=lambda *_: None))
 
 
 # ============================================================================== vocals and stems

@@ -52,10 +52,13 @@ def test_layers_that_share_a_band_clash_only_when_they_play_together(tmp_path):
     together, apart = pair[frozenset(("kick", "bass_on_kick"))], pair[frozenset(("kick", "bass_offbeat"))]
     assert together["clash"] > 0.5 and apart["clash"] < 0.3
     assert together["same_bands_ignoring_time"] > 0.8 and apart["same_bands_ignoring_time"] > 0.8     # an average spectrum sees no difference
-    assert "not at the same time" in apart["note"] and "note" not in together
-    assert r["pairs"][0] is together                                             # the worst pair comes first
+    assert "take turns" in apart["note"] and "note" not in together
+    assert together["when_both_play"] > 0.6 and apart["when_both_play"] < 0.5
+    assert r["pairs"][0] is together                                             # the pair that takes most of the mix comes first
     assert pair[frozenset(("kick", "hats"))]["clash"] < 0.05
-    assert together["worst_bands"][0]["band"] in ("40-50 Hz", "50-63 Hz", "63-79 Hz") and together["worst_bars"]
+    assert together["worst_bands"][0]["band"] in ("40-50 Hz", "50-63 Hz", "63-79 Hz")
+    assert together["worst_bars"] == [] and "no bar stands out" in together["where"]      # it is the same in every bar
+    assert together["seconds_compared"] == pytest.approx(64 * BEAT, abs=0.2)
     assert r["who_owns_each_band"]["50-63 Hz"]["owner"] == "kick"
     assert 0 <= together["a_under_b"] <= 1 and 0 <= together["b_under_a"] <= 1
     with pytest.raises(ValueError):
@@ -69,6 +72,7 @@ def test_candidates_are_ranked_by_the_room_the_bed_leaves(tmp_path):
     assert set(order[:2]) == {"hats", "pad_mid"} and set(order[2:]) == {"bass_on_kick", "pad_low"}
     free = {r["candidate"]: r["free"] for r in out["ranking"]}
     assert free["hats"] > 0.95 and free["pad_low"] < 0.5
+    assert out["ranking"][-1]["crowded_bands"] and out["ranking"][0]["open_bands"] and not out["ranking"][0]["crowded_bands"]
     quiet = str(tmp_path / "quiet.wav")
     x, _ = sf.read(f["pad_low"])
     sf.write(quiet, x * 0.05, SR)
@@ -112,7 +116,8 @@ def test_a_pack_of_loops_that_are_exactly_their_bars_long(tmp_path):
     assert m["tempo_bpm"] == 124.0 and m["key"] == "A minor" and m["tempo_steady"] and "own" in m["rights"]
     want = 4 * 4 * 60 / 124
     assert m["loops"] and all(abs(e["seconds"] - want) < 0.001 and e["bars"] == 4 and e["bpm"] == pytest.approx(124, abs=0.02) for e in m["loops"])
-    assert all("_4bar_124bpm_Am_" in e["file"] for e in m["loops"])
+    assert all("_4bar_124bpm_" in e["file"] for e in m["loops"])
+    assert all(("_Am_" in e["file"]) == (e["kind"] != "drums") and ("key" in e) == (e["kind"] != "drums") for e in m["loops"])      # drums have no key
     for e in m["loops"] + m["one_shots"]:
         assert os.path.isfile(os.path.join(m["folder"], e["file"]))
     data, sr = sf.read(os.path.join(m["folder"], m["loops"][0]["file"]))
@@ -135,7 +140,7 @@ def test_a_pack_from_stems_whose_tempo_drifts(tmp_path):
     sf.write(src / "S - Drums.wav", (st["kick"] + st["clap"] + st["hat"]) * 0.8, SR, subtype="PCM_16")
     sf.write(src / "S - Bass.wav", st["bass"], SR, subtype="PCM_16")
     m = samplepack.build(str(src), log=lambda *_: None)
-    assert m["stems"] == "folder" and not m["tempo_steady"] and any("drifts" in n for n in m["notes"])
+    assert m["stems"] == "folder" and not m["tempo_steady"] and any("not steady" in n for n in m["notes"])
     assert {e["stem"] for e in m["loops"]} == {"Drums", "Bass"} and all(129 < e["bpm"] < 131 for e in m["loops"])
     data, sr = sf.read(os.path.join(m["folder"], next(e["file"] for e in m["loops"] if e["stem"] == "Drums")))
     mono = data.mean(axis=1) if data.ndim > 1 else data
@@ -486,3 +491,224 @@ def test_the_wheel_carries_the_remote_script_and_the_server_starts_politely(monk
     assert launch.main(["--help"]) == 0 and "claude mcp add" in capsys.readouterr().out
     monkeypatch.setattr(launch.importlib.util, "find_spec", lambda name: None)
     assert launch.main([]) == 1 and '"mcp" package' in capsys.readouterr().err
+
+
+# ------------------------------------------------------------------------------------------- after the audio review
+
+def _wav(path, x, sr=SR):
+    sf.write(str(path), x, sr)
+    return str(path)
+
+
+def test_layers_that_meet_only_in_a_few_bars_are_not_called_fine(tmp_path):
+    bar = int(4 * BEAT * SR)
+    t = np.arange(16 * bar) / SR
+    chord = sum(np.sin(2 * np.pi * f * t) for f in (220.0, 277.2, 329.6)) * 0.15
+    guitar, pad = chord.copy(), chord.copy()
+    guitar[11 * bar:] = 0                        # bars 1-11
+    pad[:7 * bar] = 0                            # bars 8-16: they share bars 8-11
+    r = clash.report({"guitar": _wav(tmp_path / "g.wav", guitar), "pad": _wav(tmp_path / "p.wav", pad)}, bpm=125)["pairs"][0]
+    assert r["clash"] < 0.5 and r["when_both_play"] > 0.8 and r["both_play_share_of_time"] == pytest.approx(0.25, abs=0.05)
+    assert "collide where they play together" in r["note"] and sorted(r["worst_bars"]) == [8, 9, 10, 11]
+
+
+def test_a_short_or_silent_file_does_not_change_what_the_others_measure(tmp_path):
+    f = layers(tmp_path)
+    alone = clash.report({"kick": f["kick"], "bass": f["bass_on_kick"]}, bpm=125)["pairs"][0]
+    x, _ = sf.read(f["hats"])
+    short = _wav(tmp_path / "fx.wav", x[: 2 * SR])
+    silent = _wav(tmp_path / "muted.wav", np.zeros(SR * 4))
+    hiss = _wav(tmp_path / "hiss.wav", np.random.default_rng(0).standard_normal(SR * 8) * 10 ** (-95 / 20))
+    r = clash.report({"kick": f["kick"], "bass": f["bass_on_kick"], "fx": short, "muted": silent, "hiss": hiss}, bpm=125)
+    pair = next(p for p in r["pairs"] if {p["a"], p["b"]} == {"kick", "bass"})
+    assert pair["clash"] == alone["clash"] and pair["seconds_compared"] == alone["seconds_compared"]
+    assert sorted(r["no_signal"]) == ["hiss", "muted"]                            # under the floor: not a layer, owns no band
+    assert all(o["owner"] not in ("hiss", "muted") for o in r["who_owns_each_band"].values())
+    fx = next(p for p in r["pairs"] if "fx" in (p["a"], p["b"]) and "kick" in (p["a"], p["b"]))
+    assert fx["seconds_compared"] == pytest.approx(2.0, abs=0.1) and "only the first" in fx["length_note"]
+    out = clash.fit({"kick": f["kick"]}, {"hats": f["hats"], "nothing": silent})
+    assert [r_["candidate"] for r_ in out["ranking"]] == ["hats"] and out["no_signal"] == ["nothing"]
+
+
+def test_clash_hears_left_and_right_and_does_not_depend_on_the_sample_rate(tmp_path):
+    f = layers(tmp_path)
+    x, _ = sf.read(f["pad_mid"])
+    left = _wav(tmp_path / "left.wav", np.stack([x, np.zeros_like(x)], axis=1))
+    right = _wav(tmp_path / "right.wav", np.stack([np.zeros_like(x), x], axis=1))
+    wide = _wav(tmp_path / "wide.wav", np.stack([x, -x], axis=1))                 # cancels in mono, plays in both speakers
+    assert clash.report({"l": left, "r": right})["pairs"][0]["clash"] < 0.02      # opposite speakers: no overlap
+    assert clash.report({"mono": f["pad_mid"], "wide": wide})["pairs"][0]["clash"] > 0.9
+    k, _ = sf.read(f["kick"])
+    b, _ = sf.read(f["bass_offbeat"])
+    from scipy.signal import resample_poly
+    low = clash.report({"kick": _wav(tmp_path / "k22.wav", resample_poly(k, 1, 2), SR // 2),
+                        "bass": _wav(tmp_path / "b22.wav", resample_poly(b, 1, 2), SR // 2)})["pairs"][0]["clash"]
+    full = clash.report({"kick": f["kick"], "bass": f["bass_offbeat"]})["pairs"][0]["clash"]
+    assert abs(low - full) < 0.05                                                # the frames are 46 ms whatever the file's rate
+
+
+def test_fit_does_not_depend_on_how_the_bed_is_delivered(tmp_path):
+    f = layers(tmp_path)
+    k, _ = sf.read(f["kick"])
+    b, _ = sf.read(f["bass_offbeat"])
+    bounce = _wav(tmp_path / "bounce.wav", k + b)
+    muted = _wav(tmp_path / "muted.wav", np.zeros_like(k))
+    cands = {n: f[n] for n in ("hats", "pad_mid", "bass_on_kick", "pad_low", "kick")}
+    stems_ = clash.fit({"kick": f["kick"], "bass": f["bass_offbeat"]}, cands)
+    one = clash.fit({"all": bounce}, cands)
+    more = clash.fit({"kick": f["kick"], "bass": f["bass_offbeat"], "m1": muted, "m2": muted}, cands)
+    as_dict = lambda out: {r["candidate"]: r["free"] for r in out["ranking"]}
+    for other in (one, more):
+        assert all(abs(as_dict(other)[n] - v) < 0.03 for n, v in as_dict(stems_).items())
+    assert as_dict(stems_)["kick"] < 0.1                                         # a copy of what is already there finds no room
+    assert [r["candidate"] for r in stems_["ranking"]][:2] == ["hats", "pad_mid"] and more["bed_files_with_no_signal"] == ["m1", "m2"]
+
+
+def _song_files(tmp_path, bars=16):
+    x, _ = make_song(bpm=124.0, bars=bars)
+    return x, _wav(tmp_path / "mix.wav", (x * 0.15).T)
+
+
+def test_the_same_audio_at_another_sample_rate_or_in_mono_needs_no_chain(tmp_path):
+    from scipy.signal import resample_poly
+    x, mix = _song_files(tmp_path)
+    at96 = _wav(tmp_path / "ref96.wav", (resample_poly(x, 320, 147, axis=1) * 0.15).T, 96000)
+    mono = _wav(tmp_path / "mono.wav", x.mean(axis=0) * 0.15)
+    for ref in (at96, mono):
+        chain = mixmaster.match_chain(mix, ref)
+        assert [d["device"] for d in chain["chain"]] == ["Limiter"] and abs(chain["chain"][0]["gain_db"]) <= 0.2, ref
+        assert not any("side signal is" in n for n in chain["notes"])
+        assert mixmaster.verify_match(mix, ref)["checks"]["tone"]
+    for bad, why in ((_wav(tmp_path / "silent.wav", np.zeros((SR * 5, 2))), "silent"), (_wav(tmp_path / "short.wav", (x[:, :SR] * 0.1).T), "too short")):
+        with pytest.raises(ValueError, match=why):
+            mixmaster.match_chain(bad, mix)
+        with pytest.raises(ValueError, match=why):
+            mixmaster.verify_match(mix, bad)
+
+
+def test_no_sub_boost_from_a_reference_and_no_compressor_from_tone_alone(tmp_path):
+    x, mix = _song_files(tmp_path)
+    t = np.arange(x.shape[1]) / SR
+    subby = _wav(tmp_path / "subby.wav", ((x + 0.6 * np.sin(2 * np.pi * 30 * t)) * 0.15).T)
+    chain = mixmaster.match_chain(mix, subby)
+    eq = next((d for d in chain["chain"] if d["device"] == "EQ Eight"), {"bands": []})
+    assert not [b for b in eq["bands"] if b["gain_db"] > 0 and b["freq_hz"] < 60]          # another song's sub is not added on a master
+    dull = _wav(tmp_path / "dull.wav", (sosfilt(butter(1, 3000, "lowpass", fs=SR, output="sos"), x, axis=1) * 0.15).T)
+    chain = mixmaster.match_chain(mix, dull)
+    assert "Glue Compressor" not in [d["device"] for d in chain["chain"]] and any("Crest factor" in n for n in chain["notes"])
+    assert all(b["gain_db"] < 0 for b in chain["chain"][0]["bands"])
+    louder_mix = _wav(tmp_path / "louder_mix.wav", (x * 0.5).T)
+    dense = _wav(tmp_path / "dense.wav", (np.tanh(x * 4) * 0.9).T)
+    assert any("takes about" in n for n in mixmaster.match_chain(louder_mix, dense)["notes"])      # the limiter will be working: say so
+    far = mixmaster.match_chain(mix, _wav(tmp_path / "loud.wav", (x * 0.9).T))
+    assert far["chain"][-1]["gain_db"] == 12.0 and any("fix the mix level first" in n for n in far["notes"])
+
+
+def test_verify_fails_a_master_that_only_looks_close(tmp_path):
+    x, _ = make_song(bpm=124.0, bars=16)
+    t = np.arange(x.shape[1]) / SR
+    air = 0.12 * np.sin(2 * np.pi * 660 * t) * (0.6 + 0.4 * np.sin(2 * np.pi * 0.5 * t))
+    x = np.stack([x[0] + air, x[1] - air])                                        # something only in the sides
+    ref = _wav(tmp_path / "ref.wav", (x * 0.3).T)
+    check = lambda y: mixmaster.verify_match(_wav(tmp_path / "m.wav", y.T), ref)
+    assert check(x * 0.3)["pass"]
+    mono = np.repeat(x.mean(axis=0, keepdims=True), 2, axis=0) * 0.3
+    got = check(mono)
+    assert not got["checks"]["stereo"] and got["checks"]["tone"]                  # collapsed to mono: same spectrum, not the same master
+    clipped = np.clip(x * 1.2, -0.3, 0.3)
+    assert not check(clipped / np.max(np.abs(clipped)) * 0.3 * 0.99)["checks"]["dynamics"]
+    boom = x + 0.1 * np.sin(2 * np.pi * 40 * t)                                   # a rumble at 40 Hz the reference does not have
+    got = check(boom * 0.3)
+    assert not got["checks"]["tone"] and any(38 <= float(k) <= 45 for k in {**got["bands_still_off_db"], **got["single_bands_far_off_db"]})
+    spec = np.fft.rfft(x, axis=1)
+    f = np.fft.rfftfreq(x.shape[1], 1 / SR)
+    spec[:, (f >= 891) & (f < 1122)] *= 10 ** (-6.5 / 20)                         # the third of an octave around 1 kHz, 6.5 dB down
+    got = check(np.fft.irfft(spec, n=x.shape[1], axis=1) * 0.3)
+    assert not got["checks"]["tone"] and got["single_bands_far_off_db"] and not got["bands_still_off_db"]      # hidden by averaging, caught alone
+    lossy = sosfilt(butter(8, 15500, "lowpass", fs=SR, output="sos"), x, axis=1)
+    assert check(lossy * 0.3)["checks"]["tone"]                                   # a reference from a lossy file is not held against it
+    hot = x / np.max(np.abs(x)) * 10 ** (-0.5 / 20)
+    assert not mixmaster.verify_match(_wav(tmp_path / "hot.wav", hot.T), _wav(tmp_path / "hot_ref.wav", hot.T))["checks"]["true_peak"]
+
+
+def test_a_file_that_starts_on_its_downbeat_gives_its_first_bars(tmp_path):
+    x, _ = make_song(bpm=124.0, bars=20, offset_s=0.0)
+    wav = _wav(tmp_path / "song.wav", x.T)
+    m = samplepack.build(wav, separation_method="dsp", log=lambda *_: None)
+    assert 1 in {e["from_bar"] for e in m["loops"]} and m["first_bar_with_sound"] == 1
+    whole = samplepack.build(wav, str(tmp_path / "sixteen"), bars=16, separation_method="dsp", log=lambda *_: None)
+    assert whole["loops"] and all(e["from_bar"] == 1 for e in whole["loops"])     # sixteen bars of a twenty-bar song: bars 1-16
+    again = samplepack.build(wav, str(tmp_path / "sixteen"), bars=4, max_loops_per_stem=1, separation_method="dsp", log=lambda *_: None)
+    on_disk = sorted(os.listdir(os.path.join(again["folder"], "Loops")))
+    assert on_disk == sorted(os.path.basename(e["file"]) for e in again["loops"])            # a second run leaves nothing the manifest does not list
+    with pytest.raises(ValueError, match="silent"):
+        samplepack.build(_wav(tmp_path / "silence.wav", np.zeros((SR * 8, 2))), separation_method="dsp", log=lambda *_: None)
+
+
+def _stem_folder(tmp_path, lead_bars=0, name="stems"):
+    parts = groove(bars=24, quiet=(99, 99))
+    st = render_parts(parts, drift_clock(bpm=125.0, beats=24 * 4 + 8, wobble=0, ramp=0), offset_s=lead_bars * 4 * 60 / 125)
+    d = tmp_path / name
+    d.mkdir()
+    return d, st
+
+
+def test_phrases_are_counted_from_where_the_music_starts(tmp_path):
+    d, st = _stem_folder(tmp_path, lead_bars=2)
+    sf.write(d / "S - Drums.wav", (st["kick"] + st["clap"] + st["hat"]) * 0.8, SR)
+    sf.write(d / "S - Bass.wav", st["bass"], SR)
+    m = samplepack.build(str(d), about_bpm=125, log=lambda *_: None)
+    assert m["first_bar_with_sound"] == 3 and all((e["from_bar"] - 3) % 4 == 0 for e in m["loops"])
+    data, sr = sf.read(os.path.join(m["folder"], next(e["file"] for e in m["loops"] if e["stem"] == "Drums")))
+    mono = data.mean(axis=1)
+    assert np.argmax(np.abs(mono) > 0.2 * np.max(np.abs(mono))) / sr < 0.01       # opens on the kick, not on two bars of silence
+
+
+def test_stems_that_are_wide_named_or_only_bleed(tmp_path):
+    d, st = _stem_folder(tmp_path)
+    sf.write(d / "S - Kick.wav", st["kick"], SR)
+    sf.write(d / "S - Hats.wav", st["hat"], SR)
+    sf.write(d / "S - Wide Pad.wav", np.stack([st["pad"], -st["pad"]], axis=1), SR)          # cancels in mono
+    sf.write(d / "S - Ghost.wav", st["bass"] * 10 ** (-50 / 20), SR)                          # 50 dB down: bleed
+    sf.write(d / "S - Bass.wav", st["bass"], SR)
+    m = samplepack.build(str(d), about_bpm=125, log=lambda *_: None)
+    by_stem = {e["stem"] for e in m["loops"]}
+    assert "Wide Pad" in by_stem and "Ghost" not in by_stem and any(x.startswith("Ghost: nearly empty") for x in m["left_out"])
+    shots = {(s_["stem"], s_["piece"]) for s_ in m["one_shots"]}
+    assert shots == {("Kick", "kick"), ("Hats", "hat")}                           # a stem of one instrument is named by the stem
+    for s_ in m["one_shots"]:
+        clip, sr = sf.read(os.path.join(m["folder"], s_["file"]))
+        assert np.argmax(np.abs(clip) >= 0.1 * np.max(np.abs(clip))) / sr <= 0.003 and abs(clip[0]) < 0.02      # on time, and no click
+        assert s_["label"] == "from the stem's name"
+
+
+def test_a_busier_bar_is_another_loop_and_a_repeat_is_not(tmp_path):
+    bars, beat = 16, 60 / 125
+    kick, hat8, hat16 = [], [], []
+    for b in range(bars):
+        kick += [b * 4 + i for i in range(4)]
+        (hat8 if b < 8 else hat16).extend([b * 4 + i / 2 for i in range(8)] if b < 8 else [b * 4 + i / 4 for i in range(16)])
+    st = render_parts({"kick": kick, "hat": hat8 + hat16}, drift_clock(bpm=125.0, beats=bars * 4 + 8, wobble=0, ramp=0))
+    d = tmp_path / "stems"
+    d.mkdir()
+    sf.write(d / "S - Drums.wav", st["kick"] + st["hat"], SR)
+    sf.write(d / "S - Kick.wav", st["kick"], SR)
+    m = samplepack.build(str(d), about_bpm=125, log=lambda *_: None)
+    assert m["time_signature"] == "4/4"                                           # an even kick is not a waltz
+    by = lambda stem: sorted(e["from_bar"] for e in m["loops"] if e["stem"] == stem)
+    assert by("Drums") == [1, 9] and by("Kick") == [1]                            # 8ths, then 16ths; the repeats of each are left out
+
+
+def test_the_tempo_the_user_knows_settles_twice_or_half(tmp_path):
+    parts = groove(bars=24, quiet=(99, 99))
+    st = render_parts(parts, drift_clock(bpm=87.3, beats=24 * 4 + 8, wobble=0, ramp=0))
+    d = tmp_path / "stems"
+    d.mkdir()
+    sf.write(d / "S - Drums.wav", (st["kick"] + st["clap"] + st["hat"]) * 0.8, SR)
+    sf.write(d / "S - Bass.wav", st["bass"], SR)
+    m = samplepack.build(str(d), about_bpm=87, beats_per_bar=4, log=lambda *_: None)
+    assert m["tempo_bpm"] == pytest.approx(87.3, abs=0.1) and m["time_signature"] == "4/4"
+    assert all(e["seconds"] == pytest.approx(16 * 60 / 87.3, abs=0.02) for e in m["loops"])
+    assert any("searched around" in n for n in m["analysis_notes"]) and "87.3bpm" in m["loops"][0]["file"]
+    with pytest.raises(ValueError):
+        samplepack.build(str(d), about_bpm=5, log=lambda *_: None)

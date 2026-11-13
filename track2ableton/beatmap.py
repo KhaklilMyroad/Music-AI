@@ -180,7 +180,13 @@ def track(onsets: rh.OnsetData, rhythm: rh.Rhythm, duration: float, chroma: np.n
     # through the tracked beats clearly catches more of the onsets, as it does when the tempo is 127.93 and not 128.
     # Compared at its best phase, so that the line does not win only for sitting a few ms better on the beats.
     shifted = grid + float(np.mean(times - grid))
-    steady = line if hit(line) > 1.02 * max(hit(grid), hit(shifted)) else grid
+    best_grid = max(hit(grid), hit(shifted))
+    if abs(rhythm.bpm - round(rhythm.bpm)) < 1e-9:
+        steady = line if hit(line) > 1.02 * best_grid else grid         # a round tempo is given up only on clear evidence
+    else:
+        # A tempo that is not round was found by a search in steps of 0.01 BPM. The line through beats tracked over
+        # the whole song is finer than that, as long as most of the song was tracked and the line loses nothing.
+        steady = line if ok.mean() >= 0.8 and hit(line) >= 0.98 * best_grid else grid
     gain = hit(times) / (hit(steady) + 1e-12) - 1.0
     local_gain = 0.0
     span8 = 8 * bpb

@@ -156,8 +156,11 @@ def beat_accents(beat_frames: np.ndarray, onsets: OnsetData, chroma_frames: np.n
                  chroma_fps: float = FPS) -> tuple[np.ndarray, np.ndarray]:
     """The two bar markers at every beat: the low-band accent and how much the harmony changes there."""
     def sync(e):
+        # The sum around the beat, not the peak: how high one frame of the envelope gets depends on where the hit falls
+        # inside the analysis frame, and at most tempos that position cycles every three beats or so. Taking the peak
+        # made a plain four-on-the-floor kick look like 3/4.
         idx = np.clip(np.round(beat_frames).astype(int), 0, e.size - 1)
-        return np.array([e[max(0, i - 2): i + 3].max() for i in idx])
+        return np.array([e[max(0, i - 2): i + 3].sum() for i in idx])
 
     low_b = sync(onsets.low)
     chord_change = np.zeros_like(low_b)
@@ -179,12 +182,22 @@ def downbeat_phase(low_b: np.ndarray, chord_change: np.ndarray, beats_per_bar: i
     return int(np.argmax(scores))
 
 
-def analyze(mono: np.ndarray, sr: int, onsets: OnsetData | None = None, chroma_frames: np.ndarray | None = None, chroma_fps: float = FPS) -> Rhythm:
+def analyze(mono: np.ndarray, sr: int, onsets: OnsetData | None = None, chroma_frames: np.ndarray | None = None, chroma_fps: float = FPS,
+            about_bpm: float | None = None, beats_per_bar: int | None = None) -> Rhythm:
+    """about_bpm: the tempo as the user knows it, roughly (the Live Set's tempo). It settles the one thing the audio
+    often cannot: whether the beat is this or twice or half this. beats_per_bar: 3 or 4 when known."""
     onsets = onsets or onset_envelopes(mono, sr)
     env = onsets.full + 0.5 * onsets.low
-    # Kick/snare bands decide the tempo octave (hi-hats often subdivide the beat).
-    bpm_raw, conf = estimate_tempo(env, octave_env=onsets.low + onsets.mid)
     notes: list[str] = []
+    if about_bpm:
+        if not 30 <= about_bpm <= 300:
+            raise ValueError("about_bpm must be between 30 and 300")
+        # within a third either way: no other octave of the tempo fits in that range
+        bpm_raw, conf = estimate_tempo(env, lo=about_bpm / 1.33, hi=about_bpm * 1.33, octave_env=onsets.low + onsets.mid)
+        notes.append(f"Tempo searched around the {about_bpm:g} BPM that was given.")
+    else:
+        # Kick/snare bands decide the tempo octave (hi-hats often subdivide the beat).
+        bpm_raw, conf = estimate_tempo(env, octave_env=onsets.low + onsets.mid)
     bpm = bpm_raw
     if abs(bpm_raw - round(bpm_raw)) <= 0.1:
         bpm = float(round(bpm_raw))
@@ -205,11 +218,15 @@ def analyze(mono: np.ndarray, sr: int, onsets: OnsetData | None = None, chroma_f
         a = a - a.mean()
         return float(np.dot(a[:-lag], a[lag:]) / (np.linalg.norm(a[:-lag]) * np.linalg.norm(a[lag:]) + 1e-9))
 
-    beats_per_bar = 4
-    c3, c4 = lag_corr(accent, 3), lag_corr(accent, 4)
-    if c3 > c4 + 0.15 and lag_corr(accent, 6) > lag_corr(accent, 8):
-        beats_per_bar = 3
-        notes.append("Triple meter detected (3/4).")
+    if beats_per_bar is not None:
+        if beats_per_bar not in (2, 3, 4, 5, 6, 7):
+            raise ValueError("beats_per_bar must be between 2 and 7")
+    else:
+        beats_per_bar = 4
+        c3, c4 = lag_corr(accent, 3), lag_corr(accent, 4)
+        if c3 > c4 + 0.15 and lag_corr(accent, 6) > lag_corr(accent, 8):
+            beats_per_bar = 3
+            notes.append("Triple meter detected (3/4).")
 
     downbeat_offset = downbeat_phase(low_b, chord_change, beats_per_bar)
     first_downbeat = float(beat_times[downbeat_offset])

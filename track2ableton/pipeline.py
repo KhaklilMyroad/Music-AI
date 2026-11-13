@@ -77,12 +77,13 @@ def _slug(s: str) -> str:
     return re.sub(r"[^\w-]+", "_", s).strip("_") or "track"          # \w keeps letters of any script
 
 
-def musical_grid(mono: np.ndarray, sr: int, duration: float):
+def musical_grid(mono: np.ndarray, sr: int, duration: float, about_bpm: float | None = None, beats_per_bar: int | None = None):
     """Tempo, key and where the bars are: one constant grid for a steady song, the tracked beats for one that drifts.
+    about_bpm and beats_per_bar are what the user knows about the song, when they know it.
     Returns (rhythm, tonal, beat_map, bar_grid in seconds)."""
     chroma_pack = tn.chroma_features(mono, sr)
     onsets = rh.onset_envelopes(mono, sr)
-    rhythm = rh.analyze(mono, sr, onsets, chroma_pack[0], tn.FPS)
+    rhythm = rh.analyze(mono, sr, onsets, chroma_pack[0], tn.FPS, about_bpm, beats_per_bar)
     tonal = tn.analyze(mono, sr, chroma_pack)
     beat_map = beatmap.track(onsets, rhythm, duration, chroma_pack[0], tn.FPS)
     if beat_map.drifting:
