@@ -67,3 +67,9 @@ py -m track2ableton.doctor --read-only on
 ## טראק חדש מאפס
 
 `תקרא את docs/BUILD_TRACK.md ותתחיל משלב 0`
+
+## בדיקה "רטובה": האתר האמיתי, Live האמיתי, טראק אמיתי
+
+ההוראות המלאות ל-Claude Code נמצאות ב-[WET_TEST.md](WET_TEST.md). כותבים לו שלב אחד בכל פעם:
+
+`תקרא את docs/WET_TEST.md ותבצע את שלב <מספר> בלבד. תעצור ב-STOP ותסכם לי בעברית.`

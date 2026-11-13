@@ -13,7 +13,7 @@ as described instead of working around it silently.
 ```
 cd C:\Users\ronen\track2ableton
 git fetch origin claude/vigilant-planck-d78nmz
-git checkout origin/claude/vigilant-planck-d78nmz -- track2ableton tests docs pyproject.toml
+git checkout origin/claude/vigilant-planck-d78nmz -- track2ableton tests docs ableton_bridge pyproject.toml README.md
 py -m pip install -e ".[live]"
 py -m pytest tests/test_fix.py -q
 ```

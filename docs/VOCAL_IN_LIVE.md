@@ -10,7 +10,7 @@ or a real engine yet. Speak Hebrew with the user.
 ```
 cd C:\Users\ronen\track2ableton
 git fetch origin claude/vigilant-planck-d78nmz
-git checkout origin/claude/vigilant-planck-d78nmz -- track2ableton tests docs pyproject.toml
+git checkout origin/claude/vigilant-planck-d78nmz -- track2ableton tests docs ableton_bridge pyproject.toml README.md
 py -m pip install -e ".[live,vocal]"
 py -m pytest tests/test_vocal.py -q
 ```
