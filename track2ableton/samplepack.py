@@ -134,7 +134,8 @@ def build(source: str, out_dir: str | None = None, name: str | None = None, bars
     out_dir = out_dir or os.path.join(os.path.dirname(src), f"{base} Sample Pack")
     sr = song.sr
     mix = song.mono
-    rhythm, tonal, beat_map, bar_grid = pipeline.musical_grid(mix, sr, song.duration, about_bpm, beats_per_bar)
+    rhythm, tonal, beat_map, bar_grid = pipeline.musical_grid(mix, sr, song.duration, about_bpm, beats_per_bar,
+                                                              pipeline.drum_guide(given, mix, sr))
     bpb = rhythm.beats_per_bar
     key = _key_tag(tonal.key_name)
     stems = given or separation.separate(src, song, separation_method, demucs_model, workdir=os.path.join(out_dir, "_demucs_tmp"))

@@ -19,6 +19,8 @@ def main(argv=None) -> int:
     ap.add_argument("--transcription", choices=["auto", "basic-pitch", "builtin"], default="auto")
     ap.add_argument("--template", help="an empty Live Set saved by YOUR Live version (needs one MIDI, one audio and one return track)")
     ap.add_argument("--no-als", action="store_true", help="skip .als generation")
+    ap.add_argument("--about-bpm", type=float, help="roughly the song's tempo, when you know it: settles a tempo read at twice or half")
+    ap.add_argument("--beats-per-bar", type=int, choices=range(2, 8), metavar="2-7", help="beats in a bar, when the analysis reads 3 for 4 or the reverse")
     ap.add_argument("--version", action="version", version=f"track2ableton {__version__}")
     args = ap.parse_args(argv)
     if not os.path.isfile(args.audio):
@@ -29,7 +31,8 @@ def main(argv=None) -> int:
     from .pipeline import run
 
     print(f"track2ableton {__version__}: {args.audio} -> {out}")
-    a = run(args.audio, out, args.separation, args.demucs_model, args.transcription, not args.no_als, args.template)
+    a = run(args.audio, out, args.separation, args.demucs_model, args.transcription, not args.no_als, args.template,
+            about_bpm=args.about_bpm, beats_per_bar=args.beats_per_bar)
     r, k = a.rhythm, a.tonal
     print(f"\n  Tempo {r.bpm:g} BPM ({r.beats_per_bar}/4) | Key {k.key_name} ({k.camelot}) | {a.lufs:.1f} LUFS | {len(a.sections)} sections | {len(a.tracks)} stems")
     for w in a.warnings:

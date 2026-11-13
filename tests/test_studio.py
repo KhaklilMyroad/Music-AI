@@ -712,3 +712,56 @@ def test_the_tempo_the_user_knows_settles_twice_or_half(tmp_path):
     assert any("searched around" in n for n in m["analysis_notes"]) and "87.3bpm" in m["loops"][0]["file"]
     with pytest.raises(ValueError):
         samplepack.build(str(d), about_bpm=5, log=lambda *_: None)
+
+
+def test_a_supplied_drum_stem_decides_where_the_beat_is(tmp_path):
+    # A kick quieter than the bass and pad that duck under it: in the mix the loudest attack is their swell after
+    # every kick, half a beat late. The drum stem says where the beat really is.
+    from track2ableton import pipeline, separation
+    _, truth = make_song(bpm=124.0, bars=32)
+    st = truth["stems"]
+    d = tmp_path / "stems"
+    d.mkdir()
+    sf.write(d / "Song - Drums.wav", st["drums"] * 0.3, SR)
+    sf.write(d / "Song - Bass.wav", st["bass"], SR)
+    sf.write(d / "Song - Pad.wav", st["pad"].T, SR)
+    given = separation.from_folder(str(d))
+    mix = separation.mixdown(given)
+    guide = pipeline.drum_guide(given, mix.mono, mix.sr)
+    assert guide is not None and guide.size == mix.mono.size
+    rhythm, _, _, bars = pipeline.musical_grid(mix.mono, mix.sr, mix.duration, drums=guide)
+    assert rhythm.bpm == pytest.approx(124.0, abs=0.01) and abs(bars[0]) < 0.01 and abs(bars[16] - 16 * 4 * 60 / 124) < 0.01
+    m = samplepack.build(str(d), log=lambda *_: None)
+    assert m["tempo_bpm"] == pytest.approx(124.0, abs=0.01)
+    data, sr = sf.read(os.path.join(m["folder"], next(e["file"] for e in m["loops"] if e["stem"] == "Drums")))
+    mono = np.abs(data.mean(axis=1))
+    assert np.argmax(mono > 0.2 * mono.max()) / sr < 0.01                         # the drum loop opens on its kick
+    # drums that are only bleed, or a folder of nothing but drums, lead nothing
+    sf.write(d / "Song - Drums.wav", st["drums"] * 10 ** (-60 / 20), SR)
+    quiet = separation.from_folder(str(d))
+    assert quiet is None or pipeline.drum_guide(quiet, mix.mono, mix.sr) is None
+    only = tmp_path / "only"
+    only.mkdir()
+    sf.write(only / "Kick.wav", st["drums"], SR)
+    sf.write(only / "Hats.wav", st["drums"] * 0.5, SR)
+    alone = separation.from_folder(str(only))
+    assert pipeline.drum_guide(alone, separation.mixdown(alone).mono, SR) is None
+
+
+def test_the_fix_stage_takes_the_tempo_the_user_knows(tmp_path):
+    from track2ableton.fix.project import run
+    parts = groove(bars=24, quiet=(99, 99))
+    st = render_parts(parts, drift_clock(bpm=70.0, beats=24 * 4 + 8, wobble=0, ramp=0))
+    d = tmp_path / "stems"
+    d.mkdir()
+    sf.write(d / "S - Drums.wav", (st["kick"] + st["clap"] + st["hat"]) * 0.8, SR)
+    sf.write(d / "S - Bass.wav", st["bass"], SR)
+    quiet = dict(write_als=False, log=lambda *_: None)
+    alone = run(str(d), str(tmp_path / "a"), **quiet)["tempo"]
+    assert alone["measured_bpm"] == pytest.approx(140.0, abs=0.2)                 # read at twice the tempo: this is what the options are for
+    for kw in ({"bpm": 70}, {"about_bpm": 68, "beats_per_bar": 4}, {"bpm": 72, "about_bpm": 70}):
+        t = run(str(d), str(tmp_path / "b"), **quiet, **kw)["tempo"]
+        assert t["measured_bpm"] == pytest.approx(70.0, abs=0.1) and t["time_signature"] == "4/4", kw
+        assert t["project_bpm"] == kw.get("bpm", 70)
+    with pytest.raises(ValueError):
+        run(str(d), str(tmp_path / "c"), about_bpm=500, **quiet)

@@ -162,6 +162,7 @@ python -m track2ableton.doctor
 
 ```bash
 python -m track2ableton.samplepack "My Song.wav" --bars 4
+python -m track2ableton.samplepack "My Stems Folder" --bpm 124 --beats-per-bar 4     # כשיודעים את הטמפו והמשקל
 ```
 
 כלים חדשים ל-Claude Code מול Live: `clash_report` ו-`fit_layers` (שכבות), `match_reference` ו-`verify_reference` (מאסטר מול רפרנס), `sample_pack`, `journal`. `python -m track2ableton.doctor --read-only on` מעביר למצב שבו שום דבר שמשנה את הפרויקט לא מתבצע. המצב נאכף בתוך הגשר שרץ ב-Ableton, כך שהוא חל על כל תוכנה שמדברת איתו. פקודות מוכנות בעברית: [docs/COMMANDS.md](docs/COMMANDS.md). השוואה למתחרה, כולל מה שחסר לנו: [docs/MARKET.md](docs/MARKET.md).

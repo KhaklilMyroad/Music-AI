@@ -77,12 +77,43 @@ def _slug(s: str) -> str:
     return re.sub(r"[^\w-]+", "_", s).strip("_") or "track"          # \w keeps letters of any script
 
 
-def musical_grid(mono: np.ndarray, sr: int, duration: float, about_bpm: float | None = None, beats_per_bar: int | None = None):
+DRUM_LEAD = 2.0          # how much more the drum stems count than the whole mix when looking for the beat
+DRUM_FLOOR_DB = -30.0    # drum stems this far under the mix are bleed, and lead nothing
+
+
+def drum_guide(stems, mix: np.ndarray, sr: int) -> np.ndarray | None:
+    """The drum stems of a supplied set summed to mono at the mix's sample rate, or None when there are none worth
+    following (no drum stem, nothing but drum stems, or drums so low that they are bleed)."""
+    if stems is None:
+        return None
+    parts = [a for name, a in stems.stems.items() if stems.kinds.get(name) == "drums"]
+    if not parts or len(parts) == len(stems.stems):
+        return None
+    drums = np.sum([a.mono for a in parts], axis=0)
+    if parts[0].sr != sr:
+        drums = aio.resample(drums[None, :], parts[0].sr, sr)[0]
+    level = lambda x: 10 * np.log10(float(np.mean(np.square(x, dtype=np.float64))) + 1e-20)
+    return drums if level(drums) >= level(mix) + DRUM_FLOOR_DB else None
+
+
+def _led_by_drums(mix: rh.OnsetData, drums: rh.OnsetData) -> rh.OnsetData:
+    n = min(mix.full.size, drums.full.size)
+    both = lambda a, b: a[:n] + DRUM_LEAD * b[:n]
+    return rh.OnsetData(full=both(mix.full, drums.full), low=both(mix.low, drums.low), mid=both(mix.mid, drums.mid),
+                        high=both(mix.high, drums.high), fps=mix.fps)
+
+
+def musical_grid(mono: np.ndarray, sr: int, duration: float, about_bpm: float | None = None, beats_per_bar: int | None = None,
+                 drums: np.ndarray | None = None):
     """Tempo, key and where the bars are: one constant grid for a steady song, the tracked beats for one that drifts.
-    about_bpm and beats_per_bar are what the user knows about the song, when they know it.
+    about_bpm and beats_per_bar are what the user knows about the song, when they know it. drums is the drum stems as
+    one mono signal, when the song came as stems: where a bass or a pad ducks under the kick, its swell after every
+    kick is the loudest attack in the mix, and a grid found from the mix alone lands half a beat late.
     Returns (rhythm, tonal, beat_map, bar_grid in seconds)."""
     chroma_pack = tn.chroma_features(mono, sr)
     onsets = rh.onset_envelopes(mono, sr)
+    if drums is not None:
+        onsets = _led_by_drums(onsets, rh.onset_envelopes(drums, sr))
     rhythm = rh.analyze(mono, sr, onsets, chroma_pack[0], tn.FPS, about_bpm, beats_per_bar)
     tonal = tn.analyze(mono, sr, chroma_pack)
     beat_map = beatmap.track(onsets, rhythm, duration, chroma_pack[0], tn.FPS)
@@ -127,7 +158,8 @@ def musical_grid(mono: np.ndarray, sr: int, duration: float, about_bpm: float | 
 
 
 def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: str = "htdemucs_6s",
-        transcription: str = "auto", write_als: bool = True, als_template: str | None = None, log=print) -> Analysis:
+        transcription: str = "auto", write_als: bool = True, als_template: str | None = None, log=print,
+        about_bpm: float | None = None, beats_per_bar: int | None = None) -> Analysis:
     t_start = time.time()
     timings: dict[str, float] = {}
     warnings: list[str] = []
@@ -154,7 +186,7 @@ def run(path: str, out_dir: str, separation_method: str = "auto", demucs_model: 
     tick("decode")
 
     # ------------------------------------------------------------------ global musical analysis
-    rhythm, tonal, beat_map, bar_grid = musical_grid(mono, sr, song.duration)
+    rhythm, tonal, beat_map, bar_grid = musical_grid(mono, sr, song.duration, about_bpm, beats_per_bar, drum_guide(given, mono, sr))
     sections = st.analyze(mono, sr, bar_grid, tonal.chroma, tonal.fps)
     chords = tn.chords_on_grid(tonal, bar_grid, rhythm.beat_times, rhythm.beats_per_bar)
     tick("tempo, key, chords, structure")

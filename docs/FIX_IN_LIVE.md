@@ -30,7 +30,8 @@ py -m track2ableton.fix "<folder of stems, or the audio file>" -o "<project fold
 ```
 
 Add `--bpm N` only if the user asked for a specific tempo; the default is the measured tempo rounded to a whole
-number. Then read `FIX_REPORT.md` and `fix.json` in the output folder and tell the user, in Hebrew, in a few lines:
+number. If the user knows roughly what the song's tempo is now, add `--about-bpm N` (it keeps the analysis from
+reading the tempo at twice or half), and `--beats-per-bar N` if they know the metre and the report got it wrong. Then read `FIX_REPORT.md` and `fix.json` in the output folder and tell the user, in Hebrew, in a few lines:
 
 - measured tempo, project tempo, the stretch in percent, and whether the tempo drifts;
 - any stretch the report says was followed blind, where the beat was found again, or where the map lost the beat:

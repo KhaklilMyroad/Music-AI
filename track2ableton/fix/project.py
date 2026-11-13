@@ -78,12 +78,16 @@ def _tones(root: int, quality: str) -> set[int]:
 
 def run(source: str, out_dir: str, bpm: float | None = None, light: bool = False, separation_method: str = "auto",
         demucs_model: str = "htdemucs_6s", transcription: str = "auto", write_als: bool = True,
-        als_template: str | None = None, log=print) -> dict:
+        als_template: str | None = None, log=print, about_bpm: float | None = None, beats_per_bar: int | None = None) -> dict:
+    """bpm is the tempo the project will have. about_bpm is roughly the tempo the song has now, when the user knows it:
+    the analysis then looks only within a third of it either way, which settles twice-or-half. Without about_bpm the
+    project tempo is used for that, since nobody retimes a song by a third. beats_per_bar settles 3 against 4."""
     if als_template and not os.path.isfile(als_template):
         raise FileNotFoundError(f"template not found: {als_template}")          # before minutes of analysis, not after
     if os.path.isdir(out_dir):
         _clear_previous(out_dir, source)
-    a = pipeline.run(source, out_dir, separation_method, demucs_model, transcription, write_als=False, log=log)
+    a = pipeline.run(source, out_dir, separation_method, demucs_model, transcription, write_als=False, log=log,
+                     about_bpm=about_bpm or bpm, beats_per_bar=beats_per_bar)
     bpb = a.rhythm.beats_per_bar
     measured = float(a.rhythm.bpm)
     a.project_bpm = float(bpm) if bpm else float(round(measured))
@@ -200,7 +204,7 @@ def report(info: dict, odd: list[dict]) -> str:
          f"(מתיחה של {t['stretch_percent']:+.2f}%)."]
     if abs(t["stretch_percent"]) > 6:
         L.append("- **המתיחה גדולה.** ייתכן שהטמפו נמדד בחצי או בכפול מהאמיתי (למשל 70 במקום 140), או ש-`--bpm` רחוק מהשיר. "
-                 "לבדוק לפני שממשיכים.")
+                 "לבדוק לפני שממשיכים. אם הטמפו של השיר ידוע, להריץ שוב עם `--about-bpm` (ועם `--beats-per-bar` אם המשקל יצא שגוי).")
     if t["drifting"]:
         L.append(f"- הטמפו **לא יציב**: פעמות יושבות עד {t['furthest_from_constant_grid_ms']:g}ms מגריד קבוע "
                  f"({t['slowest_8_bars_bpm']:g}–{t['fastest_8_bars_bpm']:g} BPM). התווים וסמני ה-Warp עוקבים אחרי הפעמות האמיתיות "

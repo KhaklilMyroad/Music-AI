@@ -21,6 +21,9 @@ def main(argv=None) -> int:
     ap.add_argument("source", help="an audio file, or a folder with one audio file per stem")
     ap.add_argument("-o", "--out", help="output folder (default: '<name> Fixed Project' next to the source)")
     ap.add_argument("--bpm", type=_bpm, help="project tempo (default: the measured tempo rounded to a whole number)")
+    ap.add_argument("--about-bpm", type=_bpm, help="roughly the tempo the song has now, when you know it: settles a tempo "
+                    "read at twice or half (default: --bpm, when given)")
+    ap.add_argument("--beats-per-bar", type=int, choices=range(2, 8), metavar="2-7", help="beats in a bar, when the analysis reads 3 for 4 or the reverse")
     ap.add_argument("--light", action="store_true", help="change a bar only when all its nearest repetitions agree against it")
     ap.add_argument("--separation", choices=["auto", "demucs", "dsp"], default="auto", help="for a single file: how to split it into stems")
     ap.add_argument("--demucs-model", default="htdemucs_6s")
@@ -38,7 +41,8 @@ def main(argv=None) -> int:
 
     print(f"track2ableton fix: {src} -> {out}")
     try:
-        info = run(src, out, args.bpm, args.light, args.separation, args.demucs_model, args.transcription, not args.no_als, args.template)
+        info = run(src, out, args.bpm, args.light, args.separation, args.demucs_model, args.transcription, not args.no_als, args.template,
+                   about_bpm=args.about_bpm, beats_per_bar=args.beats_per_bar)
     except (ValueError, FileNotFoundError) as exc:      # nothing usable in the folder, a clip too short, a missing template
         print(f"error: {exc}", file=sys.stderr)
         return 2
