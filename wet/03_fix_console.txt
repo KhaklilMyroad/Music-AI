@@ -1,0 +1,39 @@
+﻿track2ableton fix: C:\Users\ronen\Downloads\Manananaaaa\Manana -> C:\Users\ronen\track2ableton\wet\03_manana
+  [   6.7s] decode
+  [  25.6s] tempo, key, chords, structure
+  [   9.6s] loudness & master
+  [  -0.0s] separation (folder)
+  [   8.3s] stem: drums
+  [   8.2s] stem: cymbals
+  [   7.8s] stem: kick
+  [   7.9s] stem: snare
+  [   7.6s] stem: toms
+py : Traceback (most recent call last):
+At line:1 char:446
++ ... StartNew(); py -m track2ableton.fix "C:\Users\ronen\Downloads\Mananan ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\ronen\track2ableton\track2ableton\fix\__main__.py", line 63, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "C:\Users\ronen\track2ableton\track2ableton\fix\__main__.py", line 44, in main
+    info = run(src, out, args.bpm, args.light, args.separation, args.demucs_model, args.transcription, not 
+args.no_als, args.template,
+               about_bpm=args.about_bpm, beats_per_bar=args.beats_per_bar)
+  File "C:\Users\ronen\track2ableton\track2ableton\fix\project.py", line 89, in run
+    a = pipeline.run(source, out_dir, separation_method, demucs_model, transcription, write_als=False, log=log,
+                     about_bpm=about_bpm or bpm, beats_per_bar=beats_per_bar)
+  File "C:\Users\ronen\track2ableton\track2ableton\pipeline.py", line 292, in run
+    trans = tr.mono_to_midi(m, sr, to_beats, 28, 420, tonal.tuning_cents)
+  File "C:\Users\ronen\track2ableton\track2ableton\transcribe.py", line 213, in mono_to_midi
+    f0, ap = dsp.yin(x, SR, fmin, fmax, frame_len, hop)
+             ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ronen\track2ableton\track2ableton\dsp.py", line 144, in yin
+    acf = np.fft.irfft(spec_full * np.conj(spec_head), nfft, axis=1)[:, : tau_max + 1]
+                                   ~~~~~~~^^^^^^^^^^^
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 1.52 GiB for an array with shape (49944, 2049) and data 
+type complex128

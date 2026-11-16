@@ -1,0 +1,3 @@
+# the user's audio stays on the user's machine
+*.wav
+*.asd

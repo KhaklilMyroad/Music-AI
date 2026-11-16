@@ -1,0 +1,6961 @@
+{
+  "tool": "track2ableton 0.1.0",
+  "source": "Manana",
+  "duration_s": 289.92,
+  "sample_rate": 44100,
+  "tempo": {
+    "bpm": 145.5,
+    "bpm_measured": 145.87,
+    "confidence": 0.7,
+    "time_signature": "4/4",
+    "first_downbeat_s": 0.194,
+    "swing_percent_mpc": 51.9,
+    "tempo_drift_bpm_std": 2.82
+  },
+  "arrangement": {
+    "song_start_beat": 3.5295438076188295,
+    "first_downbeat_beat": 4.0,
+    "project_bpm": 146.0,
+    "warp_markers_sec_beat": [
+      [
+        0.0,
+        3.5295
+      ],
+      [
+        3.4878,
+        12.0
+      ],
+      [
+        5.1421,
+        16.0
+      ],
+      [
+        10.1201,
+        28.0
+      ],
+      [
+        11.7818,
+        32.0
+      ],
+      [
+        13.4477,
+        36.0
+      ],
+      [
+        18.4613,
+        48.0
+      ],
+      [
+        25.1201,
+        64.0
+      ],
+      [
+        33.423,
+        84.0
+      ],
+      [
+        43.3963,
+        108.0
+      ],
+      [
+        48.3795,
+        120.0
+      ],
+      [
+        51.6951,
+        128.0
+      ],
+      [
+        53.3481,
+        132.0
+      ],
+      [
+        64.8939,
+        160.0
+      ],
+      [
+        69.8339,
+        172.0
+      ],
+      [
+        73.1185,
+        180.0
+      ],
+      [
+        74.7567,
+        184.0
+      ],
+      [
+        79.6616,
+        196.0
+      ],
+      [
+        81.3,
+        200.0
+      ],
+      [
+        87.8658,
+        216.0
+      ],
+      [
+        96.082,
+        236.0
+      ],
+      [
+        105.9549,
+        260.0
+      ],
+      [
+        115.8216,
+        284.0
+      ],
+      [
+        120.7477,
+        296.0
+      ],
+      [
+        122.3929,
+        300.0
+      ],
+      [
+        125.6947,
+        308.0
+      ],
+      [
+        138.9347,
+        340.0
+      ],
+      [
+        148.8525,
+        364.0
+      ],
+      [
+        160.4164,
+        392.0
+      ],
+      [
+        167.0156,
+        408.0
+      ],
+      [
+        171.9549,
+        420.0
+      ],
+      [
+        181.8108,
+        444.0
+      ],
+      [
+        183.4497,
+        448.0
+      ],
+      [
+        185.084,
+        452.0
+      ],
+      [
+        188.3467,
+        460.0
+      ],
+      [
+        189.9887,
+        464.0
+      ],
+      [
+        193.2905,
+        472.0
+      ],
+      [
+        198.2591,
+        484.0
+      ],
+      [
+        201.581,
+        492.0
+      ],
+      [
+        206.5714,
+        504.0
+      ],
+      [
+        216.5382,
+        528.0
+      ],
+      [
+        219.855,
+        536.0
+      ],
+      [
+        221.5079,
+        540.0
+      ],
+      [
+        226.4535,
+        552.0
+      ],
+      [
+        242.9181,
+        592.0
+      ],
+      [
+        259.3772,
+        632.0
+      ],
+      [
+        274.1863,
+        668.0
+      ],
+      [
+        279.1286,
+        680.0
+      ],
+      [
+        280.7803,
+        684.0
+      ],
+      [
+        282.437,
+        688.0
+      ],
+      [
+        284.0986,
+        692.0
+      ],
+      [
+        285.7667,
+        696.0
+      ],
+      [
+        289.1238,
+        704.0
+      ],
+      [
+        289.92,
+        705.9082
+      ]
+    ]
+  },
+  "beat_map": {
+    "mean_bpm": 145.497,
+    "slowest_8_bars_bpm": 143.95,
+    "fastest_8_bars_bpm": 146.53,
+    "furthest_from_constant_grid_ms": 216.0,
+    "drifting": true,
+    "not_steady_but_not_followed": false,
+    "map_does_not_fit_audio_s": [
+      [
+        -0.6,
+        26.0
+      ],
+      [
+        171.1,
+        190.8
+      ]
+    ],
+    "beat_clear_share": 0.97,
+    "followed_blind_s": [
+      [
+        -0.6,
+        5.1
+      ],
+      [
+        287.4,
+        290.0
+      ]
+    ],
+    "found_again_at_s": []
+  },
+  "key": {
+    "name": "F minor",
+    "camelot": "4A",
+    "confidence": 0.46,
+    "candidates": [
+      [
+        "F minor",
+        0.45
+      ],
+      [
+        "F major",
+        0.385
+      ],
+      [
+        "A# minor",
+        0.328
+      ],
+      [
+        "A# major",
+        0.29
+      ]
+    ],
+    "tuning_cents": -4.9,
+    "a4_hz": 438.77,
+    "scale_pitch_classes": [
+      5,
+      7,
+      8,
+      10,
+      0,
+      1,
+      3
+    ]
+  },
+  "chords": [
+    {
+      "start_s": -1.04,
+      "end_s": 2.66,
+      "name": "N.C.",
+      "roman": "-"
+    },
+    {
+      "start_s": 2.66,
+      "end_s": 3.49,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 3.49,
+      "end_s": 4.31,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 4.31,
+      "end_s": 5.97,
+      "name": "N.C.",
+      "roman": "-"
+    },
+    {
+      "start_s": 5.97,
+      "end_s": 6.8,
+      "name": "C7",
+      "roman": "V"
+    },
+    {
+      "start_s": 6.8,
+      "end_s": 7.63,
+      "name": "C#",
+      "roman": "VI"
+    },
+    {
+      "start_s": 7.63,
+      "end_s": 9.29,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 9.29,
+      "end_s": 10.12,
+      "name": "A#maj7",
+      "roman": "IV"
+    },
+    {
+      "start_s": 10.12,
+      "end_s": 10.95,
+      "name": "D#",
+      "roman": "VII"
+    },
+    {
+      "start_s": 10.95,
+      "end_s": 13.45,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 13.45,
+      "end_s": 15.96,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 15.96,
+      "end_s": 16.79,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 16.79,
+      "end_s": 17.63,
+      "name": "C7",
+      "roman": "V"
+    },
+    {
+      "start_s": 17.63,
+      "end_s": 18.46,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 18.46,
+      "end_s": 20.96,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 20.96,
+      "end_s": 21.79,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 21.79,
+      "end_s": 22.62,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 22.62,
+      "end_s": 23.46,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 23.46,
+      "end_s": 24.29,
+      "name": "D#m",
+      "roman": "vii"
+    },
+    {
+      "start_s": 24.29,
+      "end_s": 25.12,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 25.12,
+      "end_s": 26.78,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 26.78,
+      "end_s": 28.44,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 28.44,
+      "end_s": 29.27,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 29.27,
+      "end_s": 30.93,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 30.93,
+      "end_s": 31.76,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 31.76,
+      "end_s": 32.59,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 32.59,
+      "end_s": 33.42,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 33.42,
+      "end_s": 35.08,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 35.08,
+      "end_s": 35.92,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 35.92,
+      "end_s": 37.58,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 37.58,
+      "end_s": 39.24,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 39.24,
+      "end_s": 40.07,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 40.07,
+      "end_s": 40.9,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 40.9,
+      "end_s": 41.73,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 41.73,
+      "end_s": 42.57,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 42.57,
+      "end_s": 43.4,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 43.4,
+      "end_s": 44.23,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 44.23,
+      "end_s": 45.06,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 45.06,
+      "end_s": 46.72,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 46.72,
+      "end_s": 47.55,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 47.55,
+      "end_s": 48.38,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 48.38,
+      "end_s": 50.04,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 50.04,
+      "end_s": 50.87,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 50.87,
+      "end_s": 51.7,
+      "name": "A#maj7",
+      "roman": "IV"
+    },
+    {
+      "start_s": 51.7,
+      "end_s": 52.52,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 52.52,
+      "end_s": 53.35,
+      "name": "Em",
+      "roman": "bi"
+    },
+    {
+      "start_s": 53.35,
+      "end_s": 54.17,
+      "name": "C#7",
+      "roman": "VI"
+    },
+    {
+      "start_s": 54.17,
+      "end_s": 55.0,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 55.0,
+      "end_s": 55.82,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 55.82,
+      "end_s": 56.65,
+      "name": "E",
+      "roman": "bI"
+    },
+    {
+      "start_s": 56.65,
+      "end_s": 57.47,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 57.47,
+      "end_s": 58.3,
+      "name": "C#m",
+      "roman": "vi"
+    },
+    {
+      "start_s": 58.3,
+      "end_s": 59.12,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 59.12,
+      "end_s": 59.95,
+      "name": "E",
+      "roman": "bI"
+    },
+    {
+      "start_s": 59.95,
+      "end_s": 60.77,
+      "name": "Bmaj7",
+      "roman": "bV"
+    },
+    {
+      "start_s": 60.77,
+      "end_s": 61.6,
+      "name": "E",
+      "roman": "bI"
+    },
+    {
+      "start_s": 61.6,
+      "end_s": 62.42,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 62.42,
+      "end_s": 63.24,
+      "name": "E",
+      "roman": "bI"
+    },
+    {
+      "start_s": 63.24,
+      "end_s": 64.07,
+      "name": "Cm",
+      "roman": "v"
+    },
+    {
+      "start_s": 64.07,
+      "end_s": 64.89,
+      "name": "E",
+      "roman": "bI"
+    },
+    {
+      "start_s": 64.89,
+      "end_s": 65.72,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 65.72,
+      "end_s": 66.54,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 66.54,
+      "end_s": 67.37,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 67.37,
+      "end_s": 68.19,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 68.19,
+      "end_s": 69.83,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 69.83,
+      "end_s": 70.66,
+      "name": "D#",
+      "roman": "VII"
+    },
+    {
+      "start_s": 70.66,
+      "end_s": 71.48,
+      "name": "C#",
+      "roman": "VI"
+    },
+    {
+      "start_s": 71.48,
+      "end_s": 72.3,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 72.3,
+      "end_s": 73.12,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 73.12,
+      "end_s": 73.94,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 73.94,
+      "end_s": 74.76,
+      "name": "Cmaj7",
+      "roman": "V"
+    },
+    {
+      "start_s": 74.76,
+      "end_s": 75.57,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 75.57,
+      "end_s": 77.21,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 77.21,
+      "end_s": 78.03,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 78.03,
+      "end_s": 78.84,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 78.84,
+      "end_s": 79.66,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 79.66,
+      "end_s": 80.48,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 80.48,
+      "end_s": 81.3,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 81.3,
+      "end_s": 82.94,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 82.94,
+      "end_s": 83.76,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 83.76,
+      "end_s": 84.58,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 84.58,
+      "end_s": 85.4,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 85.4,
+      "end_s": 86.22,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 86.22,
+      "end_s": 87.04,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 87.04,
+      "end_s": 87.87,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 87.87,
+      "end_s": 88.69,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 88.69,
+      "end_s": 89.51,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 89.51,
+      "end_s": 90.33,
+      "name": "Cm",
+      "roman": "v"
+    },
+    {
+      "start_s": 90.33,
+      "end_s": 91.15,
+      "name": "Em",
+      "roman": "bi"
+    },
+    {
+      "start_s": 91.15,
+      "end_s": 92.79,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 92.79,
+      "end_s": 93.62,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 93.62,
+      "end_s": 94.44,
+      "name": "E",
+      "roman": "bI"
+    },
+    {
+      "start_s": 94.44,
+      "end_s": 96.08,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 96.08,
+      "end_s": 96.9,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 96.9,
+      "end_s": 97.73,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 97.73,
+      "end_s": 98.55,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 98.55,
+      "end_s": 99.37,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 99.37,
+      "end_s": 100.19,
+      "name": "Cmaj7",
+      "roman": "V"
+    },
+    {
+      "start_s": 100.19,
+      "end_s": 101.02,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 101.02,
+      "end_s": 102.66,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 102.66,
+      "end_s": 103.49,
+      "name": "Cm7",
+      "roman": "v"
+    },
+    {
+      "start_s": 103.49,
+      "end_s": 104.31,
+      "name": "Bmaj7",
+      "roman": "bV"
+    },
+    {
+      "start_s": 104.31,
+      "end_s": 105.95,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 105.95,
+      "end_s": 106.78,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 106.78,
+      "end_s": 107.6,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 107.6,
+      "end_s": 109.24,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 109.24,
+      "end_s": 110.07,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 110.07,
+      "end_s": 110.89,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 110.89,
+      "end_s": 112.53,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 112.53,
+      "end_s": 114.18,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 114.18,
+      "end_s": 115.0,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 115.0,
+      "end_s": 115.82,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 115.82,
+      "end_s": 117.47,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 117.47,
+      "end_s": 119.11,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 119.11,
+      "end_s": 119.93,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 119.93,
+      "end_s": 120.75,
+      "name": "A#7",
+      "roman": "IV"
+    },
+    {
+      "start_s": 120.75,
+      "end_s": 122.39,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 122.39,
+      "end_s": 123.22,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 123.22,
+      "end_s": 124.04,
+      "name": "E",
+      "roman": "bI"
+    },
+    {
+      "start_s": 124.04,
+      "end_s": 125.69,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 125.69,
+      "end_s": 126.52,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 126.52,
+      "end_s": 127.35,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 127.35,
+      "end_s": 129.0,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 129.0,
+      "end_s": 130.66,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 130.66,
+      "end_s": 132.31,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 132.31,
+      "end_s": 133.97,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 133.97,
+      "end_s": 135.63,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 135.63,
+      "end_s": 137.28,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 137.28,
+      "end_s": 138.93,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 138.93,
+      "end_s": 139.76,
+      "name": "D#",
+      "roman": "VII"
+    },
+    {
+      "start_s": 139.76,
+      "end_s": 140.59,
+      "name": "C#",
+      "roman": "VI"
+    },
+    {
+      "start_s": 140.59,
+      "end_s": 141.41,
+      "name": "Cm",
+      "roman": "v"
+    },
+    {
+      "start_s": 141.41,
+      "end_s": 142.24,
+      "name": "C#",
+      "roman": "VI"
+    },
+    {
+      "start_s": 142.24,
+      "end_s": 143.07,
+      "name": "D#m",
+      "roman": "vii"
+    },
+    {
+      "start_s": 143.07,
+      "end_s": 143.89,
+      "name": "D#",
+      "roman": "VII"
+    },
+    {
+      "start_s": 143.89,
+      "end_s": 144.72,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 144.72,
+      "end_s": 145.55,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 145.55,
+      "end_s": 147.2,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 147.2,
+      "end_s": 148.85,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 148.85,
+      "end_s": 149.68,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 149.68,
+      "end_s": 150.5,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 150.5,
+      "end_s": 152.16,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 152.16,
+      "end_s": 152.98,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 152.98,
+      "end_s": 153.81,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 153.81,
+      "end_s": 155.46,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 155.46,
+      "end_s": 157.11,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 157.11,
+      "end_s": 158.77,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 158.77,
+      "end_s": 159.59,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 159.59,
+      "end_s": 160.42,
+      "name": "Cmaj7",
+      "roman": "V"
+    },
+    {
+      "start_s": 160.42,
+      "end_s": 162.07,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 162.07,
+      "end_s": 162.89,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 162.89,
+      "end_s": 163.72,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 163.72,
+      "end_s": 165.37,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 165.37,
+      "end_s": 166.19,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 166.19,
+      "end_s": 167.02,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 167.02,
+      "end_s": 168.66,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 168.66,
+      "end_s": 170.31,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 170.31,
+      "end_s": 171.13,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 171.13,
+      "end_s": 171.95,
+      "name": "F#dim",
+      "roman": "bii°"
+    },
+    {
+      "start_s": 171.95,
+      "end_s": 172.78,
+      "name": "D#",
+      "roman": "VII"
+    },
+    {
+      "start_s": 172.78,
+      "end_s": 173.6,
+      "name": "B",
+      "roman": "bV"
+    },
+    {
+      "start_s": 173.6,
+      "end_s": 174.42,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 174.42,
+      "end_s": 175.24,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 175.24,
+      "end_s": 176.06,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 176.06,
+      "end_s": 176.88,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 176.88,
+      "end_s": 178.53,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 178.53,
+      "end_s": 179.35,
+      "name": "Cm7",
+      "roman": "v"
+    },
+    {
+      "start_s": 179.35,
+      "end_s": 180.17,
+      "name": "Cmaj7",
+      "roman": "V"
+    },
+    {
+      "start_s": 180.17,
+      "end_s": 180.99,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 180.99,
+      "end_s": 181.81,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 181.81,
+      "end_s": 182.63,
+      "name": "D#",
+      "roman": "VII"
+    },
+    {
+      "start_s": 182.63,
+      "end_s": 183.45,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 183.45,
+      "end_s": 185.08,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 185.08,
+      "end_s": 185.9,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 185.9,
+      "end_s": 186.71,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 186.71,
+      "end_s": 188.35,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 188.35,
+      "end_s": 189.17,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 189.17,
+      "end_s": 189.99,
+      "name": "D#",
+      "roman": "VII"
+    },
+    {
+      "start_s": 189.99,
+      "end_s": 191.64,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 191.64,
+      "end_s": 193.29,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 193.29,
+      "end_s": 194.94,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 194.94,
+      "end_s": 195.77,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 195.77,
+      "end_s": 196.6,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 196.6,
+      "end_s": 197.43,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 197.43,
+      "end_s": 198.26,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 198.26,
+      "end_s": 199.09,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 199.09,
+      "end_s": 199.92,
+      "name": "E",
+      "roman": "bI"
+    },
+    {
+      "start_s": 199.92,
+      "end_s": 201.58,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 201.58,
+      "end_s": 202.41,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 202.41,
+      "end_s": 203.24,
+      "name": "C#",
+      "roman": "VI"
+    },
+    {
+      "start_s": 203.24,
+      "end_s": 204.91,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 204.91,
+      "end_s": 206.57,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 206.57,
+      "end_s": 208.23,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 208.23,
+      "end_s": 209.89,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 209.89,
+      "end_s": 211.55,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 211.55,
+      "end_s": 212.38,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 212.38,
+      "end_s": 214.88,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 214.88,
+      "end_s": 216.54,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 216.54,
+      "end_s": 217.37,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 217.37,
+      "end_s": 218.2,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 218.2,
+      "end_s": 219.03,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 219.03,
+      "end_s": 219.85,
+      "name": "Gdim",
+      "roman": "ii°"
+    },
+    {
+      "start_s": 219.85,
+      "end_s": 221.51,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 221.51,
+      "end_s": 222.33,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 222.33,
+      "end_s": 224.81,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 224.81,
+      "end_s": 225.63,
+      "name": "A#",
+      "roman": "IV"
+    },
+    {
+      "start_s": 225.63,
+      "end_s": 226.45,
+      "name": "G",
+      "roman": "II"
+    },
+    {
+      "start_s": 226.45,
+      "end_s": 228.1,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 228.1,
+      "end_s": 229.75,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 229.75,
+      "end_s": 231.39,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 231.39,
+      "end_s": 232.22,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 232.22,
+      "end_s": 233.04,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 233.04,
+      "end_s": 234.69,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 234.69,
+      "end_s": 235.51,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 235.51,
+      "end_s": 236.33,
+      "name": "Em",
+      "roman": "bi"
+    },
+    {
+      "start_s": 236.33,
+      "end_s": 237.16,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 237.16,
+      "end_s": 237.98,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 237.98,
+      "end_s": 238.8,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 238.8,
+      "end_s": 239.63,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 239.63,
+      "end_s": 240.45,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 240.45,
+      "end_s": 241.27,
+      "name": "G#",
+      "roman": "III"
+    },
+    {
+      "start_s": 241.27,
+      "end_s": 242.09,
+      "name": "C#maj7",
+      "roman": "VI"
+    },
+    {
+      "start_s": 242.09,
+      "end_s": 244.56,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 244.56,
+      "end_s": 245.39,
+      "name": "C",
+      "roman": "V"
+    },
+    {
+      "start_s": 245.39,
+      "end_s": 246.21,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 246.21,
+      "end_s": 247.86,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 247.86,
+      "end_s": 248.68,
+      "name": "C7",
+      "roman": "V"
+    },
+    {
+      "start_s": 248.68,
+      "end_s": 249.5,
+      "name": "Em",
+      "roman": "bi"
+    },
+    {
+      "start_s": 249.5,
+      "end_s": 251.15,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 251.15,
+      "end_s": 251.97,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 251.97,
+      "end_s": 252.79,
+      "name": "Gm",
+      "roman": "ii"
+    },
+    {
+      "start_s": 252.79,
+      "end_s": 254.44,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 254.44,
+      "end_s": 256.09,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 256.09,
+      "end_s": 257.73,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 257.73,
+      "end_s": 258.55,
+      "name": "Cmaj7",
+      "roman": "V"
+    },
+    {
+      "start_s": 258.55,
+      "end_s": 259.38,
+      "name": "G#m",
+      "roman": "iii"
+    },
+    {
+      "start_s": 259.38,
+      "end_s": 260.2,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 260.2,
+      "end_s": 261.02,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 261.02,
+      "end_s": 261.85,
+      "name": "C#7",
+      "roman": "VI"
+    },
+    {
+      "start_s": 261.85,
+      "end_s": 262.67,
+      "name": "E",
+      "roman": "bI"
+    },
+    {
+      "start_s": 262.67,
+      "end_s": 264.31,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 264.31,
+      "end_s": 265.14,
+      "name": "Cm",
+      "roman": "v"
+    },
+    {
+      "start_s": 265.14,
+      "end_s": 266.78,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 266.78,
+      "end_s": 269.25,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 269.25,
+      "end_s": 270.07,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 270.07,
+      "end_s": 270.89,
+      "name": "F#dim",
+      "roman": "bii°"
+    },
+    {
+      "start_s": 270.89,
+      "end_s": 271.72,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 271.72,
+      "end_s": 272.54,
+      "name": "A#m",
+      "roman": "iv"
+    },
+    {
+      "start_s": 272.54,
+      "end_s": 273.36,
+      "name": "Fsus4",
+      "roman": "I"
+    },
+    {
+      "start_s": 273.36,
+      "end_s": 274.19,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 274.19,
+      "end_s": 275.01,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 275.01,
+      "end_s": 276.66,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 276.66,
+      "end_s": 279.13,
+      "name": "F#",
+      "roman": "bII"
+    },
+    {
+      "start_s": 279.13,
+      "end_s": 280.78,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 280.78,
+      "end_s": 281.61,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 281.61,
+      "end_s": 282.44,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 282.44,
+      "end_s": 283.27,
+      "name": "F",
+      "roman": "I"
+    },
+    {
+      "start_s": 283.27,
+      "end_s": 284.1,
+      "name": "Fm",
+      "roman": "i"
+    },
+    {
+      "start_s": 284.1,
+      "end_s": 284.93,
+      "name": "D#",
+      "roman": "VII"
+    },
+    {
+      "start_s": 284.93,
+      "end_s": 285.77,
+      "name": "D#m",
+      "roman": "vii"
+    },
+    {
+      "start_s": 285.77,
+      "end_s": 289.96,
+      "name": "N.C.",
+      "roman": "-"
+    }
+  ],
+  "sections": [
+    {
+      "start_bar": 0,
+      "end_bar": 5,
+      "start": 0.19350458037357154,
+      "end": 8.45940718390082,
+      "letter": "A",
+      "role": "Intro",
+      "energy_db": -16.617768721320196,
+      "rising": true,
+      "bars": 5
+    },
+    {
+      "start_bar": 5,
+      "end_bar": 14,
+      "start": 8.45940718390082,
+      "end": 23.456359144481155,
+      "letter": "B",
+      "role": "Verse / Groove",
+      "energy_db": -9.572803945600525,
+      "rising": true,
+      "bars": 9
+    },
+    {
+      "start_bar": 14,
+      "end_bar": 23,
+      "start": 23.456359144481155,
+      "end": 38.40906281737314,
+      "letter": "C",
+      "role": "Drop / Chorus",
+      "energy_db": -5.466913030383863,
+      "rising": false,
+      "bars": 9
+    },
+    {
+      "start_bar": 23,
+      "end_bar": 30,
+      "start": 38.40906281737314,
+      "end": 50.03875868174142,
+      "letter": "B",
+      "role": "Pre-chorus / Build",
+      "energy_db": -9.938422045067593,
+      "rising": false,
+      "bars": 7
+    },
+    {
+      "start_bar": 30,
+      "end_bar": 39,
+      "start": 50.03875868174142,
+      "end": 64.8939264875769,
+      "letter": "C",
+      "role": "Drop / Chorus",
+      "energy_db": -6.267355995057133,
+      "rising": true,
+      "bars": 9
+    },
+    {
+      "start_bar": 39,
+      "end_bar": 47,
+      "start": 64.8939264875769,
+      "end": 78.02582068692982,
+      "letter": "B",
+      "role": "Verse / Groove",
+      "energy_db": -9.621801420490424,
+      "rising": true,
+      "bars": 8
+    },
+    {
+      "start_bar": 47,
+      "end_bar": 71,
+      "start": 78.02582068692982,
+      "end": 117.4650662815086,
+      "letter": "C",
+      "role": "Drop / Chorus",
+      "energy_db": -5.498355738216952,
+      "rising": false,
+      "bars": 24
+    },
+    {
+      "start_bar": 71,
+      "end_bar": 75,
+      "start": 117.4650662815086,
+      "end": 124.04230443779123,
+      "letter": "B",
+      "role": "Pre-chorus / Build",
+      "energy_db": -14.869628665041834,
+      "rising": false,
+      "bars": 4
+    },
+    {
+      "start_bar": 75,
+      "end_bar": 83,
+      "start": 124.04230443779123,
+      "end": 137.28054467656642,
+      "letter": "C",
+      "role": "Drop / Chorus",
+      "energy_db": -5.584974505400983,
+      "rising": false,
+      "bars": 8
+    },
+    {
+      "start_bar": 83,
+      "end_bar": 89,
+      "start": 137.28054467656642,
+      "end": 147.19983699640605,
+      "letter": "B",
+      "role": "Build-up",
+      "energy_db": -12.739027691696293,
+      "rising": true,
+      "bars": 6
+    },
+    {
+      "start_bar": 89,
+      "end_bar": 95,
+      "start": 147.19983699640605,
+      "end": 157.11305485965522,
+      "letter": "D",
+      "role": "Drop / Chorus",
+      "energy_db": -5.126363353771764,
+      "rising": false,
+      "bars": 6
+    },
+    {
+      "start_bar": 95,
+      "end_bar": 120,
+      "start": 157.11305485965522,
+      "end": 198.2590902711402,
+      "letter": "C",
+      "role": "Drop / Chorus",
+      "energy_db": -8.996410748789634,
+      "rising": false,
+      "bars": 25
+    },
+    {
+      "start_bar": 120,
+      "end_bar": 125,
+      "start": 198.2590902711402,
+      "end": 206.57138012019968,
+      "letter": "B",
+      "role": "Pre-chorus / Build",
+      "energy_db": -9.422407758002135,
+      "rising": false,
+      "bars": 5
+    },
+    {
+      "start_bar": 125,
+      "end_bar": 169,
+      "start": 206.57138012019968,
+      "end": 279.12864514573664,
+      "letter": "C",
+      "role": "Drop / Chorus",
+      "energy_db": -5.470619902744313,
+      "rising": false,
+      "bars": 44
+    },
+    {
+      "start_bar": 169,
+      "end_bar": 176,
+      "start": 279.12864514573664,
+      "end": 289.92,
+      "letter": "D",
+      "role": "Outro",
+      "energy_db": -10.907462242610848,
+      "rising": false,
+      "bars": 7
+    }
+  ],
+  "master": {
+    "integrated_lufs": -5.7,
+    "true_peak_dbtp": 6.4,
+    "lra_lu": 5.2,
+    "spectrum": {
+      "centers": [
+        31.25,
+        39.37253280921478,
+        49.60628287400625,
+        62.5,
+        78.74506561842958,
+        99.21256574801247,
+        125.0,
+        157.49013123685916,
+        198.42513149602493,
+        250.0,
+        314.9802624737183,
+        396.8502629920499,
+        500.0,
+        629.9605249474366,
+        793.7005259840998,
+        1000.0,
+        1259.9210498948732,
+        1587.4010519681995,
+        2000.0,
+        2519.8420997897465,
+        3174.8021039363994,
+        4000.0,
+        5039.684199579493,
+        6349.604207872798,
+        8000.0,
+        10079.368399158986,
+        12699.208415745596,
+        16000.0
+      ],
+      "levels_db": [
+        -27.97,
+        -3.34,
+        0.0,
+        -3.08,
+        -5.63,
+        -6.97,
+        -6.86,
+        -9.05,
+        -8.28,
+        -11.21,
+        -15.59,
+        -14.68,
+        -11.86,
+        -12.06,
+        -14.33,
+        -18.49,
+        -18.03,
+        -20.11,
+        -22.29,
+        -20.73,
+        -21.87,
+        -22.35,
+        -23.79,
+        -24.38,
+        -21.69,
+        -14.97,
+        -13.63,
+        -15.69
+      ],
+      "tilt_db_per_oct": -1.65,
+      "centroid_hz": 633.3,
+      "rolloff85_hz": 209.9,
+      "lowest_hz": 31.25,
+      "highest_hz": 16000.0,
+      "eq_moves": [
+        {
+          "kind": "bell",
+          "freq": 31.2,
+          "gain_db": -10.5,
+          "q": 1.4,
+          "slope_db_oct": 24
+        },
+        {
+          "kind": "bell",
+          "freq": 315.0,
+          "gain_db": -3.3,
+          "q": 1.4,
+          "slope_db_oct": 24
+        },
+        {
+          "kind": "bell",
+          "freq": 10079.4,
+          "gain_db": 3.1,
+          "q": 1.4,
+          "slope_db_oct": 24
+        }
+      ]
+    },
+    "dynamics": {
+      "peak_db": 6.1,
+      "rms_db": -6.7,
+      "crest_db": 12.8,
+      "short_term_range_db": 11.5,
+      "compression_guess": "moderate",
+      "ratio": 2.5,
+      "threshold_db": -1.6,
+      "attack_ms": 10.0,
+      "release_ms": 150.0
+    },
+    "stereo": {
+      "correlation": 0.978,
+      "side_to_mid_db": -19.5,
+      "width_percent": 11.0,
+      "low_mono_below_hz": 60.0,
+      "pan": 0.0
+    },
+    "chain": [
+      {
+        "name": "EQ Eight",
+        "kind": "audio_effect",
+        "params": {
+          "bands": [
+            {
+              "band": 1,
+              "type": "Low Cut (12 dB/oct)",
+              "freq_hz": 25
+            }
+          ],
+          "note": "Overall tilt -1.6 dB/oct (reference only)"
+        },
+        "confidence": "low",
+        "why": "Gentle sub cleanup; the measured tilt is reported so you can compare your rebuild against it.",
+        "stock": true
+      },
+      {
+        "name": "Glue Compressor",
+        "kind": "audio_effect",
+        "params": {
+          "ratio": 2,
+          "attack_ms": 10,
+          "release_s": "Auto",
+          "threshold_db": "until 1-2 dB GR",
+          "dry_wet": 100
+        },
+        "confidence": "low",
+        "why": "Master crest factor 12.8 dB, LRA 5.2 LU.",
+        "stock": true
+      },
+      {
+        "name": "Limiter",
+        "kind": "audio_effect",
+        "params": {
+          "ceiling_db": -0.1,
+          "gain_db": "raise until integrated loudness reaches the target",
+          "target_lufs": -5.7,
+          "lookahead_ms": 3
+        },
+        "confidence": "high",
+        "why": "Measured: -5.7 LUFS integrated, true peak 6.4 dBTP. The limiter ceiling matches the measured peak.",
+        "stock": true
+      }
+    ]
+  },
+  "separation": {
+    "method": "folder",
+    "note": "12 stems supplied in a folder; nothing was separated here."
+  },
+  "tracks": [
+    {
+      "name": "Drums",
+      "stem": "drums",
+      "kind": "midi",
+      "role": "Drums",
+      "color": 1,
+      "instrument": {
+        "name": "Drum Rack",
+        "kind": "instrument",
+        "params": {
+          "pads": {
+            "snare": {
+              "note": 38,
+              "pad": "D1",
+              "sample": "Samples\\Drums\\snare.wav"
+            },
+            "perc": {
+              "note": 37,
+              "pad": "C#1",
+              "sample": "Samples\\Drums\\perc.wav"
+            },
+            "closed_hat": {
+              "note": 42,
+              "pad": "F#1",
+              "sample": "Samples\\Drums\\closed_hat.wav"
+            },
+            "open_hat": {
+              "note": 46,
+              "pad": "A#1",
+              "sample": "Samples\\Drums\\open_hat.wav"
+            },
+            "kick": {
+              "note": 36,
+              "pad": "C1",
+              "sample": "Samples\\Drums\\kick.wav"
+            }
+          },
+          "patterns_16_steps": {
+            "kick": "x...x...x...x...",
+            "perc": "..........x.....",
+            "snare": "x.x.x.x.x.x.x.x.",
+            "closed_hat": "...x............",
+            "open_hat": "..........x....."
+          }
+        },
+        "confidence": "medium",
+        "why": "One-shots cut from the cleanest hit of each detected kit piece in the drum stem.",
+        "stock": true
+      },
+      "devices": [
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Bell",
+                "freq_hz": 31.2,
+                "gain_db": -11.2,
+                "q": 1.4
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 12699.2,
+                "gain_db": 3.3,
+                "q": 1.4
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 500.0,
+                "gain_db": 3.3,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Drum bus tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 31 Hz - 16000 Hz, tilt -1.9 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Glue Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "threshold_db": -8.4,
+            "ratio": 2,
+            "attack_ms": 10,
+            "release_s": "Auto",
+            "makeup_db": 1.5,
+            "dry_wet": 100
+          },
+          "confidence": "low",
+          "why": "Crest factor 14.0 dB -> moderate bus compression.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 4
+          },
+          "confidence": "medium",
+          "why": "Side/mid -27.6 dB, L/R correlation 0.997.",
+          "stock": true
+        }
+      ],
+      "sends": {},
+      "sidechain_from": null,
+      "automation": [],
+      "midi_file": "MIDI\\Drums.mid",
+      "audio_file": "Stems\\Drums.wav",
+      "notes": [],
+      "measurements": {
+        "rms_dbfs": -14.0,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -29.67,
+            -3.53,
+            0.0,
+            -4.09,
+            -8.64,
+            -10.55,
+            -10.73,
+            -10.94,
+            -10.0,
+            -13.86,
+            -18.18,
+            -17.88,
+            -14.43,
+            -18.62,
+            -19.59,
+            -24.3,
+            -26.52,
+            -28.4,
+            -28.47,
+            -27.94,
+            -28.46,
+            -28.29,
+            -27.65,
+            -26.97,
+            -24.62,
+            -16.6,
+            -14.18,
+            -16.12
+          ],
+          "tilt_db_per_oct": -1.9,
+          "centroid_hz": 631.7,
+          "rolloff85_hz": 161.5,
+          "lowest_hz": 31.25,
+          "highest_hz": 16000.0,
+          "eq_moves": [
+            {
+              "kind": "bell",
+              "freq": 31.2,
+              "gain_db": -11.2,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 12699.2,
+              "gain_db": 3.3,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 500.0,
+              "gain_db": 3.3,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": 0.0,
+          "rms_db": -14.0,
+          "crest_db": 14.0,
+          "short_term_range_db": 20.8,
+          "compression_guess": "moderate",
+          "ratio": 2.5,
+          "threshold_db": -8.4,
+          "attack_ms": 10.0,
+          "release_ms": 150.0
+        },
+        "stereo": {
+          "correlation": 0.997,
+          "side_to_mid_db": -27.6,
+          "width_percent": 4.0,
+          "low_mono_below_hz": 0.0,
+          "pan": 0.0
+        },
+        "reverb": {
+          "rt60_s": 0.37,
+          "predelay_ms": 0.0,
+          "wet_hint": "short room",
+          "decays_measured": 409
+        },
+        "drum_counts": {
+          "kick": 670,
+          "snare": 1160,
+          "perc": 57,
+          "closed_hat": 133,
+          "open_hat": 32
+        },
+        "transcription": {
+          "method": "band-onset drum transcription",
+          "confidence": "medium",
+          "notes": 2051,
+          "counts": {
+            "kick": 670,
+            "snare": 1160,
+            "perc": 57,
+            "closed_hat": 133,
+            "open_hat": 32
+          },
+          "patterns": {
+            "kick": "x...x...x...x...",
+            "perc": "..........x.....",
+            "snare": "x.x.x.x.x.x.x.x.",
+            "closed_hat": "...x............",
+            "open_hat": "..........x....."
+          }
+        }
+      },
+      "drum_samples": {
+        "snare": "Samples\\Drums\\snare.wav",
+        "perc": "Samples\\Drums\\perc.wav",
+        "closed_hat": "Samples\\Drums\\closed_hat.wav",
+        "open_hat": "Samples\\Drums\\open_hat.wav",
+        "kick": "Samples\\Drums\\kick.wav"
+      }
+    },
+    {
+      "name": "cymbals",
+      "stem": "drums",
+      "kind": "midi",
+      "role": "Drums",
+      "color": 1,
+      "instrument": {
+        "name": "Drum Rack",
+        "kind": "instrument",
+        "params": {
+          "pads": {
+            "snare": {
+              "note": 38,
+              "pad": "D1",
+              "sample": "Samples\\cymbals\\snare.wav"
+            },
+            "perc": {
+              "note": 37,
+              "pad": "C#1",
+              "sample": "Samples\\cymbals\\perc.wav"
+            },
+            "closed_hat": {
+              "note": 42,
+              "pad": "F#1",
+              "sample": "Samples\\cymbals\\closed_hat.wav"
+            },
+            "open_hat": {
+              "note": 46,
+              "pad": "A#1",
+              "sample": "Samples\\cymbals\\open_hat.wav"
+            },
+            "kick": {
+              "note": 36,
+              "pad": "C1",
+              "sample": "Samples\\cymbals\\kick.wav"
+            }
+          },
+          "patterns_16_steps": {
+            "kick": "...x............",
+            "perc": "........x.......",
+            "snare": "x.xxx.x.x.x.x.x.",
+            "closed_hat": "...x............",
+            "open_hat": ".........x......"
+          }
+        },
+        "confidence": "medium",
+        "why": "One-shots cut from the cleanest hit of each detected kit piece in the drum stem.",
+        "stock": true
+      },
+      "devices": [
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Low Cut (48 dB/oct)",
+                "freq_hz": 126.0
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 250.0,
+                "gain_db": 9.5,
+                "q": 1.4
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 500.0,
+                "gain_db": 4.8,
+                "q": 1.4
+              },
+              {
+                "band": 4,
+                "type": "Bell",
+                "freq_hz": 1259.9,
+                "gain_db": -4.3,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Drum bus tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 157 Hz - 16000 Hz, tilt +2.0 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Glue Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "threshold_db": -16.4,
+            "ratio": 2,
+            "attack_ms": 10,
+            "release_s": "Auto",
+            "makeup_db": 1.5,
+            "dry_wet": 100
+          },
+          "confidence": "low",
+          "why": "Crest factor 26.8 dB -> light / none bus compression.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 12,
+            "bass_mono": true,
+            "bass_mono_hz": 200.0
+          },
+          "confidence": "medium",
+          "why": "Side/mid -18.7 dB, L/R correlation 0.973. No side energy below ~200 Hz -> Bass Mono.",
+          "stock": true
+        }
+      ],
+      "sends": {},
+      "sidechain_from": null,
+      "automation": [],
+      "midi_file": "MIDI\\cymbals.mid",
+      "audio_file": "Stems\\cymbals.wav",
+      "notes": [],
+      "measurements": {
+        "rms_dbfs": -27.1,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -79.04,
+            -73.1,
+            -70.48,
+            -67.35,
+            -66.73,
+            -67.57,
+            -43.02,
+            -18.98,
+            -12.56,
+            -4.89,
+            -15.63,
+            -20.07,
+            -9.16,
+            -13.8,
+            -10.9,
+            -18.55,
+            -24.77,
+            -24.99,
+            -22.94,
+            -21.38,
+            -19.93,
+            -17.65,
+            -15.37,
+            -13.7,
+            -10.94,
+            -2.51,
+            0.0,
+            -1.92
+          ],
+          "tilt_db_per_oct": 2.02,
+          "centroid_hz": 10680.4,
+          "rolloff85_hz": 16763.6,
+          "lowest_hz": 157.49013123685916,
+          "highest_hz": 16000.0,
+          "eq_moves": [
+            {
+              "kind": "highpass",
+              "freq": 126.0,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 48
+            },
+            {
+              "kind": "bell",
+              "freq": 250.0,
+              "gain_db": 9.5,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 500.0,
+              "gain_db": 4.8,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 1259.9,
+              "gain_db": -4.3,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -0.3,
+          "rms_db": -27.1,
+          "crest_db": 26.8,
+          "short_term_range_db": 22.1,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -16.4,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.973,
+          "side_to_mid_db": -18.7,
+          "width_percent": 12.0,
+          "low_mono_below_hz": 200.0,
+          "pan": 0.01
+        },
+        "reverb": {
+          "rt60_s": 0.32,
+          "predelay_ms": 0.0,
+          "wet_hint": "dry",
+          "decays_measured": 461
+        },
+        "drum_counts": {
+          "snare": 1029,
+          "perc": 85,
+          "kick": 256,
+          "closed_hat": 153,
+          "open_hat": 25
+        },
+        "transcription": {
+          "method": "band-onset drum transcription",
+          "confidence": "medium",
+          "notes": 1529,
+          "counts": {
+            "snare": 1029,
+            "perc": 85,
+            "kick": 256,
+            "closed_hat": 153,
+            "open_hat": 25
+          },
+          "patterns": {
+            "kick": "...x............",
+            "perc": "........x.......",
+            "snare": "x.xxx.x.x.x.x.x.",
+            "closed_hat": "...x............",
+            "open_hat": ".........x......"
+          }
+        }
+      },
+      "drum_samples": {
+        "snare": "Samples\\cymbals\\snare.wav",
+        "perc": "Samples\\cymbals\\perc.wav",
+        "closed_hat": "Samples\\cymbals\\closed_hat.wav",
+        "open_hat": "Samples\\cymbals\\open_hat.wav",
+        "kick": "Samples\\cymbals\\kick.wav"
+      }
+    },
+    {
+      "name": "kick",
+      "stem": "drums",
+      "kind": "midi",
+      "role": "Drums",
+      "color": 1,
+      "instrument": {
+        "name": "Drum Rack",
+        "kind": "instrument",
+        "params": {
+          "pads": {
+            "closed_hat": {
+              "note": 42,
+              "pad": "F#1",
+              "sample": "Samples\\kick\\closed_hat.wav"
+            },
+            "snare": {
+              "note": 38,
+              "pad": "D1",
+              "sample": "Samples\\kick\\snare.wav"
+            },
+            "perc": {
+              "note": 37,
+              "pad": "C#1",
+              "sample": "Samples\\kick\\perc.wav"
+            },
+            "kick": {
+              "note": 36,
+              "pad": "C1",
+              "sample": "Samples\\kick\\kick.wav"
+            }
+          },
+          "patterns_16_steps": {
+            "kick": "x...x...x...x...",
+            "perc": "..........x.....",
+            "snare": "...x............",
+            "closed_hat": "...............x"
+          }
+        },
+        "confidence": "medium",
+        "why": "One-shots cut from the cleanest hit of each detected kit piece in the drum stem.",
+        "stock": true
+      },
+      "devices": [
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "High Cut (12 dB/oct)",
+                "freq_hz": 1250.0
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 31.2,
+                "gain_db": -11.2,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Drum bus tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 31 Hz - 1000 Hz, tilt -4.9 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Glue Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "threshold_db": -8.8,
+            "ratio": 2,
+            "attack_ms": 10,
+            "release_s": "Auto",
+            "makeup_db": 1.5,
+            "dry_wet": 100
+          },
+          "confidence": "low",
+          "why": "Crest factor 14.4 dB -> light / none bus compression.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 0
+          },
+          "confidence": "medium",
+          "why": "Side/mid -32.0 dB: effectively mono.",
+          "stock": true
+        }
+      ],
+      "sends": {},
+      "sidechain_from": null,
+      "automation": [],
+      "midi_file": "MIDI\\kick.mid",
+      "audio_file": "Stems\\kick.wav",
+      "notes": [],
+      "measurements": {
+        "rms_dbfs": -14.6,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -29.67,
+            -3.53,
+            0.0,
+            -4.09,
+            -8.63,
+            -10.58,
+            -11.43,
+            -14.06,
+            -17.35,
+            -20.92,
+            -20.87,
+            -19.12,
+            -18.3,
+            -20.86,
+            -25.69,
+            -28.16,
+            -32.27,
+            -36.49,
+            -37.28,
+            -37.82,
+            -38.79,
+            -41.27,
+            -45.21,
+            -51.24,
+            -50.58,
+            -50.44,
+            -55.32,
+            -57.4
+          ],
+          "tilt_db_per_oct": -4.9,
+          "centroid_hz": 71.6,
+          "rolloff85_hz": 80.7,
+          "lowest_hz": 31.25,
+          "highest_hz": 1000.0,
+          "eq_moves": [
+            {
+              "kind": "lowpass",
+              "freq": 1250.0,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 31.2,
+              "gain_db": -11.2,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -0.1,
+          "rms_db": -14.6,
+          "crest_db": 14.4,
+          "short_term_range_db": 21.2,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -8.8,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.999,
+          "side_to_mid_db": -32.0,
+          "width_percent": 3.0,
+          "low_mono_below_hz": 0.0,
+          "pan": 0.0
+        },
+        "reverb": {
+          "rt60_s": 0.35,
+          "predelay_ms": 0.0,
+          "wet_hint": "short room",
+          "decays_measured": 616
+        },
+        "drum_counts": {
+          "snare": 108,
+          "kick": 477,
+          "perc": 19,
+          "closed_hat": 3
+        },
+        "transcription": {
+          "method": "band-onset drum transcription",
+          "confidence": "medium",
+          "notes": 607,
+          "counts": {
+            "snare": 108,
+            "kick": 477,
+            "perc": 19,
+            "closed_hat": 3
+          },
+          "patterns": {
+            "kick": "x...x...x...x...",
+            "perc": "..........x.....",
+            "snare": "....x...........",
+            "closed_hat": "...............x"
+          }
+        }
+      },
+      "drum_samples": {
+        "closed_hat": "Samples\\kick\\closed_hat.wav",
+        "snare": "Samples\\kick\\snare.wav",
+        "perc": "Samples\\kick\\perc.wav",
+        "kick": "Samples\\kick\\kick.wav"
+      }
+    },
+    {
+      "name": "snare",
+      "stem": "drums",
+      "kind": "midi",
+      "role": "Drums",
+      "color": 1,
+      "instrument": {
+        "name": "Drum Rack",
+        "kind": "instrument",
+        "params": {
+          "pads": {
+            "snare": {
+              "note": 38,
+              "pad": "D1",
+              "sample": "Samples\\snare\\snare.wav"
+            },
+            "perc": {
+              "note": 37,
+              "pad": "C#1",
+              "sample": "Samples\\snare\\perc.wav"
+            },
+            "closed_hat": {
+              "note": 42,
+              "pad": "F#1",
+              "sample": "Samples\\snare\\closed_hat.wav"
+            },
+            "open_hat": {
+              "note": 46,
+              "pad": "A#1",
+              "sample": "Samples\\snare\\open_hat.wav"
+            },
+            "kick": {
+              "note": 36,
+              "pad": "C1",
+              "sample": "Samples\\snare\\kick.wav"
+            }
+          },
+          "patterns_16_steps": {
+            "kick": "....x.x.....x.x.",
+            "perc": "..............x.",
+            "snare": "....x.x.....x...",
+            "closed_hat": "...............x",
+            "open_hat": "...............x"
+          }
+        },
+        "confidence": "medium",
+        "why": "One-shots cut from the cleanest hit of each detected kit piece in the drum stem.",
+        "stock": true
+      },
+      "devices": [
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Low Cut (48 dB/oct)",
+                "freq_hz": 79.4
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 99.2,
+                "gain_db": -7.4,
+                "q": 1.4
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 198.4,
+                "gain_db": 6.6,
+                "q": 1.4
+              },
+              {
+                "band": 4,
+                "type": "Bell",
+                "freq_hz": 500.0,
+                "gain_db": 4.7,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Drum bus tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 99 Hz - 16000 Hz, tilt -0.7 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Glue Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "threshold_db": -15.7,
+            "ratio": 2,
+            "attack_ms": 10,
+            "release_s": "Auto",
+            "makeup_db": 1.5,
+            "dry_wet": 100
+          },
+          "confidence": "low",
+          "why": "Crest factor 26.1 dB -> light / none bus compression.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 7
+          },
+          "confidence": "medium",
+          "why": "Side/mid -23.6 dB, L/R correlation 0.991.",
+          "stock": true
+        }
+      ],
+      "sends": {},
+      "sidechain_from": null,
+      "automation": [],
+      "midi_file": "MIDI\\snare.mid",
+      "audio_file": "Stems\\snare.wav",
+      "notes": [],
+      "measurements": {
+        "rms_dbfs": -26.1,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -54.38,
+            -45.65,
+            -40.36,
+            -36.01,
+            -32.86,
+            -24.46,
+            -8.76,
+            -3.26,
+            0.0,
+            -8.15,
+            -12.72,
+            -15.21,
+            -8.32,
+            -14.68,
+            -14.24,
+            -17.79,
+            -17.54,
+            -18.98,
+            -19.44,
+            -19.02,
+            -20.62,
+            -21.93,
+            -23.99,
+            -27.42,
+            -28.58,
+            -27.47,
+            -28.04,
+            -29.8
+          ],
+          "tilt_db_per_oct": -0.74,
+          "centroid_hz": 346.5,
+          "rolloff85_hz": 414.5,
+          "lowest_hz": 99.21256574801247,
+          "highest_hz": 16000.0,
+          "eq_moves": [
+            {
+              "kind": "highpass",
+              "freq": 79.4,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 99.2,
+              "gain_db": -7.4,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 198.4,
+              "gain_db": 6.6,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 500.0,
+              "gain_db": 4.7,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": 0.0,
+          "rms_db": -26.1,
+          "crest_db": 26.1,
+          "short_term_range_db": 26.1,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -15.7,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.991,
+          "side_to_mid_db": -23.6,
+          "width_percent": 7.0,
+          "low_mono_below_hz": 0.0,
+          "pan": 0.0
+        },
+        "reverb": {
+          "rt60_s": 0.26,
+          "predelay_ms": 0.0,
+          "wet_hint": "dry",
+          "decays_measured": 715
+        },
+        "drum_counts": {
+          "kick": 551,
+          "snare": 379,
+          "open_hat": 4,
+          "perc": 14,
+          "closed_hat": 21
+        },
+        "transcription": {
+          "method": "band-onset drum transcription",
+          "confidence": "medium",
+          "notes": 965,
+          "counts": {
+            "kick": 551,
+            "snare": 379,
+            "open_hat": 4,
+            "perc": 14,
+            "closed_hat": 21
+          },
+          "patterns": {
+            "kick": "....x.x.....x.x.",
+            "perc": "..............x.",
+            "snare": "....x.......x...",
+            "closed_hat": "...............x",
+            "open_hat": "...............x"
+          }
+        }
+      },
+      "drum_samples": {
+        "snare": "Samples\\snare\\snare.wav",
+        "perc": "Samples\\snare\\perc.wav",
+        "closed_hat": "Samples\\snare\\closed_hat.wav",
+        "open_hat": "Samples\\snare\\open_hat.wav",
+        "kick": "Samples\\snare\\kick.wav"
+      }
+    },
+    {
+      "name": "toms",
+      "stem": "drums",
+      "kind": "midi",
+      "role": "Drums",
+      "color": 1,
+      "instrument": {
+        "name": "Drum Rack",
+        "kind": "instrument",
+        "params": {
+          "pads": {
+            "closed_hat": {
+              "note": 42,
+              "pad": "F#1",
+              "sample": "Samples\\toms\\closed_hat.wav"
+            },
+            "snare": {
+              "note": 38,
+              "pad": "D1",
+              "sample": "Samples\\toms\\snare.wav"
+            },
+            "perc": {
+              "note": 37,
+              "pad": "C#1",
+              "sample": "Samples\\toms\\perc.wav"
+            },
+            "kick": {
+              "note": 36,
+              "pad": "C1",
+              "sample": "Samples\\toms\\kick.wav"
+            }
+          },
+          "patterns_16_steps": {
+            "kick": "x...x...x...x...",
+            "perc": "...x............",
+            "snare": "...............x",
+            "closed_hat": ".....x.........."
+          }
+        },
+        "confidence": "medium",
+        "why": "One-shots cut from the cleanest hit of each detected kit piece in the drum stem.",
+        "stock": true
+      },
+      "devices": [
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Low Cut (48 dB/oct)",
+                "freq_hz": 79.4
+              },
+              {
+                "band": 2,
+                "type": "High Cut (12 dB/oct)",
+                "freq_hz": 6299.6
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 99.2,
+                "gain_db": -8.4,
+                "q": 1.4
+              },
+              {
+                "band": 4,
+                "type": "Bell",
+                "freq_hz": 250.0,
+                "gain_db": 6.0,
+                "q": 1.4
+              },
+              {
+                "band": 5,
+                "type": "Bell",
+                "freq_hz": 500.0,
+                "gain_db": 5.3,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Drum bus tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 99 Hz - 5040 Hz, tilt -1.5 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Glue Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "threshold_db": -23.1,
+            "ratio": 2,
+            "attack_ms": 10,
+            "release_s": "Auto",
+            "makeup_db": 1.5,
+            "dry_wet": 100
+          },
+          "confidence": "low",
+          "why": "Crest factor 34.3 dB -> light / none bus compression.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 11,
+            "bass_mono": true,
+            "bass_mono_hz": 150.0
+          },
+          "confidence": "medium",
+          "why": "Side/mid -19.5 dB, L/R correlation 0.979. No side energy below ~150 Hz -> Bass Mono.",
+          "stock": true
+        }
+      ],
+      "sends": {},
+      "sidechain_from": null,
+      "automation": [],
+      "midi_file": "MIDI\\toms.mid",
+      "audio_file": "Stems\\toms.wav",
+      "notes": [],
+      "measurements": {
+        "rms_dbfs": -36.8,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -54.55,
+            -47.31,
+            -43.86,
+            -42.09,
+            -41.11,
+            -29.47,
+            -11.66,
+            -5.49,
+            -4.05,
+            0.0,
+            -8.13,
+            -12.52,
+            -3.84,
+            -11.89,
+            -9.19,
+            -22.71,
+            -23.11,
+            -26.04,
+            -26.93,
+            -27.73,
+            -27.31,
+            -29.04,
+            -29.83,
+            -33.72,
+            -33.74,
+            -32.58,
+            -34.44,
+            -40.11
+          ],
+          "tilt_db_per_oct": -1.47,
+          "centroid_hz": 339.8,
+          "rolloff85_hz": 549.1,
+          "lowest_hz": 99.21256574801247,
+          "highest_hz": 5039.684199579493,
+          "eq_moves": [
+            {
+              "kind": "highpass",
+              "freq": 79.4,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "lowpass",
+              "freq": 6299.6,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 99.2,
+              "gain_db": -8.4,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 250.0,
+              "gain_db": 6.0,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 500.0,
+              "gain_db": 5.3,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -2.5,
+          "rms_db": -36.8,
+          "crest_db": 34.3,
+          "short_term_range_db": 31.0,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -23.1,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.979,
+          "side_to_mid_db": -19.5,
+          "width_percent": 11.0,
+          "low_mono_below_hz": 150.0,
+          "pan": -0.05
+        },
+        "reverb": {
+          "rt60_s": 0.31,
+          "predelay_ms": 0.0,
+          "wet_hint": "dry",
+          "decays_measured": 499
+        },
+        "drum_counts": {
+          "perc": 17,
+          "kick": 461,
+          "snare": 17,
+          "closed_hat": 2
+        },
+        "transcription": {
+          "method": "band-onset drum transcription",
+          "confidence": "medium",
+          "notes": 495,
+          "counts": {
+            "perc": 17,
+            "kick": 461,
+            "snare": 17,
+            "closed_hat": 2
+          },
+          "patterns": {
+            "kick": "x...x...x...x...",
+            "perc": "...x............",
+            "snare": "...............x",
+            "closed_hat": ".....x.........."
+          }
+        }
+      },
+      "drum_samples": {
+        "closed_hat": "Samples\\toms\\closed_hat.wav",
+        "snare": "Samples\\toms\\snare.wav",
+        "perc": "Samples\\toms\\perc.wav",
+        "kick": "Samples\\toms\\kick.wav"
+      }
+    },
+    {
+      "name": "Bass",
+      "stem": "bass",
+      "kind": "midi",
+      "role": "Bass",
+      "color": 13,
+      "instrument": {
+        "name": "Drift",
+        "kind": "instrument",
+        "params": {
+          "osc_1_shape": "Saw",
+          "osc_2": "Off (or Sine one octave down for sub weight)",
+          "filter_type": "Low-pass (24 dB)",
+          "filter_freq_hz": 312.0,
+          "filter_resonance": "low",
+          "voice_mode": "Mono",
+          "amp_env": {
+            "attack_ms": 70.0,
+            "sustain_db": -1.5,
+            "decay_ms": 38.0,
+            "release_ms": 154.0
+          }
+        },
+        "confidence": "medium",
+        "why": "Harmonic series reads as 'filtered saw' (slope -16.7 dB/oct, odd -35.6 dB / even -28.5 dB). Filter cutoff set where harmonics fall below -24 dB (~4 strong harmonics). Wavetable (Basic Shapes) or Analog can make the same tone.",
+        "stock": true
+      },
+      "devices": [
+        {
+          "name": "Auto Filter",
+          "kind": "audio_effect",
+          "params": {
+            "filter_type": "Low-pass",
+            "slope": "24 dB",
+            "frequency_hz": "automated (see automation)"
+          },
+          "confidence": "medium",
+          "why": "9 filter sweep(s) of more than one octave detected.",
+          "stock": true
+        },
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "High Cut (12 dB/oct)",
+                "freq_hz": 1574.9
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 31.2,
+                "gain_db": -6.6,
+                "q": 1.4
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 125.0,
+                "gain_db": 3.3,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Bass tone shaping: band edges and resonances measured from the stem's 1/3-octave spectrum (content 31 Hz - 1260 Hz, tilt -4.8 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "threshold_db": -9.5,
+            "ratio": 1.5,
+            "attack_ms": 20.0,
+            "release_ms": 200.0,
+            "knee_db": 6,
+            "makeup": "auto"
+          },
+          "confidence": "low",
+          "why": "Crest factor 15.3 dB (peak -0.3 / RMS -15.6 dBFS) -> light / none compression. Crest factor shows the amount of dynamic control, not the exact compressor settings.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 8
+          },
+          "confidence": "medium",
+          "why": "Side/mid -22.0 dB, L/R correlation 0.988.",
+          "stock": true
+        }
+      ],
+      "sends": {
+        "A Reverb": -10.0
+      },
+      "sidechain_from": null,
+      "automation": [
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              60.0,
+              3316
+            ],
+            [
+              68.0,
+              194
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 3316 -> 194 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              124.0,
+              2261
+            ],
+            [
+              134.0,
+              183
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 2261 -> 183 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              142.0,
+              2046
+            ],
+            [
+              150.0,
+              248
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 2046 -> 248 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              428.0,
+              17539
+            ],
+            [
+              436.0,
+              215
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 17539 -> 215 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              590.0,
+              172
+            ],
+            [
+              598.0,
+              711
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 172 -> 711 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              622.0,
+              172
+            ],
+            [
+              630.0,
+              581
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 172 -> 581 Hz"
+        }
+      ],
+      "midi_file": "MIDI\\Bass.mid",
+      "audio_file": "Stems\\Bass.wav",
+      "notes": [],
+      "measurements": {
+        "rms_dbfs": -15.6,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -23.36,
+            -6.27,
+            -7.51,
+            -0.54,
+            0.0,
+            -3.06,
+            -1.09,
+            -8.33,
+            -9.66,
+            -12.92,
+            -16.84,
+            -17.84,
+            -16.65,
+            -19.85,
+            -21.57,
+            -23.9,
+            -27.11,
+            -30.13,
+            -30.54,
+            -33.01,
+            -37.09,
+            -39.84,
+            -45.72,
+            -49.86,
+            -53.13,
+            -52.09,
+            -54.23,
+            -55.39
+          ],
+          "tilt_db_per_oct": -4.8,
+          "centroid_hz": 104.6,
+          "rolloff85_hz": 134.6,
+          "lowest_hz": 31.25,
+          "highest_hz": 1259.9210498948732,
+          "eq_moves": [
+            {
+              "kind": "lowpass",
+              "freq": 1574.9,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 31.2,
+              "gain_db": -6.6,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 125.0,
+              "gain_db": 3.3,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -0.3,
+          "rms_db": -15.6,
+          "crest_db": 15.3,
+          "short_term_range_db": 15.7,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -9.5,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.988,
+          "side_to_mid_db": -22.0,
+          "width_percent": 8.0,
+          "low_mono_below_hz": 0.0,
+          "pan": 0.01
+        },
+        "reverb": {
+          "rt60_s": 1.89,
+          "predelay_ms": 0.0,
+          "wet_hint": "hall / plate",
+          "decays_measured": 183
+        },
+        "harmonics": {
+          "waveform": "filtered saw",
+          "harmonic_slope_db_oct": -16.7,
+          "odd_db": -35.6,
+          "even_db": -28.5,
+          "harmonics_db": [
+            0.0,
+            0.1,
+            -12.4,
+            -12.9,
+            -27.8,
+            -26.0,
+            -38.8,
+            -35.6,
+            -43.6,
+            -46.5,
+            -55.2,
+            -50.3
+          ],
+          "frames": 59
+        },
+        "envelope": {
+          "attack_ms": 70.0,
+          "sustain_db": -1.5,
+          "decay_ms": 38.0,
+          "release_ms": 154.0
+        },
+        "pumping": {
+          "detected": false,
+          "depth_db": 34.2,
+          "release_ms": 129.0,
+          "shape": [
+            -4.59,
+            -11.27,
+            -23.17,
+            -31.86,
+            -35.41,
+            -34.89,
+            -33.13,
+            -31.88,
+            -29.64,
+            -26.44,
+            -23.92,
+            -21.72,
+            -17.41,
+            -14.23,
+            -12.19,
+            -10.48,
+            -7.85,
+            -4.73,
+            -3.28,
+            -2.62,
+            -2.09,
+            -2.18,
+            -2.13,
+            -2.05,
+            -2.11,
+            -1.89,
+            -1.4,
+            -1.18,
+            -1.19,
+            -1.22,
+            -1.88,
+            -4.21
+          ],
+          "kick_alignment": 0.5
+        },
+        "echo": {
+          "detected": false,
+          "division": "",
+          "time_beats": 0.0,
+          "feedback": 0.0,
+          "strength": -0.1
+        },
+        "filter_sweeps": [
+          {
+            "start_beat": 60.0,
+            "end_beat": 68.0,
+            "from_hz": 3316.1132812500005,
+            "to_hz": 193.79882812500003,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 124.0,
+            "end_beat": 133.99938224986525,
+            "from_hz": 2260.9863281250005,
+            "to_hz": 183.03222656250003,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 141.99990116657284,
+            "end_beat": 150.00011241138998,
+            "from_hz": 2045.6542968750007,
+            "to_hz": 247.63183593749997,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 428.0,
+            "end_beat": 436.0,
+            "from_hz": 17538.793945312496,
+            "to_hz": 215.33203124999997,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 589.9999878010726,
+            "end_beat": 597.9999634884024,
+            "from_hz": 172.26562499999994,
+            "to_hz": 710.5957031250002,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 622.0000306832517,
+            "end_beat": 629.9999418231581,
+            "from_hz": 172.26562499999994,
+            "to_hz": 581.3964843749997,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 352.0,
+            "end_beat": 360.0,
+            "from_hz": 161.49902343749997,
+            "to_hz": 43.066406249999986,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 421.99967372627697,
+            "end_beat": 429.9999282484948,
+            "from_hz": 96.89941406250001,
+            "to_hz": 20.000000000000004,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 453.9996811358194,
+            "end_beat": 462.0030364027294,
+            "from_hz": 64.59960937500001,
+            "to_hz": 32.29980468750001,
+            "kind": "highpass falling"
+          }
+        ],
+        "transcription": {
+          "method": "YIN monophonic pitch tracking",
+          "confidence": "medium",
+          "notes": 648,
+          "voiced_ratio": 0.49875860964279994,
+          "glide_count": 20,
+          "glide_ratio": 0.030864197530864196,
+          "median_cents_off_grid": 5.730936753632321,
+          "range": [
+            24,
+            53
+          ],
+          "f0_median_hz": 65.05185869508139
+        }
+      },
+      "drum_samples": {}
+    },
+    {
+      "name": "Piano / Keys",
+      "stem": "piano",
+      "kind": "midi",
+      "role": "Keys",
+      "color": 23,
+      "instrument": {
+        "name": "Grand Piano (Core Library, Sampler)",
+        "kind": "instrument",
+        "params": {
+          "velocity_sens": "high"
+        },
+        "confidence": "medium",
+        "why": "Separated piano stem; inharmonic piano partials are not modelled by Live's synths.",
+        "stock": true
+      },
+      "devices": [
+        {
+          "name": "Auto Filter",
+          "kind": "audio_effect",
+          "params": {
+            "filter_type": "High-pass",
+            "slope": "24 dB",
+            "frequency_hz": "automated (see automation)"
+          },
+          "confidence": "medium",
+          "why": "4 filter sweep(s) of more than one octave detected.",
+          "stock": true
+        },
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Low Cut (48 dB/oct)",
+                "freq_hz": 200.0
+              },
+              {
+                "band": 2,
+                "type": "High Cut (12 dB/oct)",
+                "freq_hz": 3149.8
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 315.0,
+                "gain_db": -13.8,
+                "q": 1.4
+              },
+              {
+                "band": 4,
+                "type": "Bell",
+                "freq_hz": 793.7,
+                "gain_db": 7.5,
+                "q": 1.4
+              },
+              {
+                "band": 5,
+                "type": "Bell",
+                "freq_hz": 1587.4,
+                "gain_db": -6.8,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Keys tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 250 Hz - 2520 Hz, tilt -4.3 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "sidechain": "On",
+            "audio_from": "Drums (or a muted ghost-kick track)",
+            "ratio": 10,
+            "threshold_db": "set for ~10 dB gain reduction on each kick",
+            "attack_ms": 0.5,
+            "release_ms": 13.0,
+            "knee_db": 0
+          },
+          "confidence": "medium",
+          "why": "Envelope dips 10.5 dB right after each kick and recovers in ~13 ms: sidechain pumping.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 36,
+            "pan_hint": 0.21
+          },
+          "confidence": "medium",
+          "why": "Side/mid -8.8 dB, L/R correlation 0.786.",
+          "stock": true
+        }
+      ],
+      "sends": {
+        "A Reverb": -15.0
+      },
+      "sidechain_from": "Drums",
+      "automation": [
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              28.0,
+              86
+            ],
+            [
+              36.0,
+              915
+            ]
+          ],
+          "why": "highpass rising: spectral edge moves 86 -> 915 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              46.0,
+              65
+            ],
+            [
+              58.0,
+              161
+            ]
+          ],
+          "why": "highpass rising: spectral edge moves 65 -> 161 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              222.0,
+              108
+            ],
+            [
+              240.0,
+              32
+            ]
+          ],
+          "why": "highpass falling: spectral edge moves 108 -> 32 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              646.0,
+              32
+            ],
+            [
+              654.0,
+              861
+            ]
+          ],
+          "why": "highpass rising: spectral edge moves 32 -> 861 Hz"
+        }
+      ],
+      "midi_file": "MIDI\\Piano_Keys.mid",
+      "audio_file": "Stems\\Piano_Keys.wav",
+      "notes": [
+        "Also exported block chords from the chord analysis: MIDI/Piano_Keys_chords.mid"
+      ],
+      "measurements": {
+        "rms_dbfs": -49.7,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -88.27,
+            -78.62,
+            -70.75,
+            -65.86,
+            -57.31,
+            -57.59,
+            -47.56,
+            -52.6,
+            -49.5,
+            -14.04,
+            -32.49,
+            -19.99,
+            -12.86,
+            -1.34,
+            0.0,
+            -4.97,
+            -18.21,
+            -27.15,
+            -25.17,
+            -26.35,
+            -30.45,
+            -37.42,
+            -45.98,
+            -56.46,
+            -75.61,
+            -88.03,
+            -85.81,
+            -81.19
+          ],
+          "tilt_db_per_oct": -4.32,
+          "centroid_hz": 781.0,
+          "rolloff85_hz": 925.9,
+          "lowest_hz": 250.0,
+          "highest_hz": 2519.8420997897465,
+          "eq_moves": [
+            {
+              "kind": "highpass",
+              "freq": 200.0,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 48
+            },
+            {
+              "kind": "lowpass",
+              "freq": 3149.8,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 315.0,
+              "gain_db": -13.8,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 793.7,
+              "gain_db": 7.5,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 1587.4,
+              "gain_db": -6.8,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -20.6,
+          "rms_db": -49.7,
+          "crest_db": 29.1,
+          "short_term_range_db": 26.0,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -38.0,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.786,
+          "side_to_mid_db": -8.8,
+          "width_percent": 36.0,
+          "low_mono_below_hz": 0.0,
+          "pan": 0.21
+        },
+        "reverb": {
+          "rt60_s": 0.64,
+          "predelay_ms": 0.0,
+          "wet_hint": "short room",
+          "decays_measured": 112
+        },
+        "harmonics": {
+          "waveform": "saw",
+          "harmonic_slope_db_oct": 3.4,
+          "odd_db": 22.0,
+          "even_db": 24.0,
+          "harmonics_db": [
+            0.0,
+            11.3,
+            20.4,
+            29.8,
+            52.9,
+            49.3,
+            15.6,
+            15.5,
+            -0.9,
+            14.0
+          ],
+          "frames": 60
+        },
+        "envelope": {
+          "attack_ms": 84.0,
+          "sustain_db": -3.2,
+          "decay_ms": 28.0,
+          "release_ms": null
+        },
+        "polyphony": 3.0252228333017257,
+        "pumping": {
+          "detected": true,
+          "depth_db": 10.5,
+          "release_ms": 13.0,
+          "shape": [
+            -29.39,
+            -18.16,
+            -9.3,
+            -6.21,
+            -4.39,
+            -3.87,
+            -3.1,
+            -3.65,
+            -4.48,
+            -5.6,
+            -6.19,
+            -6.79,
+            -7.4,
+            -6.28,
+            -6.86,
+            -6.51,
+            -7.64,
+            -8.61,
+            -9.24,
+            -8.82,
+            -10.31,
+            -11.52,
+            -13.86,
+            -14.79,
+            -17.38,
+            -18.31,
+            -26.13,
+            -27.6,
+            -29.57,
+            -30.55,
+            -33.26,
+            -33.23
+          ],
+          "kick_alignment": 1.0
+        },
+        "echo": {
+          "detected": false,
+          "division": "",
+          "time_beats": 0.0,
+          "feedback": 0.0,
+          "strength": -0.07
+        },
+        "filter_sweeps": [
+          {
+            "start_beat": 28.0,
+            "end_beat": 36.0,
+            "from_hz": 86.13281249999997,
+            "to_hz": 915.1611328125002,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 45.99901189751266,
+            "end_beat": 57.99979355047069,
+            "from_hz": 64.59960937500001,
+            "to_hz": 161.49902343749997,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 222.0001098468042,
+            "end_beat": 240.0,
+            "from_hz": 107.66601562499999,
+            "to_hz": 32.29980468750001,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 646.000001902664,
+            "end_beat": 654.0000760454086,
+            "from_hz": 32.29980468750001,
+            "to_hz": 861.3281250000005,
+            "kind": "highpass rising"
+          }
+        ],
+        "transcription": {
+          "method": "harmonic-salience multi-pitch",
+          "confidence": "low",
+          "notes": 3217,
+          "mean_polyphony": 3.0252228333017257
+        }
+      },
+      "drum_samples": {}
+    },
+    {
+      "name": "Guitar",
+      "stem": "guitar",
+      "kind": "midi",
+      "role": "Guitar",
+      "color": 9,
+      "instrument": {
+        "name": "Simpler (load the guitar stem slice) or a guitar sample instrument",
+        "kind": "instrument",
+        "params": {},
+        "confidence": "low",
+        "why": "Guitar timbre is better re-recorded or sliced from the stem than synthesised.",
+        "stock": true
+      },
+      "devices": [
+        {
+          "name": "Auto Filter",
+          "kind": "audio_effect",
+          "params": {
+            "filter_type": "Low-pass",
+            "slope": "24 dB",
+            "frequency_hz": "automated (see automation)"
+          },
+          "confidence": "medium",
+          "why": "12 filter sweep(s) of more than one octave detected.",
+          "stock": true
+        },
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Low Cut (48 dB/oct)",
+                "freq_hz": 100.0
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 315.0,
+                "gain_db": -7.7,
+                "q": 1.4
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 1587.4,
+                "gain_db": -6.3,
+                "q": 1.4
+              },
+              {
+                "band": 4,
+                "type": "Bell",
+                "freq_hz": 630.0,
+                "gain_db": 4.9,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Guitar tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 125 Hz - 16000 Hz, tilt +0.2 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "sidechain": "On",
+            "audio_from": "Drums (or a muted ghost-kick track)",
+            "ratio": 4,
+            "threshold_db": "set for ~6 dB gain reduction on each kick",
+            "attack_ms": 0.5,
+            "release_ms": 103.0,
+            "knee_db": 0
+          },
+          "confidence": "medium",
+          "why": "Envelope dips 6.5 dB right after each kick and recovers in ~103 ms: sidechain pumping.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 20
+          },
+          "confidence": "medium",
+          "why": "Side/mid -14.1 dB, L/R correlation 0.925.",
+          "stock": true
+        }
+      ],
+      "sends": {
+        "A Reverb": -6.0
+      },
+      "sidechain_from": "Drums",
+      "automation": [
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              176.0,
+              17905
+            ],
+            [
+              186.0,
+              528
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 17905 -> 528 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              342.0,
+              12112
+            ],
+            [
+              352.0,
+              323
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 12112 -> 323 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              486.0,
+              280
+            ],
+            [
+              498.0,
+              19132
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 280 -> 19132 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              660.0,
+              19681
+            ],
+            [
+              668.0,
+              291
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 19681 -> 291 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              10.0,
+              172
+            ],
+            [
+              22.0,
+              86
+            ]
+          ],
+          "why": "highpass falling: spectral edge moves 172 -> 86 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              46.0,
+              65
+            ],
+            [
+              56.0,
+              151
+            ]
+          ],
+          "why": "highpass rising: spectral edge moves 65 -> 151 Hz"
+        }
+      ],
+      "midi_file": "MIDI\\Guitar.mid",
+      "audio_file": "Stems\\Guitar.wav",
+      "notes": [
+        "Also exported block chords from the chord analysis: MIDI/Guitar_chords.mid"
+      ],
+      "measurements": {
+        "rms_dbfs": -32.7,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -60.32,
+            -49.85,
+            -41.83,
+            -37.14,
+            -38.08,
+            -33.3,
+            -5.58,
+            -10.1,
+            -6.39,
+            -6.43,
+            -14.93,
+            -6.53,
+            -2.08,
+            0.0,
+            -3.27,
+            -12.69,
+            -16.47,
+            -23.0,
+            -16.77,
+            -14.77,
+            -22.14,
+            -24.23,
+            -26.97,
+            -28.03,
+            -26.1,
+            -22.11,
+            -20.84,
+            -18.31
+          ],
+          "tilt_db_per_oct": 0.17,
+          "centroid_hz": 716.9,
+          "rolloff85_hz": 786.0,
+          "lowest_hz": 125.0,
+          "highest_hz": 16000.0,
+          "eq_moves": [
+            {
+              "kind": "highpass",
+              "freq": 100.0,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 48
+            },
+            {
+              "kind": "bell",
+              "freq": 315.0,
+              "gain_db": -7.7,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 1587.4,
+              "gain_db": -6.3,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 630.0,
+              "gain_db": 4.9,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -1.7,
+          "rms_db": -32.7,
+          "crest_db": 31.1,
+          "short_term_range_db": 35.9,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -20.3,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.925,
+          "side_to_mid_db": -14.1,
+          "width_percent": 20.0,
+          "low_mono_below_hz": 0.0,
+          "pan": -0.01
+        },
+        "reverb": {
+          "rt60_s": 3.69,
+          "predelay_ms": 0.0,
+          "wet_hint": "long ambient",
+          "decays_measured": 116
+        },
+        "harmonics": {
+          "waveform": "filtered saw",
+          "harmonic_slope_db_oct": -14.7,
+          "odd_db": -31.0,
+          "even_db": -27.3,
+          "harmonics_db": [
+            0.0,
+            -6.5,
+            -7.9,
+            -12.2,
+            -21.0,
+            -23.0,
+            -36.8,
+            -35.7,
+            -39.8,
+            -40.2,
+            -49.4,
+            -45.9
+          ],
+          "frames": 60
+        },
+        "envelope": {
+          "attack_ms": 74.0,
+          "sustain_db": -4.7,
+          "decay_ms": 24.0,
+          "release_ms": null
+        },
+        "polyphony": 3.4040174341481904,
+        "pumping": {
+          "detected": true,
+          "depth_db": 6.5,
+          "release_ms": 103.0,
+          "shape": [
+            -2.7,
+            -3.96,
+            -7.13,
+            -8.94,
+            -8.92,
+            -8.51,
+            -8.65,
+            -7.91,
+            -7.62,
+            -6.92,
+            -5.96,
+            -4.75,
+            -4.71,
+            -4.53,
+            -5.27,
+            -4.94,
+            -4.8,
+            -5.74,
+            -3.74,
+            -3.61,
+            -3.98,
+            -4.18,
+            -4.81,
+            -3.78,
+            -2.49,
+            -3.08,
+            -3.18,
+            -3.39,
+            -3.95,
+            -4.69,
+            -6.08,
+            -6.08
+          ],
+          "kick_alignment": 1.0
+        },
+        "echo": {
+          "detected": false,
+          "division": "",
+          "time_beats": 0.0,
+          "feedback": 0.0,
+          "strength": -0.0
+        },
+        "filter_sweeps": [
+          {
+            "start_beat": 176.0,
+            "end_beat": 185.9992515337429,
+            "from_hz": 17904.858398437493,
+            "to_hz": 527.5634765625002,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 341.99973874352617,
+            "end_beat": 352.0,
+            "from_hz": 12112.426757812495,
+            "to_hz": 322.99804687500017,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 486.0006973723916,
+            "end_beat": 497.9999139000501,
+            "from_hz": 279.931640625,
+            "to_hz": 19132.250976562493,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 660.0,
+            "end_beat": 668.0,
+            "from_hz": 19681.34765625,
+            "to_hz": 290.69824218749983,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 10.001545839090362,
+            "end_beat": 22.00037424327317,
+            "from_hz": 172.26562499999994,
+            "to_hz": 86.13281249999997,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 45.99901189751266,
+            "end_beat": 56.0,
+            "from_hz": 64.59960937500001,
+            "to_hz": 150.732421875,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 78.00018035673979,
+            "end_beat": 86.00023816634129,
+            "from_hz": 32.29980468750001,
+            "to_hz": 64.59960937500001,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 198.00082547695598,
+            "end_beat": 206.0002851146304,
+            "from_hz": 64.59960937500001,
+            "to_hz": 32.29980468750001,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 269.99995391944367,
+            "end_beat": 278.0001026976971,
+            "from_hz": 21.533203124999993,
+            "to_hz": 86.13281249999997,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 341.99973874352617,
+            "end_beat": 352.0,
+            "from_hz": 129.19921875000003,
+            "to_hz": 43.066406249999986,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 662.0000608123827,
+            "end_beat": 670.0002468302375,
+            "from_hz": 43.066406249999986,
+            "to_hz": 118.43261718749997,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 688.0,
+            "end_beat": 696.0,
+            "from_hz": 86.13281249999997,
+            "to_hz": 43.066406249999986,
+            "kind": "highpass falling"
+          }
+        ],
+        "transcription": {
+          "method": "harmonic-salience multi-pitch",
+          "confidence": "low",
+          "notes": 3526,
+          "mean_polyphony": 3.4040174341481904
+        }
+      },
+      "drum_samples": {}
+    },
+    {
+      "name": "Synths / Other",
+      "stem": "other",
+      "kind": "midi",
+      "role": "Pad",
+      "color": 20,
+      "instrument": {
+        "name": "Wavetable",
+        "kind": "instrument",
+        "params": {
+          "osc_1": "Basic Shapes > Saw",
+          "unison": "Classic, 4 voices, amount 25%",
+          "filter_1": "Low-pass 12 dB @ 1195 Hz",
+          "amp_env": {
+            "attack_ms": 84.0,
+            "sustain_db": -4.2,
+            "decay_ms": 42.0,
+            "release_ms": 146.0
+          },
+          "voices": 8
+        },
+        "confidence": "medium",
+        "why": "Slow attack (84.0 ms), sustained, mean polyphony 3.2 -> pad.",
+        "stock": true
+      },
+      "devices": [
+        {
+          "name": "Auto Filter",
+          "kind": "audio_effect",
+          "params": {
+            "filter_type": "Low-pass",
+            "slope": "24 dB",
+            "frequency_hz": "automated (see automation)"
+          },
+          "confidence": "medium",
+          "why": "21 filter sweep(s) of more than one octave detected.",
+          "stock": true
+        },
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Low Cut (48 dB/oct)",
+                "freq_hz": 31.5
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 49.6,
+                "gain_db": -6.2,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Pad tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 39 Hz - 16000 Hz, tilt -0.5 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "sidechain": "On",
+            "audio_from": "Drums (or a muted ghost-kick track)",
+            "ratio": 10,
+            "threshold_db": "set for ~11 dB gain reduction on each kick",
+            "attack_ms": 0.5,
+            "release_ms": 103.0,
+            "knee_db": 0
+          },
+          "confidence": "medium",
+          "why": "Envelope dips 10.8 dB right after each kick and recovers in ~103 ms: sidechain pumping.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 39
+          },
+          "confidence": "medium",
+          "why": "Side/mid -8.1 dB, L/R correlation 0.734.",
+          "stock": true
+        }
+      ],
+      "sends": {
+        "A Reverb": -10.0
+      },
+      "sidechain_from": "Drums",
+      "automation": [
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              64.0,
+              312
+            ],
+            [
+              76.0,
+              4360
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 312 -> 4360 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              142.0,
+              786
+            ],
+            [
+              150.0,
+              18163
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 786 -> 18163 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              178.0,
+              12629
+            ],
+            [
+              186.0,
+              506
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 12629 -> 506 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              338.0,
+              19391
+            ],
+            [
+              346.0,
+              409
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 19391 -> 409 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              370.0,
+              1378
+            ],
+            [
+              382.0,
+              8538
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 1378 -> 8538 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              392.0,
+              1238
+            ],
+            [
+              408.0,
+              12608
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 1238 -> 12608 Hz"
+        }
+      ],
+      "midi_file": "MIDI\\Synths_Other.mid",
+      "audio_file": "Stems\\Synths_Other.wav",
+      "notes": [
+        "Also exported block chords from the chord analysis: MIDI/Synths_Other_chords.mid"
+      ],
+      "measurements": {
+        "rms_dbfs": -25.2,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -38.87,
+            -23.09,
+            -24.29,
+            -13.25,
+            -6.7,
+            -7.96,
+            -1.21,
+            -2.29,
+            -1.99,
+            -0.43,
+            -2.57,
+            0.0,
+            -0.44,
+            -1.2,
+            -2.11,
+            -5.88,
+            -7.17,
+            -10.48,
+            -11.88,
+            -10.01,
+            -11.51,
+            -14.35,
+            -19.32,
+            -22.34,
+            -21.99,
+            -19.07,
+            -19.72,
+            -20.83
+          ],
+          "tilt_db_per_oct": -0.49,
+          "centroid_hz": 579.4,
+          "rolloff85_hz": 796.7,
+          "lowest_hz": 39.37253280921478,
+          "highest_hz": 16000.0,
+          "eq_moves": [
+            {
+              "kind": "highpass",
+              "freq": 31.5,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 48
+            },
+            {
+              "kind": "bell",
+              "freq": 49.6,
+              "gain_db": -6.2,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -0.8,
+          "rms_db": -25.2,
+          "crest_db": 24.4,
+          "short_term_range_db": 23.6,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -15.5,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.734,
+          "side_to_mid_db": -8.1,
+          "width_percent": 39.0,
+          "low_mono_below_hz": 0.0,
+          "pan": 0.02
+        },
+        "reverb": {
+          "rt60_s": 2.16,
+          "predelay_ms": 0.0,
+          "wet_hint": "hall / plate",
+          "decays_measured": 120
+        },
+        "harmonics": {
+          "waveform": "saw",
+          "harmonic_slope_db_oct": -7.6,
+          "odd_db": -17.2,
+          "even_db": -11.0,
+          "harmonics_db": [
+            0.0,
+            -1.5,
+            -6.3,
+            -3.0,
+            -9.5,
+            -4.9,
+            -19.5,
+            -16.0,
+            -20.6,
+            -20.5,
+            -30.1,
+            -19.8
+          ],
+          "frames": 58
+        },
+        "envelope": {
+          "attack_ms": 84.0,
+          "sustain_db": -4.2,
+          "decay_ms": 42.0,
+          "release_ms": 146.0
+        },
+        "polyphony": 3.221961398017736,
+        "pumping": {
+          "detected": true,
+          "depth_db": 10.8,
+          "release_ms": 103.0,
+          "shape": [
+            -8.2,
+            -9.83,
+            -12.31,
+            -14.13,
+            -13.63,
+            -11.63,
+            -10.63,
+            -9.57,
+            -8.57,
+            -8.27,
+            -7.84,
+            -7.32,
+            -5.95,
+            -4.58,
+            -4.34,
+            -4.6,
+            -5.44,
+            -5.46,
+            -4.08,
+            -3.32,
+            -3.97,
+            -4.38,
+            -4.59,
+            -3.88,
+            -4.07,
+            -4.14,
+            -4.23,
+            -4.46,
+            -5.21,
+            -6.16,
+            -7.31,
+            -8.71
+          ],
+          "kick_alignment": 1.0
+        },
+        "echo": {
+          "detected": false,
+          "division": "",
+          "time_beats": 0.0,
+          "feedback": 0.0,
+          "strength": 0.01
+        },
+        "filter_sweeps": [
+          {
+            "start_beat": 64.0,
+            "end_beat": 76.0,
+            "from_hz": 312.23144531250006,
+            "to_hz": 4360.473632812501,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 141.99990116657284,
+            "end_beat": 150.00011241138998,
+            "from_hz": 785.9619140625,
+            "to_hz": 18163.256835937504,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 177.99912597070426,
+            "end_beat": 185.9992515337429,
+            "from_hz": 12629.223632812502,
+            "to_hz": 506.03027343749994,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 337.9996554342964,
+            "end_beat": 345.99992227853176,
+            "from_hz": 19390.649414062504,
+            "to_hz": 409.13085937499983,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 370.0000067865826,
+            "end_beat": 381.99995921418866,
+            "from_hz": 1378.1249999999995,
+            "to_hz": 8537.915039062502,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 392.0,
+            "end_beat": 408.0,
+            "from_hz": 1238.1591796875,
+            "to_hz": 12607.690429687502,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 429.9999282484948,
+            "end_beat": 437.9998948794319,
+            "from_hz": 19789.013671875004,
+            "to_hz": 322.99804687500017,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 453.9996811358194,
+            "end_beat": 462.0030364027294,
+            "from_hz": 1571.923828125,
+            "to_hz": 559.86328125,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 514.0000164107349,
+            "end_beat": 522.0001429542908,
+            "from_hz": 818.2617187499997,
+            "to_hz": 2099.487304687499,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 613.9999853080803,
+            "end_beat": 628.0,
+            "from_hz": 1970.2880859374998,
+            "to_hz": 13232.153320312498,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 662.0000608123827,
+            "end_beat": 670.0002468302375,
+            "from_hz": 19218.3837890625,
+            "to_hz": 2616.2841796875014,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 686.0016042964854,
+            "end_beat": 698.0025202877702,
+            "from_hz": 183.03222656250003,
+            "to_hz": 2024.1210937499998,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 24.0,
+            "end_beat": 32.0,
+            "from_hz": 75.3662109375,
+            "to_hz": 161.49902343749997,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 32.0,
+            "end_beat": 40.0,
+            "from_hz": 161.49902343749997,
+            "to_hz": 75.3662109375,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 78.00018035673979,
+            "end_beat": 86.00023816634129,
+            "from_hz": 247.63183593749997,
+            "to_hz": 1367.3583984374993,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 198.00082547695598,
+            "end_beat": 206.0002851146304,
+            "from_hz": 43.066406249999986,
+            "to_hz": 21.533203124999993,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 244.0,
+            "end_beat": 252.0,
+            "from_hz": 20.000000000000004,
+            "to_hz": 118.43261718749997,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 344.0,
+            "end_beat": 352.0,
+            "from_hz": 21.533203124999993,
+            "to_hz": 161.49902343749997,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 412.0,
+            "end_beat": 420.0,
+            "from_hz": 129.19921875000003,
+            "to_hz": 269.1650390625,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 646.000001902664,
+            "end_beat": 654.0000760454086,
+            "from_hz": 43.066406249999986,
+            "to_hz": 322.99804687500017,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 686.0016042964854,
+            "end_beat": 694.0027064028702,
+            "from_hz": 43.066406249999986,
+            "to_hz": 86.13281249999997,
+            "kind": "highpass rising"
+          }
+        ],
+        "transcription": {
+          "method": "harmonic-salience multi-pitch",
+          "confidence": "low",
+          "notes": 1977,
+          "mean_polyphony": 3.221961398017736
+        }
+      },
+      "drum_samples": {}
+    },
+    {
+      "name": "Vocals",
+      "stem": "vocals",
+      "kind": "audio",
+      "role": "Vocals",
+      "color": 26,
+      "instrument": null,
+      "devices": [
+        {
+          "name": "Auto Filter",
+          "kind": "audio_effect",
+          "params": {
+            "filter_type": "Low-pass",
+            "slope": "24 dB",
+            "frequency_hz": "automated (see automation)"
+          },
+          "confidence": "medium",
+          "why": "15 filter sweep(s) of more than one octave detected.",
+          "stock": true
+        },
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Low Cut (48 dB/oct)",
+                "freq_hz": 39.7
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 49.6,
+                "gain_db": -5.6,
+                "q": 1.4
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 10079.4,
+                "gain_db": 4.3,
+                "q": 1.4
+              },
+              {
+                "band": 4,
+                "type": "Bell",
+                "freq_hz": 630.0,
+                "gain_db": 4.2,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Vocal tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 50 Hz - 16000 Hz, tilt -0.2 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "threshold_db": -14.0,
+            "ratio": 1.5,
+            "attack_ms": 20.0,
+            "release_ms": 200.0,
+            "knee_db": 6,
+            "makeup": "auto"
+          },
+          "confidence": "low",
+          "why": "Crest factor 22.6 dB (peak -0.4 / RMS -23.0 dBFS) -> light / none compression. Crest factor shows the amount of dynamic control, not the exact compressor settings.",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "sidechain": "On",
+            "audio_from": "Drums (or a muted ghost-kick track)",
+            "ratio": 10,
+            "threshold_db": "set for ~10 dB gain reduction on each kick",
+            "attack_ms": 0.5,
+            "release_ms": 64.0,
+            "knee_db": 0
+          },
+          "confidence": "medium",
+          "why": "Envelope dips 9.5 dB right after each kick and recovers in ~64 ms: sidechain pumping.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 23
+          },
+          "confidence": "medium",
+          "why": "Side/mid -12.6 dB, L/R correlation 0.897.",
+          "stock": true
+        }
+      ],
+      "sends": {
+        "A Reverb": -10.0
+      },
+      "sidechain_from": "Drums",
+      "automation": [
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              44.0,
+              13038
+            ],
+            [
+              56.0,
+              538
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 13038 -> 538 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              102.0,
+              194
+            ],
+            [
+              110.0,
+              915
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 194 -> 915 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              414.0,
+              19832
+            ],
+            [
+              422.0,
+              5071
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 19832 -> 5071 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              464.0,
+              16215
+            ],
+            [
+              474.0,
+              721
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 16215 -> 721 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              568.0,
+              11983
+            ],
+            [
+              576.0,
+              2369
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 11983 -> 2369 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              680.0,
+              560
+            ],
+            [
+              688.0,
+              19864
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 560 -> 19864 Hz"
+        }
+      ],
+      "midi_file": "MIDI\\Vocals.mid",
+      "audio_file": "Stems\\Vocals.wav",
+      "notes": [
+        "Pitch sits within ~9 cents of the semitone grid: probably pitch-corrected. Live 12 has no stock real-time pitch-correction device; use a third-party plug-in or Live's audio-to-MIDI + resynthesis."
+      ],
+      "measurements": {
+        "rms_dbfs": -23.0,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -49.03,
+            -33.64,
+            -19.43,
+            -7.23,
+            -3.78,
+            0.0,
+            -4.03,
+            -4.74,
+            -3.64,
+            -4.91,
+            -10.32,
+            -8.32,
+            -5.01,
+            -1.46,
+            -4.65,
+            -8.7,
+            -6.86,
+            -8.95,
+            -12.21,
+            -10.24,
+            -11.43,
+            -12.0,
+            -14.49,
+            -16.01,
+            -12.94,
+            -8.32,
+            -11.17,
+            -14.49
+          ],
+          "tilt_db_per_oct": -0.23,
+          "centroid_hz": 1182.5,
+          "rolloff85_hz": 1324.3,
+          "lowest_hz": 49.60628287400625,
+          "highest_hz": 16000.0,
+          "eq_moves": [
+            {
+              "kind": "highpass",
+              "freq": 39.7,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 48
+            },
+            {
+              "kind": "bell",
+              "freq": 49.6,
+              "gain_db": -5.6,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 10079.4,
+              "gain_db": 4.3,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 630.0,
+              "gain_db": 4.2,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -0.4,
+          "rms_db": -23.0,
+          "crest_db": 22.6,
+          "short_term_range_db": 24.2,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -14.0,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.897,
+          "side_to_mid_db": -12.6,
+          "width_percent": 23.0,
+          "low_mono_below_hz": 0.0,
+          "pan": 0.0
+        },
+        "reverb": {
+          "rt60_s": 1.7,
+          "predelay_ms": 0.0,
+          "wet_hint": "hall / plate",
+          "decays_measured": 175
+        },
+        "pitch": {
+          "voiced_ratio": 0.32244113407015856,
+          "glide_count": 60,
+          "glide_ratio": 0.16806722689075632,
+          "median_cents_off_grid": 9.171846978108888,
+          "range": [
+            38,
+            78
+          ],
+          "f0_median_hz": 130.35212762481785
+        },
+        "pumping": {
+          "detected": true,
+          "depth_db": 9.5,
+          "release_ms": 64.0,
+          "shape": [
+            -5.33,
+            -6.12,
+            -9.57,
+            -12.02,
+            -10.92,
+            -8.95,
+            -7.55,
+            -6.4,
+            -5.26,
+            -4.92,
+            -4.46,
+            -4.26,
+            -3.98,
+            -4.13,
+            -4.32,
+            -4.97,
+            -5.37,
+            -6.14,
+            -5.46,
+            -4.21,
+            -3.28,
+            -2.87,
+            -2.47,
+            -2.48,
+            -2.73,
+            -2.92,
+            -3.07,
+            -3.28,
+            -3.79,
+            -4.19,
+            -4.8,
+            -5.32
+          ],
+          "kick_alignment": 1.0
+        },
+        "echo": {
+          "detected": false,
+          "division": "",
+          "time_beats": 0.0,
+          "feedback": 0.0,
+          "strength": 0.11
+        },
+        "filter_sweeps": [
+          {
+            "start_beat": 44.0,
+            "end_beat": 56.0,
+            "from_hz": 13038.3544921875,
+            "to_hz": 538.330078125,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 101.99994280881062,
+            "end_beat": 109.99983676573778,
+            "from_hz": 193.79882812500003,
+            "to_hz": 915.1611328125002,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 413.99949027590924,
+            "end_beat": 421.99967372627697,
+            "from_hz": 19832.080078125007,
+            "to_hz": 5071.069335937502,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 464.0,
+            "end_beat": 474.0006452465125,
+            "from_hz": 16214.501953124995,
+            "to_hz": 721.3623046874997,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 568.0,
+            "end_beat": 576.0,
+            "from_hz": 11983.227539062504,
+            "to_hz": 2368.65234375,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 680.0,
+            "end_beat": 688.0,
+            "from_hz": 559.86328125,
+            "to_hz": 19864.379882812507,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 52.0,
+            "end_beat": 60.0,
+            "from_hz": 549.0966796874997,
+            "to_hz": 53.83300781249999,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 60.0,
+            "end_beat": 73.99993298191158,
+            "from_hz": 53.83300781249999,
+            "to_hz": 1281.2255859375007,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 181.9988898691312,
+            "end_beat": 190.0001324771305,
+            "from_hz": 516.7968749999998,
+            "to_hz": 43.066406249999986,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 328.0,
+            "end_beat": 336.0,
+            "from_hz": 559.86328125,
+            "to_hz": 1345.8251953124995,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 360.0,
+            "end_beat": 368.0,
+            "from_hz": 1356.5917968750007,
+            "to_hz": 43.066406249999986,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 425.99979856699156,
+            "end_beat": 434.00000361320934,
+            "from_hz": 64.59960937500001,
+            "to_hz": 129.19921875000003,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 604.0,
+            "end_beat": 612.0,
+            "from_hz": 43.066406249999986,
+            "to_hz": 21.533203124999993,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 612.0,
+            "end_beat": 629.9999418231581,
+            "from_hz": 21.533203124999993,
+            "to_hz": 753.6621093750002,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 660.0,
+            "end_beat": 668.0,
+            "from_hz": 721.3623046874997,
+            "to_hz": 32.29980468750001,
+            "kind": "highpass falling"
+          }
+        ],
+        "transcription": {
+          "method": "YIN monophonic pitch tracking",
+          "confidence": "medium",
+          "notes": 357,
+          "voiced_ratio": 0.32244113407015856,
+          "glide_count": 60,
+          "glide_ratio": 0.16806722689075632,
+          "median_cents_off_grid": 9.171846978108888,
+          "range": [
+            38,
+            78
+          ],
+          "f0_median_hz": 130.35212762481785
+        }
+      },
+      "drum_samples": {}
+    },
+    {
+      "name": "backing_vocals",
+      "stem": "vocals",
+      "kind": "audio",
+      "role": "Vocals",
+      "color": 26,
+      "instrument": null,
+      "devices": [
+        {
+          "name": "Auto Filter",
+          "kind": "audio_effect",
+          "params": {
+            "filter_type": "Low-pass",
+            "slope": "24 dB",
+            "frequency_hz": "automated (see automation)"
+          },
+          "confidence": "medium",
+          "why": "19 filter sweep(s) of more than one octave detected.",
+          "stock": true
+        },
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Low Cut (48 dB/oct)",
+                "freq_hz": 39.7
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 6349.6,
+                "gain_db": -6.2,
+                "q": 1.4
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 315.0,
+                "gain_db": -5.2,
+                "q": 1.4
+              },
+              {
+                "band": 4,
+                "type": "Bell",
+                "freq_hz": 49.6,
+                "gain_db": -5.2,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Vocal tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 50 Hz - 16000 Hz, tilt -0.8 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "threshold_db": -15.8,
+            "ratio": 1.5,
+            "attack_ms": 20.0,
+            "release_ms": 200.0,
+            "knee_db": 6,
+            "makeup": "auto"
+          },
+          "confidence": "low",
+          "why": "Crest factor 22.1 dB (peak -2.6 / RMS -24.7 dBFS) -> light / none compression. Crest factor shows the amount of dynamic control, not the exact compressor settings.",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "sidechain": "On",
+            "audio_from": "Drums (or a muted ghost-kick track)",
+            "ratio": 10,
+            "threshold_db": "set for ~11 dB gain reduction on each kick",
+            "attack_ms": 0.5,
+            "release_ms": 64.0,
+            "knee_db": 0
+          },
+          "confidence": "medium",
+          "why": "Envelope dips 11.1 dB right after each kick and recovers in ~64 ms: sidechain pumping.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 26
+          },
+          "confidence": "medium",
+          "why": "Side/mid -11.7 dB, L/R correlation 0.872.",
+          "stock": true
+        }
+      ],
+      "sends": {
+        "A Reverb": -6.0
+      },
+      "sidechain_from": "Drums",
+      "automation": [
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              44.0,
+              3531
+            ],
+            [
+              56.0,
+              538
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 3531 -> 538 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              102.0,
+              194
+            ],
+            [
+              110.0,
+              915
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 194 -> 915 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              176.0,
+              2099
+            ],
+            [
+              186.0,
+              4457
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 2099 -> 4457 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              310.0,
+              151
+            ],
+            [
+              318.0,
+              2832
+            ]
+          ],
+          "why": "lowpass opening: spectral edge moves 151 -> 2832 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              418.0,
+              19444
+            ],
+            [
+              426.0,
+              258
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 19444 -> 258 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              464.0,
+              16042
+            ],
+            [
+              474.0,
+              721
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 16042 -> 721 Hz"
+        }
+      ],
+      "midi_file": "MIDI\\backing_vocals.mid",
+      "audio_file": "Stems\\backing_vocals.wav",
+      "notes": [
+        "Pitch sits within ~9 cents of the semitone grid: probably pitch-corrected. Live 12 has no stock real-time pitch-correction device; use a third-party plug-in or Live's audio-to-MIDI + resynthesis."
+      ],
+      "measurements": {
+        "rms_dbfs": -24.7,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -48.32,
+            -33.21,
+            -19.16,
+            -8.14,
+            -4.32,
+            0.0,
+            -5.46,
+            -6.4,
+            -4.77,
+            -6.61,
+            -13.4,
+            -10.18,
+            -5.92,
+            -1.77,
+            -4.98,
+            -10.07,
+            -7.89,
+            -10.33,
+            -14.14,
+            -11.87,
+            -14.07,
+            -14.05,
+            -19.05,
+            -23.65,
+            -18.29,
+            -11.96,
+            -15.41,
+            -18.21
+          ],
+          "tilt_db_per_oct": -0.76,
+          "centroid_hz": 815.1,
+          "rolloff85_hz": 850.6,
+          "lowest_hz": 49.60628287400625,
+          "highest_hz": 16000.0,
+          "eq_moves": [
+            {
+              "kind": "highpass",
+              "freq": 39.7,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 48
+            },
+            {
+              "kind": "bell",
+              "freq": 6349.6,
+              "gain_db": -6.2,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 315.0,
+              "gain_db": -5.2,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 49.6,
+              "gain_db": -5.2,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -2.6,
+          "rms_db": -24.7,
+          "crest_db": 22.1,
+          "short_term_range_db": 27.0,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -15.8,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.872,
+          "side_to_mid_db": -11.7,
+          "width_percent": 26.0,
+          "low_mono_below_hz": 0.0,
+          "pan": 0.01
+        },
+        "reverb": {
+          "rt60_s": 2.54,
+          "predelay_ms": 0.0,
+          "wet_hint": "long ambient",
+          "decays_measured": 212
+        },
+        "pitch": {
+          "voiced_ratio": 0.29178680121736345,
+          "glide_count": 53,
+          "glide_ratio": 0.165625,
+          "median_cents_off_grid": 8.820003367567608,
+          "range": [
+            38,
+            78
+          ],
+          "f0_median_hz": 130.712030438157
+        },
+        "pumping": {
+          "detected": true,
+          "depth_db": 11.1,
+          "release_ms": 64.0,
+          "shape": [
+            -7.12,
+            -10.32,
+            -13.5,
+            -11.73,
+            -9.44,
+            -7.77,
+            -6.78,
+            -5.7,
+            -5.06,
+            -4.52,
+            -4.3,
+            -4.14,
+            -4.42,
+            -4.78,
+            -5.07,
+            -5.44,
+            -6.45,
+            -5.47,
+            -3.87,
+            -3.15,
+            -2.71,
+            -2.52,
+            -2.44,
+            -2.54,
+            -2.69,
+            -3.24,
+            -3.39,
+            -4.19,
+            -4.57,
+            -4.93,
+            -5.78,
+            -6.74
+          ],
+          "kick_alignment": 0.5
+        },
+        "echo": {
+          "detected": false,
+          "division": "",
+          "time_beats": 0.0,
+          "feedback": 0.0,
+          "strength": 0.11
+        },
+        "filter_sweeps": [
+          {
+            "start_beat": 44.0,
+            "end_beat": 56.0,
+            "from_hz": 3531.445312499999,
+            "to_hz": 538.330078125,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 101.99994280881062,
+            "end_beat": 109.99983676573778,
+            "from_hz": 193.79882812500003,
+            "to_hz": 915.1611328125002,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 176.0,
+            "end_beat": 185.9992515337429,
+            "from_hz": 2099.487304687499,
+            "to_hz": 4457.373046875002,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 310.00042180050116,
+            "end_beat": 318.00006610799045,
+            "from_hz": 150.732421875,
+            "to_hz": 2831.6162109374986,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 417.9995212009696,
+            "end_beat": 425.99979856699156,
+            "from_hz": 19444.48242187501,
+            "to_hz": 258.3984374999999,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 464.0,
+            "end_beat": 474.0006452465125,
+            "from_hz": 16042.236328124995,
+            "to_hz": 721.3623046874997,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 568.0,
+            "end_beat": 576.0,
+            "from_hz": 11983.227539062504,
+            "to_hz": 2368.65234375,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 680.0,
+            "end_beat": 688.0,
+            "from_hz": 559.86328125,
+            "to_hz": 19864.379882812507,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 692.0,
+            "end_beat": 704.0,
+            "from_hz": 279.931640625,
+            "to_hz": 18023.29101562501,
+            "kind": "lowpass opening"
+          },
+          {
+            "start_beat": 41.99947707680659,
+            "end_beat": 60.0,
+            "from_hz": 624.4628906250001,
+            "to_hz": 53.83300781249999,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 60.0,
+            "end_beat": 73.99993298191158,
+            "from_hz": 53.83300781249999,
+            "to_hz": 1270.4589843750007,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 181.9988898691312,
+            "end_beat": 190.0001324771305,
+            "from_hz": 333.76464843749983,
+            "to_hz": 43.066406249999986,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 236.0,
+            "end_beat": 244.0,
+            "from_hz": 86.13281249999997,
+            "to_hz": 775.1953124999997,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 325.99999467083535,
+            "end_beat": 336.0,
+            "from_hz": 559.86328125,
+            "to_hz": 1345.8251953124995,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 360.0,
+            "end_beat": 368.0,
+            "from_hz": 1356.5917968750007,
+            "to_hz": 43.066406249999986,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 452.0,
+            "end_beat": 460.0,
+            "from_hz": 441.4306640624999,
+            "to_hz": 53.83300781249999,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 604.0,
+            "end_beat": 612.0,
+            "from_hz": 43.066406249999986,
+            "to_hz": 21.533203124999993,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 612.0,
+            "end_beat": 629.9999418231581,
+            "from_hz": 21.533203124999993,
+            "to_hz": 753.6621093750002,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 660.0,
+            "end_beat": 668.0,
+            "from_hz": 721.3623046874997,
+            "to_hz": 32.29980468750001,
+            "kind": "highpass falling"
+          }
+        ],
+        "transcription": {
+          "method": "YIN monophonic pitch tracking",
+          "confidence": "medium",
+          "notes": 320,
+          "voiced_ratio": 0.29178680121736345,
+          "glide_count": 53,
+          "glide_ratio": 0.165625,
+          "median_cents_off_grid": 8.820003367567608,
+          "range": [
+            38,
+            78
+          ],
+          "f0_median_hz": 130.712030438157
+        }
+      },
+      "drum_samples": {}
+    },
+    {
+      "name": "lead_vocals",
+      "stem": "vocals",
+      "kind": "audio",
+      "role": "Vocals",
+      "color": 26,
+      "instrument": null,
+      "devices": [
+        {
+          "name": "Auto Filter",
+          "kind": "audio_effect",
+          "params": {
+            "filter_type": "Low-pass",
+            "slope": "24 dB",
+            "frequency_hz": "automated (see automation)"
+          },
+          "confidence": "medium",
+          "why": "6 filter sweep(s) of more than one octave detected.",
+          "stock": true
+        },
+        {
+          "name": "EQ Eight",
+          "kind": "audio_effect",
+          "params": {
+            "bands": [
+              {
+                "band": 1,
+                "type": "Low Cut (48 dB/oct)",
+                "freq_hz": 39.7
+              },
+              {
+                "band": 2,
+                "type": "Bell",
+                "freq_hz": 49.6,
+                "gain_db": -6.8,
+                "q": 1.4
+              },
+              {
+                "band": 3,
+                "type": "Bell",
+                "freq_hz": 10079.4,
+                "gain_db": 3.7,
+                "q": 1.4
+              }
+            ]
+          },
+          "confidence": "medium",
+          "why": "Vocal tone: band edges and resonances measured from the stem's 1/3-octave spectrum (content 50 Hz - 16000 Hz, tilt +1.3 dB/oct).",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "threshold_db": -17.4,
+            "ratio": 1.5,
+            "attack_ms": 20.0,
+            "release_ms": 200.0,
+            "knee_db": 6,
+            "makeup": "auto"
+          },
+          "confidence": "low",
+          "why": "Crest factor 28.2 dB (peak -0.4 / RMS -28.6 dBFS) -> light / none compression. Crest factor shows the amount of dynamic control, not the exact compressor settings.",
+          "stock": true
+        },
+        {
+          "name": "Compressor",
+          "kind": "audio_effect",
+          "params": {
+            "sidechain": "On",
+            "audio_from": "Drums (or a muted ghost-kick track)",
+            "ratio": 4,
+            "threshold_db": "set for ~7 dB gain reduction on each kick",
+            "attack_ms": 0.5,
+            "release_ms": 39.0,
+            "knee_db": 0
+          },
+          "confidence": "medium",
+          "why": "Envelope dips 7.3 dB right after each kick and recovers in ~39 ms: sidechain pumping.",
+          "stock": true
+        },
+        {
+          "name": "Utility",
+          "kind": "audio_effect",
+          "params": {
+            "width_percent": 13
+          },
+          "confidence": "medium",
+          "why": "Side/mid -17.4 dB, L/R correlation 0.964.",
+          "stock": true
+        }
+      ],
+      "sends": {
+        "A Reverb": -10.0
+      },
+      "sidechain_from": "Drums",
+      "automation": [
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              454.0,
+              18562
+            ],
+            [
+              462.0,
+              3618
+            ]
+          ],
+          "why": "lowpass closing: spectral edge moves 18562 -> 3618 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              60.0,
+              86
+            ],
+            [
+              68.0,
+              1227
+            ]
+          ],
+          "why": "highpass rising: spectral edge moves 86 -> 1227 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              272.0,
+              20
+            ],
+            [
+              280.0,
+              3661
+            ]
+          ],
+          "why": "highpass rising: spectral edge moves 20 -> 3661 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              280.0,
+              3661
+            ],
+            [
+              288.0,
+              20
+            ]
+          ],
+          "why": "highpass falling: spectral edge moves 3661 -> 20 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              426.0,
+              65
+            ],
+            [
+              434.0,
+              129
+            ]
+          ],
+          "why": "highpass rising: spectral edge moves 65 -> 129 Hz"
+        },
+        {
+          "device": "Auto Filter",
+          "param": "Frequency (Hz)",
+          "points": [
+            [
+              484.0,
+              108
+            ],
+            [
+              492.0,
+              1303
+            ]
+          ],
+          "why": "highpass rising: spectral edge moves 108 -> 1303 Hz"
+        }
+      ],
+      "midi_file": "MIDI\\lead_vocals.mid",
+      "audio_file": "Stems\\lead_vocals.wav",
+      "notes": [],
+      "measurements": {
+        "rms_dbfs": -28.6,
+        "spectrum": {
+          "centers": [
+            31.25,
+            39.37253280921478,
+            49.60628287400625,
+            62.5,
+            78.74506561842958,
+            99.21256574801247,
+            125.0,
+            157.49013123685916,
+            198.42513149602493,
+            250.0,
+            314.9802624737183,
+            396.8502629920499,
+            500.0,
+            629.9605249474366,
+            793.7005259840998,
+            1000.0,
+            1259.9210498948732,
+            1587.4010519681995,
+            2000.0,
+            2519.8420997897465,
+            3174.8021039363994,
+            4000.0,
+            5039.684199579493,
+            6349.604207872798,
+            8000.0,
+            10079.368399158986,
+            12699.208415745596,
+            16000.0
+          ],
+          "levels_db": [
+            -41.75,
+            -32.7,
+            -22.43,
+            -7.32,
+            -3.42,
+            -1.38,
+            -0.31,
+            -0.95,
+            0.0,
+            -0.41,
+            -4.31,
+            -3.32,
+            -1.75,
+            -0.08,
+            -3.29,
+            -4.73,
+            -3.75,
+            -5.34,
+            -7.81,
+            -6.27,
+            -5.87,
+            -7.1,
+            -7.61,
+            -8.14,
+            -5.69,
+            -1.99,
+            -4.43,
+            -8.07
+          ],
+          "tilt_db_per_oct": 1.32,
+          "centroid_hz": 2138.1,
+          "rolloff85_hz": 4791.1,
+          "lowest_hz": 49.60628287400625,
+          "highest_hz": 16000.0,
+          "eq_moves": [
+            {
+              "kind": "highpass",
+              "freq": 39.7,
+              "gain_db": 0,
+              "q": 0.71,
+              "slope_db_oct": 48
+            },
+            {
+              "kind": "bell",
+              "freq": 49.6,
+              "gain_db": -6.8,
+              "q": 1.4,
+              "slope_db_oct": 24
+            },
+            {
+              "kind": "bell",
+              "freq": 10079.4,
+              "gain_db": 3.7,
+              "q": 1.4,
+              "slope_db_oct": 24
+            }
+          ]
+        },
+        "dynamics": {
+          "peak_db": -0.4,
+          "rms_db": -28.6,
+          "crest_db": 28.2,
+          "short_term_range_db": 27.7,
+          "compression_guess": "light / none",
+          "ratio": 1.5,
+          "threshold_db": -17.4,
+          "attack_ms": 20.0,
+          "release_ms": 200.0
+        },
+        "stereo": {
+          "correlation": 0.964,
+          "side_to_mid_db": -17.4,
+          "width_percent": 13.0,
+          "low_mono_below_hz": 0.0,
+          "pan": -0.01
+        },
+        "reverb": {
+          "rt60_s": 1.35,
+          "predelay_ms": 0.0,
+          "wet_hint": "hall / plate",
+          "decays_measured": 243
+        },
+        "pitch": {
+          "voiced_ratio": 0.07212077526830049,
+          "glide_count": 7,
+          "glide_ratio": 0.10144927536231885,
+          "median_cents_off_grid": 16.873744989128525,
+          "range": [
+            38,
+            61
+          ],
+          "f0_median_hz": 127.29178491971543
+        },
+        "pumping": {
+          "detected": true,
+          "depth_db": 7.3,
+          "release_ms": 39.0,
+          "shape": [
+            -8.11,
+            -8.03,
+            -9.8,
+            -13.13,
+            -11.26,
+            -9.35,
+            -8.3,
+            -7.6,
+            -6.91,
+            -6.6,
+            -7.34,
+            -6.34,
+            -6.74,
+            -7.08,
+            -7.6,
+            -6.99,
+            -7.59,
+            -8.93,
+            -8.24,
+            -6.74,
+            -6.4,
+            -6.2,
+            -5.88,
+            -5.95,
+            -6.73,
+            -6.96,
+            -7.81,
+            -7.42,
+            -7.94,
+            -9.36,
+            -9.5,
+            -7.9
+          ],
+          "kick_alignment": 1.0
+        },
+        "echo": {
+          "detected": false,
+          "division": "",
+          "time_beats": 0.0,
+          "feedback": 0.0,
+          "strength": 0.02
+        },
+        "filter_sweeps": [
+          {
+            "start_beat": 453.9996811358194,
+            "end_beat": 462.0030364027294,
+            "from_hz": 18561.621093750004,
+            "to_hz": 3617.5781250000023,
+            "kind": "lowpass closing"
+          },
+          {
+            "start_beat": 60.0,
+            "end_beat": 68.0,
+            "from_hz": 86.13281249999997,
+            "to_hz": 1227.3925781249993,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 272.0,
+            "end_beat": 280.0,
+            "from_hz": 20.000000000000004,
+            "to_hz": 3660.644531250001,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 280.0,
+            "end_beat": 288.0,
+            "from_hz": 3660.644531250001,
+            "to_hz": 20.000000000000004,
+            "kind": "highpass falling"
+          },
+          {
+            "start_beat": 425.99979856699156,
+            "end_beat": 434.00000361320934,
+            "from_hz": 64.59960937500001,
+            "to_hz": 129.19921875000003,
+            "kind": "highpass rising"
+          },
+          {
+            "start_beat": 484.0,
+            "end_beat": 492.0,
+            "from_hz": 107.66601562499999,
+            "to_hz": 1302.7587890624998,
+            "kind": "highpass rising"
+          }
+        ],
+        "transcription": {
+          "method": "YIN monophonic pitch tracking",
+          "confidence": "low",
+          "notes": 69,
+          "voiced_ratio": 0.07212077526830049,
+          "glide_count": 7,
+          "glide_ratio": 0.10144927536231885,
+          "median_cents_off_grid": 16.873744989128525,
+          "range": [
+            38,
+            61
+          ],
+          "f0_median_hz": 127.29178491971543
+        }
+      },
+      "drum_samples": {}
+    }
+  ],
+  "returns": [
+    {
+      "name": "A Reverb",
+      "stem": "return",
+      "kind": "audio",
+      "role": "Return",
+      "color": 58,
+      "instrument": null,
+      "devices": [
+        {
+          "name": "Reverb",
+          "kind": "audio_effect",
+          "params": {
+            "decay_time_s": 1.0,
+            "predelay_ms": 20,
+            "size": 60,
+            "dry_wet": 100,
+            "hi_cut_hz": 6000
+          },
+          "confidence": "low",
+          "why": "Median free-decay RT60 across stems: 1.00 s (drums 0.37s, drums 0.32s, drums 0.35s, drums 0.26s, drums 0.31s, bass 1.89s, piano 0.64s, guitar 3.69s, other 2.16s, vocals 1.70s, vocals 2.54s, vocals 1.35s).",
+          "stock": true
+        }
+      ],
+      "sends": {},
+      "sidechain_from": null,
+      "automation": [],
+      "midi_file": null,
+      "audio_file": null,
+      "notes": [],
+      "measurements": {},
+      "drum_samples": {}
+    }
+  ],
+  "warnings": [
+    "Tempo searched around the 146 BPM that was given.",
+    "Tempo drifts across the track (live playing or tempo automation). The grid is an average.",
+    "Tempo is not steady: beats sit up to 216 ms away from a constant grid (143.95-146.53 BPM). Notes and warp markers follow the tracked beats.",
+    "The beat could not be followed in -1-26 s, 171-191 s (a sudden tempo change is the usual reason). Notes and warp markers there are not reliable."
+  ],
+  "timings_s": {
+    "decode": 5.73,
+    "tempo, key, chords, structure": 28.19,
+    "loudness & master": 9.74,
+    "separation (folder)": -0.0,
+    "stem: drums": 8.58,
+    "stem: cymbals": 8.51,
+    "stem: kick": 10.33,
+    "stem: snare": 7.9,
+    "stem: toms": 7.63,
+    "stem: bass": 27.26,
+    "stem: piano": 19.71,
+    "stem: guitar": 18.42,
+    "stem: other": 21.46,
+    "stem: vocals": 13.3,
+    "stem: backing_vocals": 30.29,
+    "stem: lead_vocals": 14.01,
+    "write outputs": 0.1
+  }
+}
